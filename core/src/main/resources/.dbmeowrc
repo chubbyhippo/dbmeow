@@ -1,0 +1,112 @@
+" ============================================================================
+" .dbmeowrc — THE default keymap of the dbmeow plugin
+" ----------------------------------------------------------------------------
+" Like meow in Emacs, the plugin binds no keys in code: these lines ARE the
+" default NORMAL/MOTION layout (meow's suggested QWERTY), adapted from the
+" ideameow sibling's .ideameowrc, plus the SPC keypad <action> table below —
+" Eclipse workbench command ids verified against IWorkbenchCommandConstants
+" (Quick Access is deliberately absent until its id is verified).
+" A ~/.dbmeowrc overrides this file entry by entry.
+" ============================================================================
+
+set which-key
+set timeoutlen=300
+
+nmap 0 meow-expand-0
+nmap 1 meow-expand-1
+nmap 2 meow-expand-2
+nmap 3 meow-expand-3
+nmap 4 meow-expand-4
+nmap 5 meow-expand-5
+nmap 6 meow-expand-6
+nmap 7 meow-expand-7
+nmap 8 meow-expand-8
+nmap 9 meow-expand-9
+nmap - meow-negative-argument
+
+" selections / things
+nmap ; meow-reverse
+nmap , meow-inner-of-thing
+nmap . meow-bounds-of-thing
+nmap [ meow-beginning-of-thing
+nmap ] meow-end-of-thing
+nmap < meow-beginning-of-thing
+nmap > meow-end-of-thing
+
+" the letter keys
+nmap a meow-append
+nmap A meow-open-below
+nmap b meow-back-word
+nmap B meow-back-symbol
+nmap c meow-change
+nmap d meow-delete
+nmap D meow-backward-delete
+nmap e meow-next-word
+nmap E meow-next-symbol
+nmap f meow-find
+nmap g meow-cancel-selection
+nmap G meow-grab
+nmap h meow-left
+nmap H meow-left-expand
+nmap i meow-insert
+nmap I meow-open-above
+nmap j meow-next
+nmap J meow-next-expand
+nmap k meow-prev
+nmap K meow-prev-expand
+nmap l meow-right
+nmap L meow-right-expand
+nmap m meow-join
+nmap n meow-search
+nmap o meow-block
+nmap O meow-to-block
+nmap p meow-yank
+nmap q meow-quit
+nmap Q meow-goto-line
+nmap r meow-replace
+nmap R meow-swap-grab
+nmap s meow-kill
+nmap t meow-till
+nmap u meow-undo
+nmap U meow-undo-in-selection
+nmap v meow-visit
+nmap w meow-mark-word
+nmap W meow-mark-symbol
+nmap x meow-line
+nmap X meow-goto-line
+nmap y meow-save
+nmap Y meow-sync-grab
+nmap z meow-pop-selection
+nmap ' repeat
+mmap j meow-next
+mmap k meow-prev
+mmap h meow-left
+mmap l meow-right
+mmap q <action>(HideActiveWindow)
+
+" ── SPC keypad table ────────────────────────────────────────────────────────
+" SPC is the leader; these sequences dispatch Eclipse workbench commands. Ids
+" verified against IWorkbenchCommandConstants (eclipse.platform.ui). SPC 1-9 =
+" digit argument, SPC ? = cheatsheet, SPC / = describe-key (handled in code).
+map <leader><Space> <action>(org.eclipse.ui.window.previousEditor)
+desc <leader><Space> last editor
+
+desc <leader>x files
+map <leader>xs <action>(org.eclipse.ui.file.save)
+map <leader>xS <action>(org.eclipse.ui.file.saveAll)
+map <leader>xk <action>(org.eclipse.ui.file.close)
+map <leader>xK <action>(org.eclipse.ui.file.closeAll)
+map <leader>xr <action>(org.eclipse.ui.file.refresh)
+
+desc <leader>w windows
+map <leader>wn <action>(org.eclipse.ui.window.nextEditor)
+map <leader>wp <action>(org.eclipse.ui.window.previousEditor)
+
+desc <leader>e edit
+map <leader>eu <action>(org.eclipse.ui.edit.undo)
+map <leader>er <action>(org.eclipse.ui.edit.redo)
+map <leader>ef <action>(org.eclipse.ui.edit.findReplace)
+
+desc <leader>j jump
+map <leader>jo <action>(org.eclipse.ui.navigate.backwardHistory)
+map <leader>ji <action>(org.eclipse.ui.navigate.forwardHistory)
