@@ -83,7 +83,7 @@ mmap j meow-next
 mmap k meow-prev
 mmap h meow-left
 mmap l meow-right
-mmap q <action>(HideActiveWindow)
+mmap q <action>(dbmeow.hideView)
 
 " ── SPC keypad table ────────────────────────────────────────────────────────
 " SPC is the leader; these sequences dispatch Eclipse workbench commands. Ids
@@ -102,6 +102,10 @@ map <leader>xr <action>(org.eclipse.ui.file.refresh)
 desc <leader>w windows
 map <leader>wn <action>(org.eclipse.ui.window.nextEditor)
 map <leader>wp <action>(org.eclipse.ui.window.previousEditor)
+map <leader>wh <action>(dbmeow.windmoveLeft)
+map <leader>wj <action>(dbmeow.windmoveDown)
+map <leader>wk <action>(dbmeow.windmoveUp)
+map <leader>wl <action>(dbmeow.windmoveRight)
 
 desc <leader>e edit
 map <leader>eu <action>(org.eclipse.ui.edit.undo)
