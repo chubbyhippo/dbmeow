@@ -112,6 +112,20 @@ final class EclipseUi implements UiPort {
     }
 
     @Override
+    public void showAvyMatches(List<io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange> matches) {
+        // v1: no avy match highlight yet (needs StyledText paint listeners)
+    }
+
+    @Override
+    public void showAvyLabels(List<UiPort.AvyLabel> labels) {
+        // v1: no avy label overlay yet
+    }
+
+    @Override
+    public void clearAvy() {
+    }
+
+    @Override
     public void modeChanged(MeowState state) {
         refresh(state);
     }

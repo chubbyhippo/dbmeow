@@ -39,7 +39,7 @@ public final class Registry {
         COMMANDS.putAll(Search.commands);
         COMMANDS.putAll(Structures.commands);
         COMMANDS.putAll(Grab.commands);
-        // Avy.commands (avy-goto-*) register here with the avy module port.
+        COMMANDS.putAll(Avy.commands);
         COMMANDS.putAll(Edits.commands);
         COMMANDS.put("meow-negative-argument", ctx -> ctx.st().negative = true);
         // meow's QWERTY table binds Emacs' own `negative-argument`; accept

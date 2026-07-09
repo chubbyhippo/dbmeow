@@ -44,9 +44,16 @@ public interface UiPort {
 
     void clearExpandHints();
 
-    // The avy match/label painting and the grab highlight land here with
-    // their modules (showAvyMatches / showAvyLabels / clearAvy /
-    // setGrabHighlight in the siblings' UiPort).
+    /** Avy: paint the live match ranges while collecting, then the labels. */
+    void showAvyMatches(List<EditorPort.OffsetRange> matches);
+
+    void showAvyLabels(List<AvyLabel> labels);
+
+    void clearAvy();
+
+    /** A jump label ("as", "d", …) to paint over the candidate at [offset]. */
+    record AvyLabel(int offset, String label) {
+    }
 
     void modeChanged(MeowState st);
 

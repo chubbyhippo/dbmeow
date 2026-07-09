@@ -62,10 +62,11 @@ nmap o meow-block
 nmap O meow-to-block
 nmap p meow-yank
 nmap q meow-quit
-nmap Q meow-goto-line
+nmap Q avy-goto-line
 nmap r meow-replace
 nmap R meow-swap-grab
 nmap s meow-kill
+nmap S avy-goto-char-timer
 nmap t meow-till
 nmap u meow-undo
 nmap U meow-undo-in-selection

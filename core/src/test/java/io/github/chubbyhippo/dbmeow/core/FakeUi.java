@@ -80,6 +80,18 @@ public class FakeUi implements UiPort {
     }
 
     @Override
+    public void showAvyMatches(List<EditorPort.OffsetRange> matches) {
+    }
+
+    @Override
+    public void showAvyLabels(List<UiPort.AvyLabel> labels) {
+    }
+
+    @Override
+    public void clearAvy() {
+    }
+
+    @Override
     public void modeChanged(MeowState st) {
         modes.add(st.mode);
     }

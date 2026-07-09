@@ -56,8 +56,9 @@ public class MeowState {
      *  primary caret but still applies the multi-range edit. */
     public EditorPort.OffsetRange grab = null;
 
-    // An in-flight avy jump (S / Q) lands here with the avy module port:
-    // `avy` session state, consuming keys until it lands or cancels.
+    /** In-flight avy jump (S / Q) session, or null — consumes keys until it
+     *  lands or cancels (see {@link Avy}). */
+    public Avy.AvySession avy = null;
 
     public final StringBuilder keypad = new StringBuilder();
     public final List<Character> unit = new ArrayList<>();

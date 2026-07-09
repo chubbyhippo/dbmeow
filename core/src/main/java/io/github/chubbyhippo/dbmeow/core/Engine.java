@@ -45,8 +45,12 @@ public final class Engine {
             ctx.ui().refresh(st);
             return true;
         }
-        // An in-flight avy session consumes keys here with the avy module
-        // port (st.avy != null -> Avy.key, lastCommand = "avy").
+        if (st.avy != null) { // an in-flight avy session consumes keys
+            Avy.key(ctx, c);
+            st.lastCommand = "avy";
+            ctx.ui().refresh(st);
+            return true;
+        }
 
         ctx.ui().hideWhichKey();
         ctx.ui().clearExpandHints();
@@ -172,7 +176,11 @@ public final class Engine {
      */
     public static boolean escapeKey(Ctx ctx) {
         MeowState st = ctx.st();
-        // An in-flight avy session cancels here with the avy module port.
+        if (st.avy != null) { // an in-flight avy session cancels in place
+            Avy.cancel(ctx);
+            ctx.ui().refresh(st);
+            return true;
+        }
         st.pending = null;
         ctx.ui().hideWhichKey();
         ctx.ui().clearExpandHints();
