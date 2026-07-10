@@ -116,6 +116,14 @@ desc <leader>j jump
 map <leader>jo <action>(org.eclipse.ui.navigate.backwardHistory)
 map <leader>ji <action>(org.eclipse.ui.navigate.forwardHistory)
 
+" SPC c m / M — edit and reload ~/.dbmeowrc, mirroring the siblings. The
+" dbmeow.* ids are adapter-mapped (EclipseUi.runCommand), not Eclipse
+" commands; reload flushes a dirty rc editor first (the ideameow
+" stale-reload fix / IdeaVim's ReloadVimRc saveDocumentAsIs precedent).
+desc <leader>c config
+map <leader>cm <action>(dbmeow.editRc)
+map <leader>cM <action>(dbmeow.reloadRc)
+
 " SPC b — bookmarks (mirrors the siblings' SPC b). m sets a line bookmark;
 " j opens the Bookmarks view to jump. Ids verified against the installed
 " DBeaver (org.eclipse.ui.ide is bundled, so the marker infra + view exist);

@@ -75,6 +75,17 @@ final class EclipseUi implements UiPort {
 
     @Override
     public void runCommand(String id) {
+        // dbmeow-internal ids — the rc's <action>(dbmeow.*) config entries —
+        // are mapped right here, not registered with the Eclipse command
+        // service (same pattern the staged windmove/tree ids will use)
+        if ("dbmeow.reloadRc".equals(id)) {
+            RcCommands.reload(this);
+            return;
+        }
+        if ("dbmeow.editRc".equals(id)) {
+            RcCommands.edit();
+            return;
+        }
         ICommandService commands =
                 PlatformUI.getWorkbench().getService(ICommandService.class);
         IHandlerService handlers =

@@ -142,6 +142,7 @@ public final class Keypad {
 
             KEYPAD (SPC)
               SPC 1-9 count   SPC ? this sheet   SPC / describe key
+              SPC c m edit ~/.dbmeowrc   SPC c M reload it
               the SPC command table itself is rc lines: map <leader><seq> <target>
 
             ~/.dbmeowrc: nmap <key> <action>(command.id) | nmap <key> meow-command | nmap <key> <meow keys>

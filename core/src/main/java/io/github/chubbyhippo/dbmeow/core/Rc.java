@@ -75,11 +75,13 @@ public final class Rc {
     /** Load (or reload) the user layer from rc lines. */
     public static Config setUserLines(List<String> lines) {
         userConfig = parse(lines);
+        RcFileState.saveParsed(userConfig); // the reload surface's snapshot
         return userConfig;
     }
 
     public static void setForTest(Config c) {
         userConfig = c;
+        RcFileState.resetForTest(); // no stale reload state across specs
     }
 
     public static Config cfg() {
@@ -90,6 +92,12 @@ public final class Rc {
     public static Config defaults() {
         if (defaultConfig == null) initDefaults(readBundledLines());
         return defaultConfig;
+    }
+
+    /** The bundled rc verbatim — what a first ~/.dbmeowrc is seeded from
+     *  (the adapter's SPC c m, mirroring the siblings). */
+    public static List<String> bundledLines() {
+        return readBundledLines();
     }
 
     private static List<String> readBundledLines() {

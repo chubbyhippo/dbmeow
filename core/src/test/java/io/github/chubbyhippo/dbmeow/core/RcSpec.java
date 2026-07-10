@@ -41,6 +41,17 @@ class RcSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given comment-only rc edits then the reload button reports no changes")
+    void givenCommentOnlyRcEditsThenTheReloadButtonReportsNoChanges() {
+        // the reload surface compares the PARSED config (IdeaVim's
+        // VimRcFileState hashes the parsed Script the same way) — formatting
+        // and comment edits never demand a reload
+        Rc.setUserLines(List.of("nmap Z ,b"));
+        assertTrue(RcFileState.equalTo(List.of("\" just a comment", "nmap Z ,b")));
+        assertFalse(RcFileState.equalTo(List.of("nmap Q meow-goto-line")));
+    }
+
+    @Test
     @DisplayName("given a key-sequence mapping then it parses as replay keys")
     void givenAKeySequenceMappingThenItParsesAsReplayKeys() {
         Rc.Config c = Rc.parse(List.of("nmap Z ,b"));

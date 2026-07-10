@@ -43,6 +43,9 @@ public final class DbmeowStartup implements IStartup {
     }
 
     private static void hookAllWindows() {
+        // the user layer first, so the very first dispatched key already sees
+        // ~/.dbmeowrc (reloadable later via SPC c M -> dbmeow.reloadRc)
+        RcCommands.load();
         InterceptorManager manager = InterceptorManager.INSTANCE;
         for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
             window.getPartService().addPartListener(manager);
