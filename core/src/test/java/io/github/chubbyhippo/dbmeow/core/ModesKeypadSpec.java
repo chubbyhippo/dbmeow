@@ -4,19 +4,18 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * State transitions: INSERT/NORMAL/MOTION/KEYPAD, escape, keypad dispatch.
- * A name-for-name port of codemeow's modesKeypad.test.ts.
+ * State transitions: INSERT/NORMAL/MOTION/KEYPAD, escape, keypad dispatch. A name-for-name port of
+ * codemeow's modesKeypad.test.ts.
  */
 @DisplayName("ModesKeypadSpec")
 class ModesKeypadSpec extends SpecDsl {
@@ -63,7 +62,8 @@ class ModesKeypadSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a read-only document then all motions work and the modify commands are inert")
+    @DisplayName(
+            "given a read-only document then all motions work and the modify commands are inert")
     void givenAReadOnlyDocumentThenAllMotionsWorkAndTheModifyCommandsAreInert() {
         // like Emacs: a read-only buffer stays in NORMAL — motions, selections
         // and save all work; only text changes gate (meow--allow-modify-p)

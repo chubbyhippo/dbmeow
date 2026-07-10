@@ -23,33 +23,35 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * Meow for workbench trees — MOTION state ported to the one surface a database
- * tool navigates without a text editor (Database Navigator, project explorer,
- * result grids, ...). Like special buffers in Emacs, a tree answers to the
- * MOTION map (the rc's `mmap` lines): the four motion commands translate to the
- * tree widget's own arrow-key vocabulary, `<action>(...)` bindings dispatch
- * against the focused tree, and every unbound key keeps its native meaning.
- * Same resolution order as the engine (user maps over bundled defaults; a
- * noremap replay skips user maps; depth-guarded). The SWT wiring (one gated key
- * per bound char) is staged; the dispatch logic is here.
+ * Meow for workbench trees — MOTION state ported to the one surface a database tool navigates
+ * without a text editor (Database Navigator, project explorer, result grids, ...). Like special
+ * buffers in Emacs, a tree answers to the MOTION map (the rc's `mmap` lines): the four motion
+ * commands translate to the tree widget's own arrow-key vocabulary, `<action>(...)` bindings
+ * dispatch against the focused tree, and every unbound key keeps its native meaning. Same
+ * resolution order as the engine (user maps over bundled defaults; a noremap replay skips user
+ * maps; depth-guarded). The SWT wiring (one gated key per bound char) is staged; the dispatch logic
+ * is here.
  */
 public final class TreeMeow {
-    private TreeMeow() {
-    }
+    private TreeMeow() {}
 
-    /** The four motion commands with a native tree meaning → the tree widget's
-     *  arrow-key vocabulary (down/up move, collapse folds else goes to the
-     *  parent, expand unfolds else enters the first child — the JTree ActionMap
-     *  contract the siblings pin). Values are dbmeow tree commands the SWT
-     *  adapter maps; every other meow command needs a text buffer, inert here. */
-    private static final Map<String, String> LIST_MOTIONS = Map.of(
-            "meow-next", "dbmeow.tree.focusDown",
-            "meow-prev", "dbmeow.tree.focusUp",
-            "meow-left", "dbmeow.tree.collapse",
-            "meow-right", "dbmeow.tree.expand");
+    /**
+     * The four motion commands with a native tree meaning → the tree widget's arrow-key vocabulary
+     * (down/up move, collapse folds else goes to the parent, expand unfolds else enters the first
+     * child — the JTree ActionMap contract the siblings pin). Values are dbmeow tree commands the
+     * SWT adapter maps; every other meow command needs a text buffer, inert here.
+     */
+    private static final Map<String, String> LIST_MOTIONS =
+            Map.of(
+                    "meow-next", "dbmeow.tree.focusDown",
+                    "meow-prev", "dbmeow.tree.focusUp",
+                    "meow-left", "dbmeow.tree.collapse",
+                    "meow-right", "dbmeow.tree.expand");
 
-    /** Every char the MOTION map binds (defaults + ~/.dbmeowrc) minus effective
-     *  ignores — the tree shortcut set. */
+    /**
+     * Every char the MOTION map binds (defaults + ~/.dbmeowrc) minus effective ignores — the tree
+     * shortcut set.
+     */
     public static Set<Character> boundChars() {
         Set<Character> all = new HashSet<>(Rc.defaults().motion.keySet());
         all.addAll(Rc.cfg().motion.keySet());
@@ -62,8 +64,10 @@ public final class TreeMeow {
         return out;
     }
 
-    /** Resolve one key against the MOTION map and run it through [run] — the
-     *  focused tree's command executor. */
+    /**
+     * Resolve one key against the MOTION map and run it through [run] — the focused tree's command
+     * executor.
+     */
     public static void dispatch(Consumer<String> run, char c) {
         dispatch(run, c, false, 0);
     }

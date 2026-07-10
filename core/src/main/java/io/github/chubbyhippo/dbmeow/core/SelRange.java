@@ -18,5 +18,4 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 /** A directed selection: active is the caret end; anchor == active is a bare caret. */
-public record SelRange(int anchor, int active) {
-}
+public record SelRange(int anchor, int active) {}

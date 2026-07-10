@@ -25,14 +25,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * meow-search / meow-visit and the regexp ring they share. Mark-word pushes
- * into the same ring (see {@link Motions}), which is why `n` works right after
- * `w`. A name-for-name port of codemeow's search.ts (string-pattern ring),
- * against meow-command.el; semantics in meow-semantics.md.
+ * meow-search / meow-visit and the regexp ring they share. Mark-word pushes into the same ring (see
+ * {@link Motions}), which is why `n` works right after `w`. A name-for-name port of codemeow's
+ * search.ts (string-pattern ring), against meow-command.el; semantics in meow-semantics.md.
  */
 public final class Search {
-    private Search() {
-    }
+    private Search() {}
 
     public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
@@ -47,8 +45,7 @@ public final class Search {
         while (st.searchHistory.size() > 50) st.searchHistory.remove(0);
     }
 
-    private record Match(int start, int end) {
-    }
+    private record Match(int start, int end) {}
 
     private static boolean fullyMatches(String pattern, String s) {
         try {
@@ -80,19 +77,24 @@ public final class Search {
         return out;
     }
 
-    /** meow-search: car of the ring; a region that doesn't match the pattern
-     *  becomes the new pattern (regexp-quoted); wraps at buffer edges; a
-     *  reversed selection searches backward. */
+    /**
+     * meow-search: car of the ring; a region that doesn't match the pattern becomes the new pattern
+     * (regexp-quoted); wraps at buffer edges; a reversed selection searches backward.
+     */
     private static void search(Ctx ctx) {
         MeowState st = ctx.st();
         SelRange sel = Selections.primary(ctx);
-        String pattern = st.searchHistory.isEmpty()
-                ? null
-                : st.searchHistory.get(st.searchHistory.size() - 1);
+        String pattern =
+                st.searchHistory.isEmpty()
+                        ? null
+                        : st.searchHistory.get(st.searchHistory.size() - 1);
         if (Selections.hasSelection(sel)) {
-            String selText = ctx.port().getText().substring(
-                    Math.min(sel.anchor(), sel.active()),
-                    Math.max(sel.anchor(), sel.active()));
+            String selText =
+                    ctx.port()
+                            .getText()
+                            .substring(
+                                    Math.min(sel.anchor(), sel.active()),
+                                    Math.max(sel.anchor(), sel.active()));
             if (!selText.isEmpty() && (pattern == null || !fullyMatches(pattern, selText))) {
                 pattern = Text.escapeRegExp(selText);
                 push(st, pattern);

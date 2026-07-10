@@ -19,23 +19,20 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import io.github.chubbyhippo.dbmeow.core.EditorPort.LineRange;
 import io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * A native port of avy's two jumps (S = avy-goto-char-timer, Q = avy-goto-line),
- * name-for-name with codemeow/ideameow; every behavior read out of avy 0.5.0's
- * avy.el (see meow-semantics is editor-agnostic — the tree/subdiv math is here).
- * The 250 ms timeout is a real timer in the host adapter; the core exposes
- * {@link #finishInput} so the input phase can be ended (the specs call it, the
- * SWT adapter schedules it). Match/label painting is UiPort (staged in SWT).
+ * A native port of avy's two jumps (S = avy-goto-char-timer, Q = avy-goto-line), name-for-name with
+ * codemeow/ideameow; every behavior read out of avy 0.5.0's avy.el, not guessed — the tree/subdiv
+ * math is editor-agnostic and lives here. The 250 ms timeout is a real timer in the host adapter;
+ * the core exposes {@link #finishInput} so the input phase can be ended (the specs call it, the SWT
+ * adapter schedules it). Match/label painting is UiPort (staged in SWT).
  */
 public final class Avy {
-    private Avy() {
-    }
+    private Avy() {}
 
     /** avy-keys default. */
     private static final String KEYS = "asdfghjkl";
@@ -49,17 +46,13 @@ public final class Avy {
 
     // ---------------------------------------------------------------- the tree
 
-    sealed interface AvyNode permits Leaf, Branch {
-    }
+    sealed interface AvyNode permits Leaf, Branch {}
 
-    record Leaf(int offset) implements AvyNode {
-    }
+    record Leaf(int offset) implements AvyNode {}
 
-    record Branch(List<Entry> children) implements AvyNode {
-    }
+    record Branch(List<Entry> children) implements AvyNode {}
 
-    record Entry(char key, AvyNode child) {
-    }
+    record Entry(char key, AvyNode child) {}
 
     /** avy-subdiv: distribute N candidates over B keys in a balanced way. */
     public static int[] subdiv(int n, int b) {
@@ -78,8 +71,10 @@ public final class Avy {
         return out;
     }
 
-    /** avy-tree: fewer candidates than keys pair up 1:1; otherwise the subdiv
-     *  sizes decide which keys are leaves and which host subtrees. */
+    /**
+     * avy-tree: fewer candidates than keys pair up 1:1; otherwise the subdiv sizes decide which
+     * keys are leaves and which host subtrees.
+     */
     static Branch tree(List<Integer> candidates, String keys) {
         List<Entry> children = new ArrayList<>();
         if (candidates.size() < keys.length()) {
@@ -94,8 +89,10 @@ public final class Avy {
             int size = sizes[i];
             List<Integer> taken = new ArrayList<>(rest.subList(0, size));
             rest = new ArrayList<>(rest.subList(size, rest.size()));
-            children.add(new Entry(keys.charAt(i),
-                    size == 1 ? new Leaf(taken.get(0)) : tree(taken, keys)));
+            children.add(
+                    new Entry(
+                            keys.charAt(i),
+                            size == 1 ? new Leaf(taken.get(0)) : tree(taken, keys)));
         }
         return new Branch(children);
     }
@@ -119,7 +116,10 @@ public final class Avy {
 
     /** In-flight avy state: collecting the query, or selecting a label. */
     public static final class AvySession {
-        enum Phase { COLLECTING, SELECTING }
+        enum Phase {
+            COLLECTING,
+            SELECTING
+        }
 
         Phase phase = Phase.COLLECTING;
         final StringBuilder input = new StringBuilder();
@@ -246,11 +246,15 @@ public final class Avy {
         int total = Text.lineCount(ctx.port().getText());
         LineRange vis = ctx.port().visibleLineRange();
         if (vis == null) return new int[] {0, total - 1};
-        return new int[] {Text.clamp(vis.first(), 0, total - 1), Text.clamp(vis.last(), 0, total - 1)};
+        return new int[] {
+            Text.clamp(vis.first(), 0, total - 1), Text.clamp(vis.last(), 0, total - 1)
+        };
     }
 
-    /** Literal, case-insensitive, non-overlapping matches in the visible
-     *  region (avy--read-candidates with regexp-quote + case folding). */
+    /**
+     * Literal, case-insensitive, non-overlapping matches in the visible region
+     * (avy--read-candidates with regexp-quote + case folding).
+     */
     private static List<Integer> matches(Ctx ctx, String input) {
         if (input.isEmpty()) return List.of();
         String text = ctx.port().getText();

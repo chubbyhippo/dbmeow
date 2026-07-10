@@ -17,17 +17,17 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * meow-insert/append/open, change, delete/backward-delete, kill (+ the
- * kill-line and join fallbacks), save, yank, replace, undo, repeat. A
- * name-for-name port of codemeow's editing.test.ts; the kill/save newline
- * rules were probed against meow 1.5.0 (see meow-semantics.md).
+ * meow-insert/append/open, change, delete/backward-delete, kill (+ the kill-line and join
+ * fallbacks), save, yank, replace, undo, repeat. A name-for-name port of codemeow's
+ * editing.test.ts; the kill/save newline rules were probed against meow 1.5.0 (see
+ * meow-semantics.md).
  */
 class EditingSpec extends SpecDsl {
     @Test
@@ -100,7 +100,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given no selection when c then the char at point is changed (meow-change-char fallback)")
+    @DisplayName(
+            "given no selection when c then the char at point is changed (meow-change-char fallback)")
     void noSelectionCChangeChar() {
         given("word", "a<caret>bc");
         whenKeys("c");
@@ -109,7 +110,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given the caret on a newline when c then the lines join (change-char takes any char)")
+    @DisplayName(
+            "given the caret on a newline when c then the lines join (change-char takes any char)")
     void caretOnNewlineCJoins() {
         given("two lines", "ab<caret>\ncd");
         whenKeys("c");
@@ -148,7 +150,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given no selection when d then the char at point is deleted (delete-char fallback)")
+    @DisplayName(
+            "given no selection when d then the char at point is deleted (delete-char fallback)")
     void noSelectionDDeleteChar() {
         given("word", "a<caret>bc");
         whenKeys("d");
@@ -191,7 +194,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a join selection when s then the lines join with a single space (fixup-whitespace)")
+    @DisplayName(
+            "given a join selection when s then the lines join with a single space (fixup-whitespace)")
     void joinSelectionSJoinsSingleSpace() {
         given("indented continuation", "one\n  t<caret>wo");
         whenKeys("ms");
@@ -208,7 +212,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given y then the selection is copied and cancelled (kill-ring-save deactivates the mark)")
+    @DisplayName(
+            "given y then the selection is copied and cancelled (kill-ring-save deactivates the mark)")
     void yCopiesAndCancels() {
         given("word", "<caret>hello world");
         whenKeys("wy");
@@ -219,7 +224,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a line selection when y then the newline is copied and the caret lands past it")
+    @DisplayName(
+            "given a line selection when y then the newline is copied and the caret lands past it")
     void lineSelectionYCopiesNewline() {
         given("two lines", "o<caret>ne\ntwo");
         whenKeys("xy");
@@ -251,7 +257,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a reversed line selection when s then the newline stays (backward selections kill as-is)")
+    @DisplayName(
+            "given a reversed line selection when s then the newline stays (backward selections kill as-is)")
     void reversedLineSelectionSNewlineStays() {
         given("three lines", "one\nt<caret>wo\nthree");
         whenKeys("x;s");
@@ -269,7 +276,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given p then the clipboard is inserted at point with the caret after it (meow-yank)")
+    @DisplayName(
+            "given p then the clipboard is inserted at point with the caret after it (meow-yank)")
     void pYanksClipboard() {
         given("word", "<caret>hello");
         givenClipboard("XY");
@@ -279,7 +287,8 @@ class EditingSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given r then the selection is replaced by the clipboard which stays intact (meow-replace)")
+    @DisplayName(
+            "given r then the selection is replaced by the clipboard which stays intact (meow-replace)")
     void rReplacesWithClipboard() {
         given("word", "<caret>hello world");
         givenClipboard("XY");

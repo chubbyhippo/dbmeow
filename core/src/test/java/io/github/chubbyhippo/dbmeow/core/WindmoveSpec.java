@@ -17,31 +17,32 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
+import static io.github.chubbyhippo.dbmeow.core.Windmove.noWindowMessage;
+import static io.github.chubbyhippo.dbmeow.core.Windmove.plan;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.github.chubbyhippo.dbmeow.core.Windmove.DiffSideView;
 import io.github.chubbyhippo.dbmeow.core.Windmove.Dir;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static io.github.chubbyhippo.dbmeow.core.Windmove.noWindowMessage;
-import static io.github.chubbyhippo.dbmeow.core.Windmove.plan;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
- * The window surface: windmove, the ideameow port's sibling. Platform-specific
- * (no window geometry exposed), so dbmeow-shaped rather than name-for-name:
- * pinned is the composed step decision (compare panes are windows, crossed
- * before leaving the editor), Emacs' user-error verbatim, and the rc's SPC w
- * map. SPC w h/j/k/l dispatch dbmeow.windmove* (plugin commands, staged).
+ * The window surface: windmove, the ideameow port's sibling. Platform-specific (no window geometry
+ * exposed), so dbmeow-shaped rather than name-for-name: pinned is the composed step decision
+ * (compare panes are windows, crossed before leaving the editor), Emacs' user-error verbatim, and
+ * the rc's SPC w map. SPC w h/j/k/l dispatch dbmeow.windmove* (plugin commands, staged).
  */
 class WindmoveSpec extends SpecDsl {
     @Test
-    @DisplayName("given a side-by-side diff then left from the modified pane crosses to the original")
+    @DisplayName(
+            "given a side-by-side diff then left from the modified pane crosses to the original")
     void leftFromModifiedCrosses() {
         assertEquals("dbmeow.compareSwitch", plan(Dir.LEFT, new DiffSideView(false, true, true)));
     }
 
     @Test
-    @DisplayName("given a side-by-side diff then right from the original pane crosses to the modified")
+    @DisplayName(
+            "given a side-by-side diff then right from the original pane crosses to the modified")
     void rightFromOriginalCrosses() {
         assertEquals("dbmeow.compareSwitch", plan(Dir.RIGHT, new DiffSideView(true, false, true)));
     }
@@ -50,7 +51,8 @@ class WindmoveSpec extends SpecDsl {
     @DisplayName("given the outer pane then windmove leaves the diff toward the editor")
     void outerPaneLeavesDiff() {
         assertEquals("dbmeow.focusLeftEditor", plan(Dir.LEFT, new DiffSideView(true, false, true)));
-        assertEquals("dbmeow.focusRightEditor", plan(Dir.RIGHT, new DiffSideView(false, true, true)));
+        assertEquals(
+                "dbmeow.focusRightEditor", plan(Dir.RIGHT, new DiffSideView(false, true, true)));
     }
 
     @Test

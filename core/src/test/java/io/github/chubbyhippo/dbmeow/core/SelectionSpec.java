@@ -17,18 +17,17 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * meow-mark-word/symbol, next/back word/symbol, meow-line, goto-line,
- * meow-expand digits, meow-reverse, meow-pop-selection. Name-for-name port of
- * codemeow's selection.test.ts. The word-motion mark-fix and the
- * pop-selection history model were batch-probed against meow 1.5.0.
+ * meow-mark-word/symbol, next/back word/symbol, meow-line, goto-line, meow-expand digits,
+ * meow-reverse, meow-pop-selection. Name-for-name port of codemeow's selection.test.ts. The
+ * word-motion mark-fix and the pop-selection history model were batch-probed against meow 1.5.0.
  */
 class SelectionSpec extends SpecDsl {
     @Test
@@ -79,7 +78,8 @@ class SelectionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given words separated by punctuation when e e e then each selection is one bare word")
+    @DisplayName(
+            "given words separated by punctuation when e e e then each selection is one bare word")
     void eeeBareWords() {
         given("comma separated", "<caret>word1, word2 word3");
         whenKeys("ee");
@@ -220,7 +220,8 @@ class SelectionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a selection then expand hints overlay the text without inserting inline content")
+    @DisplayName(
+            "given a selection then expand hints overlay the text without inserting inline content")
     void expandHintsOverlay() {
         // parity with ideameow's overlay regression: the core hands the adapter
         // positions to paint OVER the text (absolute-positioned decorations, the
@@ -231,6 +232,17 @@ class SelectionSpec extends SpecDsl {
         assertEquals(11, ui.expandHints.get(0)); // where digit 1 would take the selection
         whenKeys("g"); // next key clears the hints
         assertEquals(0, ui.expandHints.size());
+    }
+
+    @Test
+    @DisplayName(
+            "given a find selection when the target char sits at the caret then the first hint marks it")
+    void findHintAtCaret() {
+        // the preview runs the same nthCharTarget scan as the digit expand: a
+        // second X right at the caret is one expand away and must be hinted
+        given("chars", "<caret>aXX");
+        whenKeys("fX");
+        assertEquals(List.of(3), ui.expandHints);
     }
 
     @Test
@@ -279,7 +291,8 @@ class SelectionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given goto line via minibuffer then that line is selected (meow-goto-line expands line selection)")
+    @DisplayName(
+            "given goto line via minibuffer then that line is selected (meow-goto-line expands line selection)")
     void gotoLineViaMinibuffer() {
         given("three lines", "<caret>one\ntwo\nthree");
         givenMinibufferAnswers("2");
@@ -301,7 +314,8 @@ class SelectionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a selection history when z then the previous selection is restored with its type")
+    @DisplayName(
+            "given a selection history when z then the previous selection is restored with its type")
     void zRestoresPreviousSelection() {
         given("two words", "<caret>hello world");
         whenKeys("w"); // selection 1: hello
@@ -313,7 +327,8 @@ class SelectionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given w then z then the caret returns to where the chain started (null placeholder)")
+    @DisplayName(
+            "given w then z then the caret returns to where the chain started (null placeholder)")
     void zNullPlaceholder() {
         given("two words", "he<caret>llo world");
         whenKeys("w");
@@ -353,7 +368,8 @@ class SelectionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given no history but a grab when z then the grab becomes the selection (meow-pop-grab fallback)")
+    @DisplayName(
+            "given no history but a grab when z then the grab becomes the selection (meow-pop-grab fallback)")
     void popGrabFallback() {
         given("two words", "<caret>hello world");
         whenKeys("wG"); // grab "hello", no selection, empty history after grab

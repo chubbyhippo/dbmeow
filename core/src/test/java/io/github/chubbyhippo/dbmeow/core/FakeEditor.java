@@ -69,8 +69,7 @@ public class FakeEditor implements EditorPort {
     }
 
     @Override
-    public void closeEditor() {
-    }
+    public void closeEditor() {}
 
     @Override
     public OffsetRange symbolRangeAt(int offset) {

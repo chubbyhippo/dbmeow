@@ -17,18 +17,18 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * meow-grab, swap-grab, sync-grab, and the multi-cursor BEACON approximation.
- * A name-for-name port of codemeow's grabBeacon.test.ts. The beacon LOGIC runs
- * headless here over FakeEditor; the SWT adapter renders only the primary caret
- * (single-caret StyledText) but still applies the multi-range edit.
+ * meow-grab, swap-grab, sync-grab, and the multi-cursor BEACON approximation. A name-for-name port
+ * of codemeow's grabBeacon.test.ts. The beacon LOGIC runs headless here over FakeEditor; the SWT
+ * adapter renders only the primary caret (single-caret StyledText) but still applies the
+ * multi-range edit.
  */
 class GrabBeaconSpec extends SpecDsl {
     @Test
@@ -43,7 +43,8 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a grab and a selection elsewhere when R then the two texts swap (meow-swap-grab)")
+    @DisplayName(
+            "given a grab and a selection elsewhere when R then the two texts swap (meow-swap-grab)")
     void swapGrabSwapsTexts() {
         given("three words", "<caret>one two three");
         whenKeys("wG");
@@ -53,7 +54,9 @@ class GrabBeaconSpec extends SpecDsl {
         whenKeys("R");
         thenText("three two one");
         thenNoSelection();
-        assertEquals("three", editor.getText().substring(st.grab.start(), st.grab.end()),
+        assertEquals(
+                "three",
+                editor.getText().substring(st.grab.start(), st.grab.end()),
                 "grab now holds the swapped-in text");
     }
 
@@ -100,7 +103,8 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a grab when marking a word inside it then a cursor lands on every occurrence (BEACON)")
+    @DisplayName(
+            "given a grab when marking a word inside it then a cursor lands on every occurrence (BEACON)")
     void beaconWordOccurrences() {
         given("repeats", "<caret>foo bar foo baz foo");
         whenKeys(",bG"); // grab the whole buffer
@@ -119,6 +123,21 @@ class GrabBeaconSpec extends SpecDsl {
         thenText(" bar  baz ");
         thenMode(MeowMode.INSERT);
         thenCaretCount(3);
+    }
+
+    @Test
+    @DisplayName("given beacon cursors when c then every cursor lands at its own edit")
+    void beaconChangeCursorOffsets() {
+        // editCarets re-bases each cursor by the edits below it: the cursors
+        // must sit at POST-edit offsets, not at the pre-edit match positions
+        given("repeats", "<caret>foo bar foo baz foo");
+        whenKeys(",bG");
+        givenCaretAt(0);
+        whenKeys("wc");
+        thenText(" bar  baz ");
+        assertEquals(
+                java.util.List.of(new SelRange(0, 0), new SelRange(5, 5), new SelRange(10, 10)),
+                editor.sels);
     }
 
     @Test

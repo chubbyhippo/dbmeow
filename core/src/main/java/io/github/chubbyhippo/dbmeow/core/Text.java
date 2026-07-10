@@ -19,8 +19,7 @@ package io.github.chubbyhippo.dbmeow.core;
 
 /** Plain-text scanning shared by the command modules and the expand hints. */
 public final class Text {
-    private Text() {
-    }
+    private Text() {}
 
     /** A predicate over buffer chars (avoids Character boxing in the scans). */
     @FunctionalInterface
@@ -103,26 +102,16 @@ public final class Text {
     }
 
     /**
-     * Selection target after the nth occurrence of {@code ch} from
-     * {@code caret} — the scan behind meow-find (selects THROUGH the char) and
-     * meow-till (stops short of it), shared by the find/till commands and
-     * their digit expand. -1 when there is no nth occurrence.
+     * Selection target after the nth occurrence of {@code ch} from {@code caret} — the scan behind
+     * meow-find (selects THROUGH the char) and meow-till (stops short of it), shared by the
+     * find/till commands and their digit expand. -1 when there is no nth occurrence.
      */
     public static int nthCharTarget(
-            String text,
-            char ch,
-            int caret,
-            int n,
-            boolean backward,
-            boolean till) {
+            String text, char ch, int caret, int n, boolean backward, boolean till) {
         int found = -1;
-        int from = backward
-                ? (till ? caret - 2 : caret - 1)
-                : (till ? caret + 1 : caret);
+        int from = backward ? (till ? caret - 2 : caret - 1) : (till ? caret + 1 : caret);
         for (int k = 0; k < n; k++) {
-            found = backward
-                    ? lastIndexOfChar(text, ch, from)
-                    : indexOfChar(text, ch, from);
+            found = backward ? lastIndexOfChar(text, ch, from) : indexOfChar(text, ch, from);
             if (found < 0) return -1;
             from = backward ? found - 1 : found + 1;
         }
@@ -135,8 +124,7 @@ public final class Text {
 
     /** Word/symbol scanning shared by commands and hints. */
     public static final class Words {
-        private Words() {
-        }
+        private Words() {}
 
         public static int nextEnd(String text, int from, int n, CharPredicate pred) {
             int i = clamp(from, 0, text.length());
@@ -156,25 +144,24 @@ public final class Text {
             return i;
         }
 
-        /** meow--fix-thing-selection-mark (meow 1.5.0): the mark of a fresh
-         *  next/back-thing selection snaps to the selected thing's own bounds,
-         *  so the separators between the old point and the thing stay outside —
-         *  e e e steps bare word by bare word (batch-probed). Forward
-         *  (mark < pos): max(mark, start of the thing ending at pos); backward:
-         *  min(mark, end of the thing starting at pos). Expand chains ignore
-         *  this (the anchor comes from the region ends). */
+        /**
+         * meow--fix-thing-selection-mark (meow 1.5.0): the mark of a fresh next/back-thing
+         * selection snaps to the selected thing's own bounds, so the separators between the old
+         * point and the thing stay outside — e e e steps bare word by bare word (batch-probed).
+         * Forward (mark < pos): max(mark, start of the thing ending at pos); backward: min(mark,
+         * end of the thing starting at pos). Expand chains ignore this (the anchor comes from the
+         * region ends).
+         */
         public static int fixSelectionMark(String text, int pos, int mark, CharPredicate pred) {
-            int probe = clamp(
-                    mark > pos ? pos : pos - 1,
-                    0,
-                    Math.max(text.length() - 1, 0));
+            int probe = clamp(mark > pos ? pos : pos - 1, 0, Math.max(text.length() - 1, 0));
             int[] bounds = boundsAt(text, probe, pred);
             if (bounds == null) return mark;
             return mark > pos ? Math.min(mark, bounds[1]) : Math.max(mark, bounds[0]);
         }
 
-        /** The [start, end) of the word/symbol at (or next after) offset; null
-         *  when there is none. */
+        /**
+         * The [start, end) of the word/symbol at (or next after) offset; null when there is none.
+         */
         public static int[] boundsAt(String text, int offset, CharPredicate pred) {
             int o = offset;
             if (o >= text.length() || !pred.test(text.charAt(o))) {

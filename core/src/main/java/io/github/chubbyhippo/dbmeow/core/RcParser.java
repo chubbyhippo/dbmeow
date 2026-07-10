@@ -46,15 +46,13 @@ import java.util.regex.Pattern;
  *                                       the target gives a default key back
  * </pre>
  *
- * A RHS that names a command in the registry binds the command; a misspelled
- * `meow-*` name is an error; any other RHS is replayed as keys. Keypad keys
- * 0-9, ? and / are reserved; SPC itself cannot be remapped. Unknown `set`
- * options and `let` lines are ignored so an .ideavimrc/.ideameowrc can be
- * pasted without errors.
+ * A RHS that names a command in the registry binds the command; a misspelled `meow-*` name is an
+ * error; any other RHS is replayed as keys. Keypad keys 0-9, ? and / are reserved; SPC itself
+ * cannot be remapped. Unknown `set` options and `let` lines are ignored so an
+ * .ideavimrc/.ideameowrc can be pasted without errors.
  */
 final class RcParser {
-    private RcParser() {
-    }
+    private RcParser() {}
 
     // The id inside <action>(...) is either a bare Eclipse command id or the
     // serialized *parameterized* form commandId(paramId=value,...) — which
@@ -92,8 +90,7 @@ final class RcParser {
             String cmd = split[0];
             String rest = split.length > 1 ? split[1].trim() : "";
             switch (cmd) {
-                case "let" -> {
-                } // mapleader and friends: accepted, nothing to do
+                case "let" -> {} // mapleader and friends: accepted, nothing to do
                 case "set" -> parseSet(c, rest);
                 case "desc" -> parseDescBody(c, rest, err);
                 case "map", "noremap", "nmap", "nnoremap", "mmap", "mnoremap" ->
@@ -111,12 +108,12 @@ final class RcParser {
         } else if (rest.equals("nowhich-key")) {
             c.whichKey = false;
         } else if (rest.startsWith("timeoutlen")) {
-            String eq = rest.contains("=")
-                    ? rest.substring(rest.indexOf('=') + 1).trim()
-                    : "";
-            Integer n = !eq.isEmpty()
-                    ? parseIntOrNull(eq)
-                    : parseIntOrNull(rest.split("\\s+").length > 1 ? rest.split("\\s+")[1] : "");
+            String eq = rest.contains("=") ? rest.substring(rest.indexOf('=') + 1).trim() : "";
+            Integer n =
+                    !eq.isEmpty()
+                            ? parseIntOrNull(eq)
+                            : parseIntOrNull(
+                                    rest.split("\\s+").length > 1 ? rest.split("\\s+")[1] : "");
             if (n != null && n >= 0) c.whichKeyDelayMs = n;
         }
         // ignore unknown options so .ideavimrc content pastes cleanly
@@ -171,8 +168,10 @@ final class RcParser {
             if (seq.isEmpty()) {
                 err.accept("<leader> alone cannot be mapped");
             } else if ("0123456789?/".indexOf(seq.charAt(0)) >= 0) {
-                err.accept("keypad " + seq.charAt(0)
-                        + " is reserved (digit argument / cheatsheet / describe)");
+                err.accept(
+                        "keypad "
+                                + seq.charAt(0)
+                                + " is reserved (digit argument / cheatsheet / describe)");
             } else {
                 c.keypad.put(seq, binding);
             }
@@ -182,8 +181,10 @@ final class RcParser {
         String keys = parseKeys(lhs, err);
         if (keys == null) return;
         if (keys.length() != 1) {
-            err.accept((motion ? "motion" : "normal")
-                    + "-mode key must be a single printable key: " + lhs);
+            err.accept(
+                    (motion ? "motion" : "normal")
+                            + "-mode key must be a single printable key: "
+                            + lhs);
         } else if (keys.equals(" ")) {
             err.accept("SPC is the keypad key and cannot be remapped");
         } else {
@@ -191,8 +192,10 @@ final class RcParser {
         }
     }
 
-    /** The shared RHS grammar of map and repeat lines: an &lt;action&gt;(...),
-     *  a named command in the registry, or replayed meow keys. */
+    /**
+     * The shared RHS grammar of map and repeat lines: an &lt;action&gt;(...), a named command in
+     * the registry, or replayed meow keys.
+     */
     private static Rc.Binding parseTarget(
             String rhs, boolean recursive, String errContext, Consumer<String> err) {
         Matcher am = ACTION_RE.matcher(rhs);
@@ -211,11 +214,12 @@ final class RcParser {
         return new Rc.Binding(null, keys, null, recursive);
     }
 
-    /** `repeat <group> <key> <target>` — Emacs repeat-mode's transient maps as
-     *  rc lines. Dispatching any binding whose target is listed in a group
-     *  arms it: the member keys re-dispatch their targets (shadowing the
-     *  normal map) until a non-member key falls through and ends the run.
-     *  The entering key needn't be a member — init.el's repeat-check-key 'no. */
+    /**
+     * `repeat <group> <key> <target>` — Emacs repeat-mode's transient maps as rc lines. Dispatching
+     * any binding whose target is listed in a group arms it: the member keys re-dispatch their
+     * targets (shadowing the normal map) until a non-member key falls through and ends the run. The
+     * entering key needn't be a member — init.el's repeat-check-key 'no.
+     */
     private static void parseRepeat(Rc.Config c, String rest, Consumer<String> err) {
         String[] parts = rest.split("\\s+", 3);
         if (parts.length < 3) {
@@ -256,8 +260,10 @@ final class RcParser {
                 } else if (token.equals("lt")) {
                     out.append('<');
                 } else {
-                    err.accept("unsupported key token " + s.substring(i, close + 1)
-                            + " (only printable keys reach the meow engine)");
+                    err.accept(
+                            "unsupported key token "
+                                    + s.substring(i, close + 1)
+                                    + " (only printable keys reach the meow engine)");
                     return null;
                 }
                 i = close + 1;

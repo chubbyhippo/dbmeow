@@ -17,19 +17,18 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * The native avy port (S = avy-goto-char-timer, Q = avy-goto-line). A
- * name-for-name port of codemeow's avy.test.ts; every behavior read out of avy
- * 0.5.0's avy.el. The 250 ms timeout is a real timer in the host adapter; these
- * specs end the input phase with {@link Avy#finishInput}.
+ * The native avy port (S = avy-goto-char-timer, Q = avy-goto-line). A name-for-name port of
+ * codemeow's avy.test.ts; every behavior read out of avy 0.5.0's avy.el. The 250 ms timeout is a
+ * real timer in the host adapter; these specs end the input phase with {@link Avy#finishInput}.
  */
 class AvySpec extends SpecDsl {
     private void timeout() {
@@ -109,7 +108,8 @@ class AvySpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given more candidates than keys then leading keys stay single and the last key hosts a subtree")
+    @DisplayName(
+            "given more candidates than keys then leading keys stay single and the last key hosts a subtree")
     void moreCandidatesThanKeysSubtree() {
         // avy-subdiv(10, 9) = eight 1s then a 2: candidates 1-8 get a..k,
         // the last two live under 'l' as la / ls

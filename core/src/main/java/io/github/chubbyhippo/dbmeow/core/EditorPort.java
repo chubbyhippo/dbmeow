@@ -20,19 +20,16 @@ package io.github.chubbyhippo.dbmeow.core;
 import java.util.List;
 
 /**
- * The engine's entire view of the host editor. The core never imports a UI
- * toolkit: the host adapter implements these ports, and the test suite
- * implements them over a plain string buffer — which is what makes every
- * meow behavior testable without an editor process.
+ * The engine's entire view of the host editor. The core never imports a UI toolkit: the host
+ * adapter implements these ports, and the test suite implements them over a plain string buffer —
+ * which is what makes every meow behavior testable without an editor process.
  */
 public interface EditorPort {
     /** An inclusive span of line numbers. */
-    record LineRange(int first, int last) {
-    }
+    record LineRange(int first, int last) {}
 
     /** A half-open offset range, e.g. a language-aware defun. */
-    record OffsetRange(int start, int end) {
-    }
+    record OffsetRange(int start, int end) {}
 
     String getText();
 

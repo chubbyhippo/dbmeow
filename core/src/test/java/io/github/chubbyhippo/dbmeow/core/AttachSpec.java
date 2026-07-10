@@ -17,9 +17,6 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static io.github.chubbyhippo.dbmeow.core.AttachPolicy.attachMode;
 import static io.github.chubbyhippo.dbmeow.core.AttachPolicy.isWritable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,11 +24,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * Which editors get meow, by kind — the Eclipse analog of the siblings' attach
- * checks. Platform-specific (no meow source of truth), so dbmeow-shaped rather
- * than name-for-name: read-only kinds attach in NORMAL like Emacs read-only
- * buffers and report non-writable, while dialog inputs keep native editing.
+ * Which editors get meow, by kind — the Eclipse analog of the siblings' attach checks.
+ * Platform-specific (no meow source of truth), so dbmeow-shaped rather than name-for-name:
+ * read-only kinds attach in NORMAL like Emacs read-only buffers and report non-writable, while
+ * dialog inputs keep native editing.
  */
 class AttachSpec {
     @Test

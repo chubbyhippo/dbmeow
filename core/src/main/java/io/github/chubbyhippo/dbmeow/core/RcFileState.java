@@ -21,19 +21,24 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Snapshot of the last-LOADED ~/.dbmeowrc, as a hash of the PARSED config —
- * so comment and formatting edits never demand a reload. The adapter's
- * reload surface gates on this (ideameow's RcFileState; IdeaVim's
- * VimRcFileState hashes the parsed Script for the same reason).
+ * Snapshot of the last-LOADED ~/.dbmeowrc, as a hash of the PARSED config — so comment and
+ * formatting edits never demand a reload. The adapter's reload surface gates on this (ideameow's
+ * RcFileState; IdeaVim's VimRcFileState hashes the parsed Script for the same reason).
  */
 public final class RcFileState {
-    private RcFileState() {
-    }
+    private RcFileState() {}
 
     private static volatile Integer state = null;
 
     private static int hash(Rc.Config c) {
-        return Objects.hash(c.normal, c.motion, c.keypad, c.keypadDesc, c.repeat, c.whichKey, c.whichKeyDelayMs);
+        return Objects.hash(
+                c.normal,
+                c.motion,
+                c.keypad,
+                c.keypadDesc,
+                c.repeat,
+                c.whichKey,
+                c.whichKeyDelayMs);
     }
 
     /** Called by {@link Rc#setUserLines} with whatever it just parsed. */
@@ -41,11 +46,11 @@ public final class RcFileState {
         state = hash(c);
     }
 
-    public static boolean loaded() {
-        return state != null;
-    }
-
-    /** Do these rc LINES parse to the same user config the engine runs? */
+    /**
+     * Do these rc LINES parse to the same user config the engine runs? False before any load — the
+     * not-yet-loaded guard the ideameow sibling keeps as a separate loaded() (its floating action
+     * needs both).
+     */
     public static boolean equalTo(List<String> lines) {
         Integer s = state;
         return s != null && hash(Rc.parse(lines)) == s;

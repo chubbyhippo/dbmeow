@@ -52,8 +52,7 @@ public interface UiPort {
     void clearAvy();
 
     /** A jump label ("as", "d", …) to paint over the candidate at [offset]. */
-    record AvyLabel(int offset, String label) {
-    }
+    record AvyLabel(int offset, String label) {}
 
     void modeChanged(MeowState st);
 

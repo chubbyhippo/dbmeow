@@ -18,10 +18,9 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 /**
- * Selection types mirror meow's (expand/select . type) pairs:
- * {@link MeowState#selExpand} is the cdr flag that makes follow-up commands of
- * the same family extend the selection instead of re-creating it
- * (meow-mark-word -> meow-next-word).
+ * Selection types mirror meow's (expand/select . type) pairs: {@link MeowState#selExpand} is the
+ * cdr flag that makes follow-up commands of the same family extend the selection instead of
+ * re-creating it (meow-mark-word -> meow-next-word).
  */
 public enum SelType {
     NONE,

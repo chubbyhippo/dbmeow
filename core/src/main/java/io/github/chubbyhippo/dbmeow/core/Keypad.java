@@ -22,16 +22,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * KEYPAD state. In Emacs, SPC x/c/m reach the C-x / C-c / M- keymaps; here
- * the same key sequences dispatch host commands. Like the NORMAL/MOTION
- * layout, the whole table lives in rc lines: the bundled default .dbmeowrc
- * defines it and ~/.dbmeowrc `map <leader>...` entries layer on top (see
- * {@link Rc#keypad()}). SPC 1-9 = digit argument, SPC ? = cheatsheet,
- * SPC / = describe key. A which-key hint lists continuations of a prefix.
+ * KEYPAD state. In Emacs, SPC x/c/m reach the C-x / C-c / M- keymaps; here the same key sequences
+ * dispatch host commands. Like the NORMAL/MOTION layout, the whole table lives in rc lines: the
+ * bundled default .dbmeowrc defines it and ~/.dbmeowrc `map <leader>...` entries layer on top (see
+ * {@link Rc#keypad()}). SPC 1-9 = digit argument, SPC ? = cheatsheet, SPC / = describe key. A
+ * which-key hint lists continuations of a prefix.
  */
 public final class Keypad {
-    private Keypad() {
-    }
+    private Keypad() {}
 
     public static void key(Ctx ctx, char c) {
         MeowState st = ctx.st();
@@ -104,23 +102,30 @@ public final class Keypad {
         Rc.keypad().entrySet().stream()
                 .filter(e -> e.getKey().startsWith(String.valueOf(c)))
                 .sorted(Map.Entry.comparingByKey())
-                .forEach(e -> {
-                    Rc.Binding b = e.getValue();
-                    String target = b.action() != null
-                            ? b.action()
-                            : b.command() != null ? b.command() : b.keys() != null ? b.keys() : "";
-                    String desc = descs.containsKey(e.getKey())
-                            ? "  (" + descs.get(e.getKey()) + ")"
-                            : "";
-                    rows.add("SPC " + spaced(e.getKey()) + "  ->  " + target + desc);
-                });
+                .forEach(
+                        e -> {
+                            Rc.Binding b = e.getValue();
+                            String target =
+                                    b.action() != null
+                                            ? b.action()
+                                            : b.command() != null
+                                                    ? b.command()
+                                                    : b.keys() != null ? b.keys() : "";
+                            String desc =
+                                    descs.containsKey(e.getKey())
+                                            ? "  (" + descs.get(e.getKey()) + ")"
+                                            : "";
+                            rows.add("SPC " + spaced(e.getKey()) + "  ->  " + target + desc);
+                        });
         String entries = String.join("\n", rows);
-        ctx.ui().info(
-                "Meow Describe: SPC " + c,
-                entries.isEmpty() ? "SPC " + c + " is undefined" : entries);
+        ctx.ui()
+                .info(
+                        "Meow Describe: SPC " + c,
+                        entries.isEmpty() ? "SPC " + c + " is undefined" : entries);
     }
 
-    public static final String CHEATSHEET = """
+    public static final String CHEATSHEET =
+            """
             The bundled default layout (meow's suggested QWERTY) — every key below can
             be rebound from ~/.dbmeowrc.
 
@@ -154,5 +159,6 @@ public final class Keypad {
               repeat <group> <key> <target> — tap-to-continue groups (the REPEAT runs above)
               every binding above is an rc line — the defaults ship as a bundled
               .dbmeowrc on the classpath; ~/.dbmeowrc overrides them key by key
-            """.strip();
+            """
+                    .strip();
 }

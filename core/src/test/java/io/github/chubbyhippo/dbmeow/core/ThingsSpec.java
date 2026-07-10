@@ -21,9 +21,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * meow-inner/bounds/beginning/end-of-thing with the char table, meow-block,
- * meow-to-block, meow-join (the selection half; the kill half is in editing).
- * Name-for-name port of codemeow's things.test.ts.
+ * meow-inner/bounds/beginning/end-of-thing with the char table, meow-block, meow-to-block,
+ * meow-join (the selection half; the kill half is in editing). Name-for-name port of codemeow's
+ * things.test.ts.
  */
 class ThingsSpec extends SpecDsl {
     @Test
@@ -37,7 +37,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given caret inside parens when dot r then bounds include the parens and select backward")
+    @DisplayName(
+            "given caret inside parens when dot r then bounds include the parens and select backward")
     void boundsRoundBackward() {
         given("round pair", "foo (b<caret>ar baz) qux");
         whenKeys(".r");
@@ -77,7 +78,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a single quoted string when comma g then inner selects the run and dot g keeps the quotes")
+    @DisplayName(
+            "given a single quoted string when comma g then inner selects the run and dot g keeps the quotes")
     void singleQuotedString() {
         given("single quotes", "say 'hi th<caret>ere' now");
         whenKeys(",g");
@@ -87,7 +89,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a backtick string when comma g then inner selects the run and dot g keeps the backticks")
+    @DisplayName(
+            "given a backtick string when comma g then inner selects the run and dot g keeps the backticks")
     void backtickString() {
         given("backticks", "say `hi th<caret>ere` now");
         whenKeys(",g");
@@ -97,7 +100,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a triple double quoted string when comma g then inner drops all three quotes and dot g keeps them")
+    @DisplayName(
+            "given a triple double quoted string when comma g then inner drops all three quotes and dot g keeps them")
     void tripleDoubleQuotedString() {
         given("triple double", "say \"\"\"hi th<caret>ere\"\"\" now");
         whenKeys(",g");
@@ -107,7 +111,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a triple single quoted string when comma g then inner drops all three quotes and dot g keeps them")
+    @DisplayName(
+            "given a triple single quoted string when comma g then inner drops all three quotes and dot g keeps them")
     void tripleSingleQuotedString() {
         given("triple single", "say '''hi th<caret>ere''' now");
         whenKeys(",g");
@@ -117,7 +122,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a triple backtick fence when comma g then inner drops all three backticks and dot g keeps them")
+    @DisplayName(
+            "given a triple backtick fence when comma g then inner drops all three backticks and dot g keeps them")
     void tripleBacktickFence() {
         given("triple backtick", "say ```hi th<caret>ere``` now");
         whenKeys(",g");
@@ -127,7 +133,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a triple quoted docstring spanning lines when comma g then the whole multiline run is selected")
+    @DisplayName(
+            "given a triple quoted docstring spanning lines when comma g then the whole multiline run is selected")
     void tripleQuotedDocstringSpanningLines() {
         given("multiline docstring", "x = \"\"\"\nhe<caret>llo\nworld\n\"\"\"");
         whenKeys(",g");
@@ -137,7 +144,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given an apostrophe earlier on another line when comma g then the real string below still selects")
+    @DisplayName(
+            "given an apostrophe earlier on another line when comma g then the real string below still selects")
     void apostropheEarlierAnotherLine() {
         given("stray apostrophe", "don't\nx = 'h<caret>i'");
         whenKeys(",g");
@@ -203,7 +211,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a curly block in plain text when comma d then the defun fallback selects the braces")
+    @DisplayName(
+            "given a curly block in plain text when comma d then the defun fallback selects the braces")
     void defunFallback() {
         given("pseudo function", "fun x() {\n  bo<caret>dy\n}");
         whenKeys(",d");
@@ -211,7 +220,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given open bracket r then selects from point back to the thing beginning with cursor at the beginning")
+    @DisplayName(
+            "given open bracket r then selects from point back to the thing beginning with cursor at the beginning")
     void beginningOfThing() {
         given("round pair", "foo (b<caret>ar baz) qux");
         whenKeys("[r");
@@ -220,7 +230,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given close bracket r then selects from point to the thing end with cursor at the end")
+    @DisplayName(
+            "given close bracket r then selects from point to the thing end with cursor at the end")
     void endOfThing() {
         given("round pair", "foo (b<caret>ar baz) qux");
         whenKeys("]r");
@@ -283,7 +294,8 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given m then the join region between this line and the previous non-empty one is selected")
+    @DisplayName(
+            "given m then the join region between this line and the previous non-empty one is selected")
     void joinRegionBackward() {
         given("indented continuation", "one\n  t<caret>wo");
         whenKeys("m");

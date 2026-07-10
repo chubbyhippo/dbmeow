@@ -18,10 +18,9 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 /**
- * A named, bindable meow command — the unit every rc binding resolves to.
- * Each command family (motions, selections, search, structures, grab, edits)
- * contributes its commands to {@link Registry#COMMANDS} under their meow
- * names.
+ * A named, bindable meow command — the unit every rc binding resolves to. Each command family
+ * (motions, selections, search, structures, grab, edits) contributes its commands to {@link
+ * Registry#COMMANDS} under their meow names.
  */
 @FunctionalInterface
 public interface MeowCommand {

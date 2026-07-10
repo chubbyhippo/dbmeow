@@ -24,8 +24,7 @@ import java.util.List;
 
 /** The {@link UiPort} of the BDD suite: it records everything it is told. */
 public class FakeUi implements UiPort {
-    public record Info(String title, String body) {
-    }
+    public record Info(String title, String body) {}
 
     public final List<String> hints = new ArrayList<>();
     public final List<Info> infos = new ArrayList<>();
@@ -34,8 +33,10 @@ public class FakeUi implements UiPort {
     /** Host command ids dispatched through <action>(...) bindings. */
     public final List<String> ran = new ArrayList<>();
 
-    /** Mode notifications, in order — the adapter turns these into the
-     *  block/bar cursor switch and the status widget text. */
+    /**
+     * Mode notifications, in order — the adapter turns these into the block/bar cursor switch and
+     * the status widget text.
+     */
     public final List<MeowMode> modes = new ArrayList<>();
 
     /** The offsets the adapter would overlay with digit labels. */
@@ -62,12 +63,10 @@ public class FakeUi implements UiPort {
     }
 
     @Override
-    public void scheduleWhichKey(String kind, String buffer) {
-    }
+    public void scheduleWhichKey(String kind, String buffer) {}
 
     @Override
-    public void hideWhichKey() {
-    }
+    public void hideWhichKey() {}
 
     @Override
     public void showExpandHints(List<Integer> positions) {
@@ -80,16 +79,13 @@ public class FakeUi implements UiPort {
     }
 
     @Override
-    public void showAvyMatches(List<EditorPort.OffsetRange> matches) {
-    }
+    public void showAvyMatches(List<EditorPort.OffsetRange> matches) {}
 
     @Override
-    public void showAvyLabels(List<UiPort.AvyLabel> labels) {
-    }
+    public void showAvyLabels(List<UiPort.AvyLabel> labels) {}
 
     @Override
-    public void clearAvy() {
-    }
+    public void clearAvy() {}
 
     @Override
     public void modeChanged(MeowState st) {
@@ -97,6 +93,5 @@ public class FakeUi implements UiPort {
     }
 
     @Override
-    public void refresh(MeowState st) {
-    }
+    public void refresh(MeowState st) {}
 }

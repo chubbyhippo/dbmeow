@@ -17,15 +17,15 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 /**
- * meow-find, meow-till (+expand), meow-visit, meow-search. A name-for-name
- * port of codemeow's findSearch.test.ts; the find-replaces-word and
- * search-wrap behaviors were probed against meow 1.5.0 (see meow-semantics.md).
+ * meow-find, meow-till (+expand), meow-visit, meow-search. A name-for-name port of codemeow's
+ * findSearch.test.ts; the find-replaces-word and search-wrap behaviors were probed against meow
+ * 1.5.0 (see meow-semantics.md).
  */
 class FindSearchSpec extends SpecDsl {
     private int selMin() {
@@ -53,7 +53,8 @@ class FindSearchSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given w then f X then a fresh find selection runs from the word end through the char")
+    @DisplayName(
+            "given w then f X then a fresh find selection runs from the word end through the char")
     void wThenFXFreshFind() {
         given("comma separated", "w<caret>ord1, word2 word3");
         whenKeys("w");
@@ -143,7 +144,8 @@ class FindSearchSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a selection that does not match the pattern when n then the selection text becomes the pattern")
+    @DisplayName(
+            "given a selection that does not match the pattern when n then the selection text becomes the pattern")
     void nonMatchingSelectionBecomesPattern() {
         given("repeats", "foo <caret>bar foo bar");
         st.searchHistory.add("zzz");

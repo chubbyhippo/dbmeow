@@ -17,16 +17,15 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.BeforeEach;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+
 /**
- * BDD harness for the meow specs, over a fake editor implementing the same
- * ports a host adapter does:
+ * BDD harness for the meow specs, over a fake editor implementing the same ports a host adapter
+ * does:
  *
  * <pre>
  *   given("a buffer", "hello &lt;caret&gt;world");
@@ -34,10 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  *   thenSelection("world");
  * </pre>
  *
- * Every behavior asserted in these specs was cross-checked against
- * meow-edit/meow's source (docstrings and command bodies) — not against vim
- * intuition. The suite is a straight port of the codemeow specs (themselves
- * a port of the ideameow specs), so the three plugins stay
+ * Every behavior asserted in these specs was cross-checked against meow-edit/meow's source
+ * (docstrings and command bodies) — not against vim intuition. The suite is a straight port of the
+ * codemeow specs (themselves a port of the ideameow specs), so the three plugins stay
  * behavior-identical.
  */
 public abstract class SpecDsl {
@@ -46,8 +44,10 @@ public abstract class SpecDsl {
     protected FakeUi ui;
     protected MeowState st;
 
-    /** A spec with an empty user layer: a developer's real ~/.dbmeowrc never
-     *  leaks in; the bundled classpath .dbmeowrc stays the defaults layer. */
+    /**
+     * A spec with an empty user layer: a developer's real ~/.dbmeowrc never leaks in; the bundled
+     * classpath .dbmeowrc stays the defaults layer.
+     */
     @BeforeEach
     void freshSpec() {
         editor = new FakeEditor();
@@ -101,9 +101,8 @@ public abstract class SpecDsl {
     protected String selectedText() {
         SelRange s = editor.sels.get(0);
         if (s.anchor() == s.active()) return null;
-        return editor.getText().substring(
-                Math.min(s.anchor(), s.active()),
-                Math.max(s.anchor(), s.active()));
+        return editor.getText()
+                .substring(Math.min(s.anchor(), s.active()), Math.max(s.anchor(), s.active()));
     }
 
     protected int caretLine() {
@@ -140,9 +139,7 @@ public abstract class SpecDsl {
         SelRange s = editor.sels.get(0);
         assertNotEquals(s.anchor(), s.active(), "expected a selection");
         assertEquals(
-                Math.max(s.anchor(), s.active()),
-                s.active(),
-                "caret at selection end (forward)");
+                Math.max(s.anchor(), s.active()), s.active(), "caret at selection end (forward)");
     }
 
     protected void thenText(String expected) {

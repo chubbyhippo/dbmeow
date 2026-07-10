@@ -18,11 +18,7 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 /** Everything a command needs, bundled — the one parameter they all take. */
-public record Ctx(
-        EditorPort port,
-        ClipboardPort clipboard,
-        UiPort ui,
-        MeowState st) {
+public record Ctx(EditorPort port, ClipboardPort clipboard, UiPort ui, MeowState st) {
 
     public void setMode(MeowMode mode) {
         st.mode = mode;

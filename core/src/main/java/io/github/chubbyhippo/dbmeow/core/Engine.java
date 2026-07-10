@@ -22,24 +22,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The key dispatcher. Like meow in Emacs, the engine binds no keys of its
- * own: every command is registered by its meow name in the registry, and
- * keys resolve through rc bindings only — ~/.dbmeowrc over the bundled
- * default .dbmeowrc (see {@link Rc}). Besides dispatch, this class owns the
- * pieces of behavior that need the whole-keystroke view: the repeat unit
- * (`'`), rc-binding replay with its noremap/recursion bookkeeping, and the
- * repeat transient (Emacs repeat-mode: rc `repeat` groups arm a one-shot map
- * whose member keys re-dispatch — tap `.`/`,` to keep walking errors after
- * SPC . e).
+ * The key dispatcher. Like meow in Emacs, the engine binds no keys of its own: every command is
+ * registered by its meow name in the registry, and keys resolve through rc bindings only —
+ * ~/.dbmeowrc over the bundled default .dbmeowrc (see {@link Rc}). Besides dispatch, this class
+ * owns the pieces of behavior that need the whole-keystroke view: the repeat unit (`'`), rc-binding
+ * replay with its noremap/recursion bookkeeping, and the repeat transient (Emacs repeat-mode: rc
+ * `repeat` groups arm a one-shot map whose member keys re-dispatch — tap `.`/`,` to keep walking
+ * errors after SPC . e).
  */
 public final class Engine {
-    private Engine() {
-    }
+    private Engine() {}
 
     private static final Rc.Binding KEYPAD_BINDING =
             new Rc.Binding(null, null, "meow-keypad", true);
 
-    /** @return true when the key was consumed (the type handler skips insertion). */
+    /**
+     * @return true when the key was consumed (the type handler skips insertion).
+     */
     public static boolean handleChar(Ctx ctx, char c) {
         MeowState st = ctx.st();
         if (st.mode == MeowMode.INSERT) return false;
@@ -72,9 +71,10 @@ public final class Engine {
         // (the modify commands gate themselves via allow-modify in edits); the
         // motion map applies only to the MOTION state proper
         boolean motionish = st.mode == MeowMode.MOTION;
-        Rc.Binding binding = pend == null
-                ? repeatBinding != null ? repeatBinding : resolve(ctx, c, motionish)
-                : null;
+        Rc.Binding binding =
+                pend == null
+                        ? repeatBinding != null ? repeatBinding : resolve(ctx, c, motionish)
+                        : null;
         String cmd = binding != null ? binding.command() : null;
 
         // the repeat unit: everything since the last complete command, so `'`
@@ -93,17 +93,19 @@ public final class Engine {
             // the this-command/last-command handoff: vertical-motion chains keep
             // their goal column only while uninterrupted (see Motions.goalColumn);
             // a keys-replay binding keeps the innermost replayed command's name
-            st.lastCommand = cmd != null
-                    ? cmd
-                    : binding.action() != null ? binding.action() : st.lastCommand;
+            st.lastCommand =
+                    cmd != null
+                            ? cmd
+                            : binding.action() != null ? binding.action() : st.lastCommand;
         } else {
             st.lastCommand = null;
         } // undefined key: swallow, never self-insert
 
-        boolean prefixy = st.pending != null
-                || (st.pendingCount != 0 && cmd != null && cmd.startsWith("meow-expand-"))
-                || (st.negative && "meow-negative-argument".equals(cmd))
-                || "meow-keypad".equals(cmd);
+        boolean prefixy =
+                st.pending != null
+                        || (st.pendingCount != 0 && cmd != null && cmd.startsWith("meow-expand-"))
+                        || (st.negative && "meow-negative-argument".equals(cmd))
+                        || "meow-keypad".equals(cmd);
         if (!st.replaying && !"repeat".equals(cmd) && !prefixy) {
             st.lastKeys = List.copyOf(st.unit);
         }
@@ -112,8 +114,10 @@ public final class Engine {
         return true;
     }
 
-    /** SPC = keypad (reserved), then ~/.dbmeowrc maps (skipped inside a
-     *  noremap replay), then the bundled default rc; null = undefined key. */
+    /**
+     * SPC = keypad (reserved), then ~/.dbmeowrc maps (skipped inside a noremap replay), then the
+     * bundled default rc; null = undefined key.
+     */
     private static Rc.Binding resolve(Ctx ctx, char c, boolean motion) {
         if (c == ' ') return KEYPAD_BINDING;
         if (ctx.st().noremapDepth == 0) {
@@ -146,13 +150,14 @@ public final class Engine {
         }
     }
 
-    /** Run a binding: a named meow command, a host command, or meow keys
-     *  replayed through the engine (noremap bindings skip user maps while
-     *  replaying). Afterwards, Emacs repeat-mode's post-command arming: a
-     *  binding whose target sits in an rc repeat group arms that group's
-     *  transient — membership by target identity (the repeat-map symbol
-     *  property), no entered-with-key check (init.el sets repeat-check-key
-     *  'no for every keypad-entered map, and keypad keys are never members). */
+    /**
+     * Run a binding: a named meow command, a host command, or meow keys replayed through the engine
+     * (noremap bindings skip user maps while replaying). Afterwards, Emacs repeat-mode's
+     * post-command arming: a binding whose target sits in an rc repeat group arms that group's
+     * transient — membership by target identity (the repeat-map symbol property), no
+     * entered-with-key check (init.el sets repeat-check-key 'no for every keypad-entered map, and
+     * keypad keys are never members).
+     */
     public static void runBinding(Ctx ctx, Rc.Binding b) {
         dispatch(ctx, b);
         Map<Character, Rc.Binding> map = Rc.repeatMapFor(b);
@@ -205,9 +210,9 @@ public final class Engine {
     }
 
     /**
-     * The ESC key: INSERT/KEYPAD -> NORMAL, drops pending keys, collapses beacon
-     * cursors. @return false when there was nothing meow-related to do (the host
-     * may fall through to its own escape behavior).
+     * The ESC key: INSERT/KEYPAD -> NORMAL, drops pending keys, collapses beacon cursors. @return
+     * false when there was nothing meow-related to do (the host may fall through to its own escape
+     * behavior).
      */
     public static boolean escapeKey(Ctx ctx) {
         MeowState st = ctx.st();
@@ -228,7 +233,8 @@ public final class Engine {
         List<SelRange> sels = ctx.port().getSelections();
         if (sels.size() > 1) {
             SelRange p = sels.get(0);
-            ctx.port().setSelections(new ArrayList<>(List.of(new SelRange(p.active(), p.active()))));
+            ctx.port()
+                    .setSelections(new ArrayList<>(List.of(new SelRange(p.active(), p.active()))));
             ctx.ui().refresh(st);
             return true;
         }

@@ -17,22 +17,21 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static io.github.chubbyhippo.dbmeow.core.ToolWindowEscape.TIMEOUT_MS;
 import static io.github.chubbyhippo.dbmeow.core.ToolWindowEscape.onEscape;
 import static io.github.chubbyhippo.dbmeow.core.ToolWindowEscape.reset;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * Double-ESC in a tool window (ToolWindowEscape) — ideameow's
- * ToolWindowEscapeSpec, ported name for name. Platform-specific (no meow
- * source of truth): the pinned behavior is the pure pairing state machine the
- * adapter's escape bindings feed; the re-emission of a lone first press is
- * adapter wiring, outside the core.
+ * Double-ESC in a tool window (ToolWindowEscape) — ideameow's ToolWindowEscapeSpec, ported name for
+ * name. Platform-specific (no meow source of truth): the pinned behavior is the pure pairing state
+ * machine the adapter's escape bindings feed; the re-emission of a lone first press is adapter
+ * wiring, outside the core.
  */
 class ToolWindowEscapeSpec {
     @BeforeEach

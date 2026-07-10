@@ -4,19 +4,17 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * ~/.dbmeowrc parsing, nmap/mmap/map dispatch (including relayouting the
- * meow keys themselves), and which-key rows. A name-for-name port of
- * codemeow's rc.test.ts.
+ * ~/.dbmeowrc parsing, nmap/mmap/map dispatch (including relayouting the meow keys themselves), and
+ * which-key rows. A name-for-name port of codemeow's rc.test.ts.
  */
 @DisplayName("RcSpec")
 class RcSpec extends SpecDsl {
@@ -33,8 +31,9 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given a parameterized action then the whole serialized command is kept")
     void givenAParameterizedActionThenTheWholeSerializedCommandIsKept() {
-        String id = "org.eclipse.ui.views.showView("
-                + "org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView)";
+        String id =
+                "org.eclipse.ui.views.showView("
+                        + "org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView)";
         Rc.Config c = Rc.parse(List.of("map <leader>bj <action>(" + id + ")"));
         assertEquals(id, c.keypad.get("bj").action());
         assertEquals(List.of(), c.errors);
@@ -69,10 +68,7 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given a meow command name then it parses into a command binding")
     void givenAMeowCommandNameThenItParsesIntoACommandBinding() {
-        Rc.Config c = Rc.parse(List.of(
-                "nmap n meow-mark-word",
-                "nmap d ignore",
-                "nmap Z repeat"));
+        Rc.Config c = Rc.parse(List.of("nmap n meow-mark-word", "nmap d ignore", "nmap Z repeat"));
         assertEquals("meow-mark-word", c.normal.get('n').command());
         assertEquals("ignore", c.normal.get('d').command());
         assertEquals("repeat", c.normal.get('Z').command());
@@ -101,7 +97,8 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given leader mappings and descriptions then the keypad table extends")
     void givenLeaderMappingsAndDescriptionsThenTheKeypadTableExtends() {
-        givenRc("map <leader>gd <action>(editor.action.revealDefinition)\ndesc <leader>g goto things");
+        givenRc(
+                "map <leader>gd <action>(editor.action.revealDefinition)\ndesc <leader>g goto things");
         assertEquals("editor.action.revealDefinition", Rc.cfg().keypad.get("gd").action());
         assertEquals("goto things", Rc.cfg().keypadDesc.get("g"));
         assertEquals("editor.action.revealDefinition", Rc.keypad().get("gd").action());
@@ -113,8 +110,8 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given the ideavimrc WhichKeyDesc let syntax then descriptions parse")
     void givenTheIdeavimrcWhichKeyDescLetSyntaxThenDescriptionsParse() {
-        Rc.Config c = Rc.parse(List.of(
-                "let g:WhichKeyDesc_leader_x = \"<leader>x C-x files/buffers\""));
+        Rc.Config c =
+                Rc.parse(List.of("let g:WhichKeyDesc_leader_x = \"<leader>x C-x files/buffers\""));
         assertEquals("C-x files/buffers", c.keypadDesc.get("x"));
         assertEquals(List.of(), c.errors);
     }
@@ -122,11 +119,13 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given set lines then which-key options apply and vim options are ignored")
     void givenSetLinesThenWhichKeyOptionsApplyAndVimOptionsAreIgnored() {
-        Rc.Config c = Rc.parse(List.of(
-                "set nowhich-key",
-                "set timeoutlen=400",
-                "set clipboard+=unnamedplus", // pasted from .ideavimrc: ignored
-                "let mapleader=\" \""));
+        Rc.Config c =
+                Rc.parse(
+                        List.of(
+                                "set nowhich-key",
+                                "set timeoutlen=400",
+                                "set clipboard+=unnamedplus", // pasted from .ideavimrc: ignored
+                                "let mapleader=\" \""));
         assertEquals(false, c.whichKey);
         assertEquals(400, c.whichKeyDelayMs);
         assertEquals(List.of(), c.errors);
@@ -146,9 +145,11 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given a trailing comment then it is stripped from the line")
     void givenATrailingCommentThenItIsStrippedFromTheLine() {
-        Rc.Config c = Rc.parse(List.of(
-                "nmap S <action>(extension.aceJump)   \" jump anywhere",
-                "map <leader>zz ,b            \" select the buffer"));
+        Rc.Config c =
+                Rc.parse(
+                        List.of(
+                                "nmap S <action>(extension.aceJump)   \" jump anywhere",
+                                "map <leader>zz ,b            \" select the buffer"));
         assertEquals("extension.aceJump", c.normal.get('S').action());
         assertEquals(",b", c.keypad.get("zz").keys());
         assertEquals(List.of(), c.errors);
@@ -157,12 +158,14 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given bad lines then errors are collected with line numbers")
     void givenBadLinesThenErrorsAreCollectedWithLineNumbers() {
-        Rc.Config c = Rc.parse(List.of(
-                "frobnicate everything", // unknown command
-                "nmap <Space> ,b", // SPC is reserved
-                "map <leader>1 <action>(X)", // keypad digits are reserved
-                "nmap Q <CR>", // unsupported key token
-                "mmap <leader>x ,b")); // keypad entries are mode-independent
+        Rc.Config c =
+                Rc.parse(
+                        List.of(
+                                "frobnicate everything", // unknown command
+                                "nmap <Space> ,b", // SPC is reserved
+                                "map <leader>1 <action>(X)", // keypad digits are reserved
+                                "nmap Q <CR>", // unsupported key token
+                                "mmap <leader>x ,b")); // keypad entries are mode-independent
         assertEquals(5, c.errors.size());
         assertTrue(c.errors.get(0).startsWith("line 1"));
     }
@@ -287,16 +290,21 @@ class RcSpec extends SpecDsl {
         List<WhichKey.Row> top = WhichKey.keypadRows("");
         assertTrue(top.stream().anyMatch(r -> r.key().equals("z") && r.label().equals("my group")));
         List<WhichKey.Row> inner = WhichKey.keypadRows("z");
-        assertTrue(inner.stream().anyMatch(
-                r -> r.key().equals("z") && r.label().equals("workbench.action.quickOpen")));
+        assertTrue(
+                inner.stream()
+                        .anyMatch(
+                                r ->
+                                        r.key().equals("z")
+                                                && r.label().equals("workbench.action.quickOpen")));
     }
 
     @Test
     @DisplayName("given a terminal with a description then which-key prefers it")
     void givenATerminalWithADescriptionThenWhichKeyPrefersIt() {
         givenRc("map <leader>zz <action>(workbench.action.quickOpen)\ndesc <leader>zz open a file");
-        assertTrue(WhichKey.keypadRows("z").stream().anyMatch(
-                r -> r.key().equals("z") && r.label().equals("open a file")));
+        assertTrue(
+                WhichKey.keypadRows("z").stream()
+                        .anyMatch(r -> r.key().equals("z") && r.label().equals("open a file")));
     }
 
     @Test

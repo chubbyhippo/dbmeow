@@ -24,28 +24,27 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Text-mutating commands: entering INSERT (insert/append/open above/below),
- * change, delete, kill with meow's kill-line and join fallbacks, save / yank /
- * replace against the clipboard kill-ring, and undo. Multi-cursor edits are
- * computed against the cursors in descending offset order so beacon editing
- * never invalidates the offsets still to come.
+ * Text-mutating commands: entering INSERT (insert/append/open above/below), change, delete, kill
+ * with meow's kill-line and join fallbacks, save / yank / replace against the clipboard kill-ring,
+ * and undo. Multi-cursor edits are computed against the cursors in descending offset order so
+ * beacon editing never invalidates the offsets still to come.
  */
 public final class Edits {
-    private Edits() {
-    }
+    private Edits() {}
 
     /**
-     * meow--allow-modify-p (meow-util.el): read-only buffers keep the full
-     * NORMAL layout, but the text-changing commands are inert. meow gates
-     * kill/change/backspace/replace into SILENT no-ops; delete/yank/open (and
-     * swap-grab) instead fail with Emacs' "Buffer is read-only" error —
-     * surfaced here as a hint.
+     * meow--allow-modify-p (meow-util.el): read-only buffers keep the full NORMAL layout, but the
+     * text-changing commands are inert. meow gates kill/change/backspace/replace into SILENT
+     * no-ops; delete/yank/open (and swap-grab) instead fail with Emacs' "Buffer is read-only" error
+     * — surfaced here as a hint.
      */
     public static boolean allowModify(Ctx ctx) {
         return ctx.port().isWritable();
     }
 
-    /** @return true when the edit must be blocked — telling the user why. */
+    /**
+     * @return true when the edit must be blocked — telling the user why.
+     */
     public static boolean blockedReadOnly(Ctx ctx) {
         if (allowModify(ctx)) return false;
         ctx.ui().hint("Buffer is read-only");
@@ -71,21 +70,24 @@ public final class Edits {
     }
 
     /** One selection's contribution to a multi-cursor edit. */
-    private record Computed(TextEdit edit, SelRange sel) {
-    }
+    private record Computed(TextEdit edit, SelRange sel) {}
 
     @FunctionalInterface
     private interface Compute {
         Computed apply(SelRange sel, int lo, int hi);
     }
 
-    /** One undo step over every cursor, highest offset first: {@code compute}
-     *  receives a selection and returns its edit (or null) plus the cursor's
-     *  new range. Descending order keeps every not-yet-processed offset valid. */
+    /**
+     * One undo step over every cursor, highest offset first: {@code compute} receives a selection
+     * and returns its edit (or null) plus the cursor's new range. Descending order keeps every
+     * not-yet-processed offset valid. compute answers in PRE-edit coordinates; applying the batch
+     * shifts everything above an edit, so each cursor is re-based by the length delta of the edits
+     * below it (its own edit excluded — its sel already sits where compute put it, e.g. after a
+     * yank's insertion).
+     */
     private static void editCarets(Ctx ctx, Compute compute) {
         List<SelRange> sels = ctx.port().getSelections();
-        record Item(SelRange sel, int index, int lo) {
-        }
+        record Item(SelRange sel, int index, int lo) {}
         List<Item> order = new ArrayList<>();
         for (int i = 0; i < sels.size(); i++) {
             SelRange sel = sels.get(i);
@@ -93,12 +95,23 @@ public final class Edits {
         }
         order.sort(Comparator.comparingInt(Item::lo).reversed());
         List<TextEdit> edits = new ArrayList<>();
-        SelRange[] newSels = new SelRange[sels.size()];
+        Computed[] results = new Computed[sels.size()];
         for (Item item : order) {
             int hi = Math.max(item.sel().anchor(), item.sel().active());
             Computed r = compute.apply(item.sel(), item.lo(), hi);
             if (r.edit() != null) edits.add(r.edit());
-            newSels[item.index()] = r.sel();
+            results[item.index()] = r;
+        }
+        SelRange[] newSels = new SelRange[sels.size()];
+        int delta = 0;
+        for (int i = order.size() - 1; i >= 0; i--) { // ascending offsets
+            Item item = order.get(i);
+            Computed r = results[item.index()];
+            newSels[item.index()] =
+                    new SelRange(r.sel().anchor() + delta, r.sel().active() + delta);
+            if (r.edit() != null) {
+                delta += r.edit().text().length() - (r.edit().end() - r.edit().start());
+            }
         }
         // the grab region's offsets track core-applied edits, like a marker
         if (!edits.isEmpty()) {
@@ -158,70 +171,92 @@ public final class Edits {
         ctx.setMode(MeowMode.INSERT);
     }
 
+    /**
+     * The delete-the-region-else-one-char compute that change and del share: the char fallback
+     * takes ANY char, newlines included (meow-change-char / meow-C-d = delete-forward-char).
+     */
+    private static Compute deleteForward(String text) {
+        return (sel, lo, hi) -> {
+            if (lo != hi) {
+                return new Computed(new TextEdit(lo, hi, ""), new SelRange(lo, lo));
+            }
+            if (lo < text.length()) {
+                return new Computed(new TextEdit(lo, lo + 1, ""), new SelRange(lo, lo));
+            }
+            return new Computed(null, new SelRange(lo, lo));
+        };
+    }
+
     private static void change(Ctx ctx) {
         if (!allowModify(ctx)) return; // meow gates change silently
         String text = ctx.port().getText();
         SelRange prim = Selections.primary(ctx);
         // fallback meow-change-char at point-max: nothing happens, not even INSERT
         if (!Selections.hasSelection(prim) && prim.active() >= text.length()) return;
-        editCarets(ctx, (sel, lo, hi) -> {
-            if (lo != hi) {
-                return new Computed(new TextEdit(lo, hi, ""), new SelRange(lo, lo));
-            }
-            // fallback meow-change-char: delete-char takes ANY char, newlines included
-            if (lo < text.length()) {
-                return new Computed(new TextEdit(lo, lo + 1, ""), new SelRange(lo, lo));
-            }
-            return new Computed(null, new SelRange(lo, lo));
-        });
+        editCarets(ctx, deleteForward(text));
         ctx.st().selType = SelType.NONE;
         ctx.setMode(MeowMode.INSERT);
     }
 
     private static void del(Ctx ctx) {
         if (blockedReadOnly(ctx)) return;
-        String text = ctx.port().getText();
-        editCarets(ctx, (sel, lo, hi) -> {
-            if (lo != hi) {
-                return new Computed(new TextEdit(lo, hi, ""), new SelRange(lo, lo));
-            }
-            if (lo < text.length()) {
-                return new Computed(new TextEdit(lo, lo + 1, ""), new SelRange(lo, lo));
-            }
-            return new Computed(null, new SelRange(lo, lo));
-        });
+        editCarets(ctx, deleteForward(ctx.port().getText()));
         ctx.st().selType = SelType.NONE;
     }
 
     private static void backwardDelete(Ctx ctx) {
         if (!allowModify(ctx)) return; // meow gates backspace silently
-        editCarets(ctx, (sel, lo, hi) -> {
-            if (lo != hi) {
-                return new Computed(new TextEdit(lo, hi, ""), new SelRange(lo, lo));
-            }
-            if (lo > 0) {
-                return new Computed(new TextEdit(lo - 1, lo, ""), new SelRange(lo - 1, lo - 1));
-            }
-            return new Computed(null, new SelRange(lo, lo));
-        });
+        editCarets(
+                ctx,
+                (sel, lo, hi) -> {
+                    if (lo != hi) {
+                        return new Computed(new TextEdit(lo, hi, ""), new SelRange(lo, lo));
+                    }
+                    if (lo > 0) {
+                        return new Computed(
+                                new TextEdit(lo - 1, lo, ""), new SelRange(lo - 1, lo - 1));
+                    }
+                    return new Computed(null, new SelRange(lo, lo));
+                });
         ctx.st().selType = SelType.NONE;
     }
 
     /**
-     * meow--prepare-region-for-kill (meow-util.el): the range one selection
-     * contributes to a kill or save — a FORWARD line-type selection includes
-     * its trailing newline. Backward selections and the last line kill as-is.
-     * Probed against meow 1.5.0 itself (batch Emacs, 2026-07-06).
+     * meow--prepare-region-for-kill (meow-util.el): the range one selection contributes to a kill
+     * or save — a FORWARD line-type selection includes its trailing newline. Backward selections
+     * and the last line kill as-is. Probed against meow 1.5.0 itself (batch Emacs, 2026-07-06).
      */
     private static int[] killRange(Ctx ctx, SelRange sel, int textLen) {
         int lo = Math.min(sel.anchor(), sel.active());
         int hi = Math.max(sel.anchor(), sel.active());
-        if (ctx.st().selType == SelType.LINE
-                && sel.active() >= sel.anchor()
-                && hi < textLen) {
+        if (ctx.st().selType == SelType.LINE && sel.active() >= sel.anchor() && hi < textLen) {
             hi++;
         }
         return new int[] {lo, hi};
+    }
+
+    /** The region-bearing selections in buffer order — the cursors a kill or save reads. */
+    private static List<SelRange> regionsInOrder(List<SelRange> sels) {
+        List<SelRange> regions = new ArrayList<>();
+        for (SelRange s : sels) {
+            if (s.anchor() != s.active()) regions.add(s);
+        }
+        regions.sort(Comparator.comparingInt(s -> Math.min(s.anchor(), s.active())));
+        return regions;
+    }
+
+    /**
+     * The \n-joined kill-ring text those regions contribute, each through {@link #killRange} — one
+     * rule for kill AND save, so the hand-probed newline behavior cannot drift between them.
+     */
+    private static String joinedKillText(Ctx ctx, String text, List<SelRange> regions) {
+        StringBuilder joined = new StringBuilder();
+        for (int i = 0; i < regions.size(); i++) {
+            int[] r = killRange(ctx, regions.get(i), text.length());
+            if (i > 0) joined.append('\n');
+            joined.append(text, r[0], r[1]);
+        }
+        return joined.toString();
     }
 
     private static void kill(Ctx ctx) {
@@ -235,23 +270,15 @@ public final class Edits {
         }
         if (Selections.hasSelection(prim)) {
             // cut: the kill-ring is the clipboard; multi-cursor kills join with \n
-            List<SelRange> sels = new ArrayList<>();
-            for (SelRange s : ctx.port().getSelections()) {
-                if (s.anchor() != s.active()) sels.add(s);
-            }
-            sels.sort(Comparator.comparingInt(s -> Math.min(s.anchor(), s.active())));
-            StringBuilder killed = new StringBuilder();
-            for (int i = 0; i < sels.size(); i++) {
-                int[] r = killRange(ctx, sels.get(i), text.length());
-                if (i > 0) killed.append('\n');
-                killed.append(text, r[0], r[1]);
-            }
-            ctx.clipboard().write(killed.toString());
-            editCarets(ctx, (sel, lo, hi) -> {
-                if (lo == hi) return new Computed(null, sel);
-                int[] r = killRange(ctx, sel, text.length());
-                return new Computed(new TextEdit(r[0], r[1], ""), new SelRange(r[0], r[0]));
-            });
+            ctx.clipboard()
+                    .write(joinedKillText(ctx, text, regionsInOrder(ctx.port().getSelections())));
+            editCarets(
+                    ctx,
+                    (sel, lo, hi) -> {
+                        if (lo == hi) return new Computed(null, sel);
+                        int[] r = killRange(ctx, sel, text.length());
+                        return new Computed(new TextEdit(r[0], r[1], ""), new SelRange(r[0], r[0]));
+                    });
             st.selType = SelType.NONE;
             return;
         }
@@ -268,8 +295,10 @@ public final class Edits {
         }
     }
 
-    /** Killing a join selection = delete-indentation: single space, none at
-     *  line edges or against brackets (Emacs' fixup-whitespace). */
+    /**
+     * Killing a join selection = delete-indentation: single space, none at line edges or against
+     * brackets (Emacs' fixup-whitespace).
+     */
     private static void joinKill(Ctx ctx) {
         String text = ctx.port().getText();
         SelRange prim = Selections.primary(ctx);
@@ -277,12 +306,13 @@ public final class Edits {
         int e = Math.max(prim.anchor(), prim.active());
         char before = s > 0 ? text.charAt(s - 1) : '\n';
         char after = e < text.length() ? text.charAt(e) : '\n';
-        boolean space = before != '\n'
-                && after != '\n'
-                && !Character.isWhitespace(before)
-                && !Character.isWhitespace(after)
-                && ")]}.,;:".indexOf(after) < 0
-                && "([{".indexOf(before) < 0;
+        boolean space =
+                before != '\n'
+                        && after != '\n'
+                        && !Character.isWhitespace(before)
+                        && !Character.isWhitespace(after)
+                        && ")]}.,;:".indexOf(after) < 0
+                        && "([{".indexOf(before) < 0;
         // grab module port point: Grab.adjustForEdits before applying
         ctx.port().edit(List.of(new TextEdit(s, e, space ? " " : "")));
         ctx.port().setSelections(List.of(new SelRange(s, s)));
@@ -290,25 +320,17 @@ public final class Edits {
         ctx.st().selExpand = false;
     }
 
-    /** meow-save: copy — with kill-ring-save's mark deactivation: the selection
-     *  is cancelled afterwards and every cursor stays at its point (past the
-     *  newline for a forward line selection). */
+    /**
+     * meow-save: copy — with kill-ring-save's mark deactivation: the selection is cancelled
+     * afterwards and every cursor stays at its point (past the newline for a forward line
+     * selection).
+     */
     private static void save(Ctx ctx) {
         String text = ctx.port().getText();
         List<SelRange> sels = ctx.port().getSelections();
-        List<SelRange> withSel = new ArrayList<>();
-        for (SelRange s : sels) {
-            if (s.anchor() != s.active()) withSel.add(s);
-        }
-        withSel.sort(Comparator.comparingInt(s -> Math.min(s.anchor(), s.active())));
+        List<SelRange> withSel = regionsInOrder(sels);
         if (withSel.isEmpty()) return;
-        StringBuilder copied = new StringBuilder();
-        for (int i = 0; i < withSel.size(); i++) {
-            int[] r = killRange(ctx, withSel.get(i), text.length());
-            if (i > 0) copied.append('\n');
-            copied.append(text, r[0], r[1]);
-        }
-        ctx.clipboard().write(copied.toString());
+        ctx.clipboard().write(joinedKillText(ctx, text, withSel));
         List<SelRange> collapsed = new ArrayList<>();
         for (SelRange s : sels) {
             if (s.anchor() == s.active()) {
@@ -329,9 +351,14 @@ public final class Edits {
         if (blockedReadOnly(ctx)) return;
         String clip = ctx.clipboard().read();
         if (clip == null || clip.isEmpty()) return;
-        editCarets(ctx, (sel, lo, hi) -> new Computed(
-                new TextEdit(sel.active(), sel.active(), clip),
-                new SelRange(sel.active() + clip.length(), sel.active() + clip.length())));
+        editCarets(
+                ctx,
+                (sel, lo, hi) ->
+                        new Computed(
+                                new TextEdit(sel.active(), sel.active(), clip),
+                                new SelRange(
+                                        sel.active() + clip.length(),
+                                        sel.active() + clip.length())));
     }
 
     /** meow-replace: selection := clipboard; the clipboard stays intact. */
@@ -341,23 +368,30 @@ public final class Edits {
         String raw = ctx.clipboard().read();
         if (raw == null) return;
         String clip = raw.replaceAll("\\n+$", "");
-        editCarets(ctx, (sel, lo, hi) -> lo == hi
-                ? new Computed(null, sel)
-                : new Computed(
-                        new TextEdit(lo, hi, clip),
-                        new SelRange(lo + clip.length(), lo + clip.length())));
+        editCarets(
+                ctx,
+                (sel, lo, hi) ->
+                        lo == hi
+                                ? new Computed(null, sel)
+                                : new Computed(
+                                        new TextEdit(lo, hi, clip),
+                                        new SelRange(lo + clip.length(), lo + clip.length())));
         ctx.st().selType = SelType.NONE;
     }
 
-    /** meow-undo cancels the selection (with its history) BEFORE undoing —
-     *  but only when a region is active. */
+    /**
+     * meow-undo cancels the selection (with its history) BEFORE undoing — but only when a region is
+     * active.
+     */
     private static void undo(Ctx ctx) {
         if (Selections.hasSelection(Selections.primary(ctx))) Selections.cancel(ctx);
         ctx.port().undo();
     }
 
-    /** meow-undo-in-selection only acts with an active region; the region-scoped
-     *  undo itself has no host analog, so it is a plain undo (see README). */
+    /**
+     * meow-undo-in-selection only acts with an active region; the region-scoped undo itself has no
+     * host analog, so it is a plain undo (see README).
+     */
     private static void undoInSelection(Ctx ctx) {
         if (Selections.hasSelection(Selections.primary(ctx))) ctx.port().undo();
     }

@@ -21,18 +21,18 @@ import io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange;
 
 /**
  * meow-char-thing-table:
+ *
  * <pre>
  *   r round  s square  c curly  g string  e symbol  w window  b buffer
  *   p paragraph  l line  v visual-line  d defun  . sentence
  * </pre>
- * {@link #inner} excludes delimiters, {@link #bounds} includes them; both
- * return a half-open {@link OffsetRange} or null when the thing does not exist
- * at point. Ported from codemeow's things.ts (itself the ideameow Things.kt),
- * against meow-command.el's char-thing table.
+ *
+ * {@link #inner} excludes delimiters, {@link #bounds} includes them; both return a half-open {@link
+ * OffsetRange} or null when the thing does not exist at point. Ported from codemeow's things.ts
+ * (itself the ideameow Things.kt), against meow-command.el's char-thing table.
  */
 public final class Things {
-    private Things() {
-    }
+    private Things() {}
 
     public static OffsetRange inner(Ctx ctx, char ch, int offset) {
         return compute(ctx, ch, offset, true);
@@ -97,20 +97,17 @@ public final class Things {
     }
 
     /**
-     * String thing (meow {@code g}): the quoted run at point. meow delegates to
-     * the major-mode syntax table (bounds-of-thing-at-point 'string, then
-     * skip-syntax over the string-quote/fence classes, which strips the WHOLE
-     * delimiter run); this port is a text scan instead, so ,g/.g still work in
-     * plain-text and language-agnostic buffers — a deliberate divergence (see
-     * meow-semantics.md). It recognizes single AND triple runs of the three
-     * quote chars (single-quote, double-quote, backtick), so Python/Kotlin
-     * triple quotes, Markdown/JS fences and template literals all select.
-     * inner() drops the full delimiter run on each side, bounds() keeps it
-     * (mirroring the skip-syntax intent). A single-char run stays on one line; a
-     * triple run spans lines (docstrings/fences). A backslash escapes the next
-     * char. Unterminated openers are skipped so a stray apostrophe can't swallow
-     * the rest of the buffer — but, like meow, a text scan can still be fooled by
-     * an odd quote earlier on the same line.
+     * String thing (meow {@code g}): the quoted run at point. meow delegates to the major-mode
+     * syntax table (bounds-of-thing-at-point 'string, then skip-syntax over the string-quote/fence
+     * classes, which strips the WHOLE delimiter run); this port is a text scan instead, so ,g/.g
+     * still work in plain-text and language-agnostic buffers — a deliberate divergence (see
+     * meow-semantics.md). It recognizes single AND triple runs of the three quote chars
+     * (single-quote, double-quote, backtick), so Python/Kotlin triple quotes, Markdown/JS fences
+     * and template literals all select. inner() drops the full delimiter run on each side, bounds()
+     * keeps it (mirroring the skip-syntax intent). A single-char run stays on one line; a triple
+     * run spans lines (docstrings/fences). A backslash escapes the next char. Unterminated openers
+     * are skipped so a stray apostrophe can't swallow the rest of the buffer — but, like meow, a
+     * text scan can still be fooled by an odd quote earlier on the same line.
      */
     private static OffsetRange stringThing(String text, int offset, boolean inner) {
         int n = text.length();
@@ -130,8 +127,11 @@ public final class Things {
                         j += 2;
                         continue;
                     }
-                    boolean closes = !triple
-                            || (j + 2 < n && text.charAt(j + 1) == c && text.charAt(j + 2) == c);
+                    boolean closes =
+                            !triple
+                                    || (j + 2 < n
+                                            && text.charAt(j + 1) == c
+                                            && text.charAt(j + 2) == c);
                     if (d == c && closes) {
                         closeEnd = j + len;
                         break;
@@ -203,8 +203,8 @@ public final class Things {
     }
 
     /**
-     * defun: the host's symbol provider when it knows a function around point;
-     * falls back to the outermost curly block for plain text.
+     * defun: the host's symbol provider when it knows a function around point; falls back to the
+     * outermost curly block for plain text.
      */
     private static OffsetRange defun(Ctx ctx, String text, int offset) {
         OffsetRange fromHost = ctx.port().symbolRangeAt(offset);
@@ -232,7 +232,9 @@ public final class Things {
         int e = Text.clamp(offset, 0, text.length());
         while (e < text.length()
                 && enders.indexOf(text.charAt(e)) < 0
-                && !(text.charAt(e) == '\n' && e + 1 < text.length() && text.charAt(e + 1) == '\n')) {
+                && !(text.charAt(e) == '\n'
+                        && e + 1 < text.length()
+                        && text.charAt(e + 1) == '\n')) {
             e++;
         }
         if (e < text.length() && enders.indexOf(text.charAt(e)) >= 0) e++;

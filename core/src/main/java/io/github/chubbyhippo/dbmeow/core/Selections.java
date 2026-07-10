@@ -24,18 +24,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The selection primitive, and the commands that act on the selection itself
- * (reverse, cancel, pop, digit expand). Every selecting command funnels
- * through {@link #select}, which mirrors meow's (expand|select . type) model
- * and its history: the previous selection (or a null placeholder recording
- * where the chain started) is pushed on every select, `z` pops entries back
- * with their type and direction, and meow--cancel-selection (movement, `g`,
- * `i`, `a`, grab…) clears the whole history. Verified against meow 1.5.0 by
- * probe.
+ * The selection primitive, and the commands that act on the selection itself (reverse, cancel, pop,
+ * digit expand). Every selecting command funnels through {@link #select}, which mirrors meow's
+ * (expand|select . type) model and its history: the previous selection (or a null placeholder
+ * recording where the chain started) is pushed on every select, `z` pops entries back with their
+ * type and direction, and meow--cancel-selection (movement, `g`, `i`, `a`, grab…) clears the whole
+ * history. Verified against meow 1.5.0 by probe.
  */
 public final class Selections {
-    private Selections() {
-    }
+    private Selections() {}
 
     public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
@@ -50,13 +47,14 @@ public final class Selections {
     }
 
     /** The types digit expand can grow; anything else makes digits a count. */
-    private static final Set<SelType> EXPANDABLE = Set.of(
-            SelType.CHAR,
-            SelType.WORD,
-            SelType.SYMBOL,
-            SelType.LINE,
-            SelType.FIND,
-            SelType.TILL);
+    private static final Set<SelType> EXPANDABLE =
+            Set.of(
+                    SelType.CHAR,
+                    SelType.WORD,
+                    SelType.SYMBOL,
+                    SelType.LINE,
+                    SelType.FIND,
+                    SelType.TILL);
 
     public static SelRange primary(Ctx ctx) {
         return ctx.port().getSelections().get(0);
@@ -78,20 +76,17 @@ public final class Selections {
         return hasSelection(sel) ? sel.anchor() : sel.active();
     }
 
-    /** meow--select's history bookkeeping: push the previous meow--selection —
-     *  or a null placeholder at {@code posBefore} when there was none — then
-     *  remember the new one. */
+    /**
+     * meow--select's history bookkeeping: push the previous meow--selection — or a null placeholder
+     * at {@code posBefore} when there was none — then remember the new one.
+     */
     public static void recordSelect(
-            Ctx ctx,
-            SelType type,
-            int anchor,
-            int active,
-            boolean expand,
-            int posBefore) {
+            Ctx ctx, SelType type, int anchor, int active, boolean expand, int posBefore) {
         MeowState st = ctx.st();
-        SavedSelection prev = st.lastSelection != null
-                ? st.lastSelection
-                : new SavedSelection(null, false, posBefore, posBefore);
+        SavedSelection prev =
+                st.lastSelection != null
+                        ? st.lastSelection
+                        : new SavedSelection(null, false, posBefore, posBefore);
         SavedSelection head = st.selectionHistory.peekLast();
         if (head == null || !head.equals(prev)) st.selectionHistory.addLast(prev);
         while (st.selectionHistory.size() > 200) st.selectionHistory.removeFirst();
@@ -103,12 +98,7 @@ public final class Selections {
     }
 
     public static void select(
-            Ctx ctx,
-            SelType type,
-            int markOff,
-            int point,
-            boolean expand,
-            boolean push) {
+            Ctx ctx, SelType type, int markOff, int point, boolean expand, boolean push) {
         MeowState st = ctx.st();
         int len = ctx.port().getText().length();
         int m = Text.clamp(markOff, 0, len);
@@ -125,15 +115,16 @@ public final class Selections {
         ctx.ui().showExpandHints(Hints.expandHintPositions(ctx));
     }
 
-    /** Forget the selection chain — the history-clearing half of
-     *  meow--cancel-selection. */
+    /** Forget the selection chain — the history-clearing half of meow--cancel-selection. */
     public static void resetSelectionMemory(MeowState st) {
         st.selectionHistory.clear();
         st.lastSelection = null;
     }
 
-    /** Collapse the primary selection WITHOUT touching the history — for edits
-     *  that kill the region as a side effect (meow never cancels there). */
+    /**
+     * Collapse the primary selection WITHOUT touching the history — for edits that kill the region
+     * as a side effect (meow never cancels there).
+     */
     public static void collapse(Ctx ctx) {
         List<SelRange> sels = new ArrayList<>(ctx.port().getSelections());
         sels.set(0, new SelRange(sels.get(0).active(), sels.get(0).active()));
@@ -162,10 +153,11 @@ public final class Selections {
         ctx.port().setSelections(sels);
     }
 
-    /** meow-pop-selection: with an active region, pop the history (a typed
-     *  entry restores type AND direction; the null placeholder returns the
-     *  caret to where the chain started and cancels); without one, pop the
-     *  grab. */
+    /**
+     * meow-pop-selection: with an active region, pop the history (a typed entry restores type AND
+     * direction; the null placeholder returns the caret to where the chain started and cancels);
+     * without one, pop the grab.
+     */
     private static void pop(Ctx ctx) {
         MeowState st = ctx.st();
         if (hasSelection(primary(ctx))) {
@@ -187,8 +179,10 @@ public final class Selections {
         }
     }
 
-    /** meow-expand-N (0 = 10); without an expandable selection it falls back
-     *  to meow-digit-argument (meow-selection-command-fallback). */
+    /**
+     * meow-expand-N (0 = 10); without an expandable selection it falls back to meow-digit-argument
+     * (meow-selection-command-fallback).
+     */
     private static void expandOrCount(Ctx ctx, int n) {
         MeowState st = ctx.st();
         if (hasSelection(primary(ctx)) && EXPANDABLE.contains(st.selType)) {
@@ -208,15 +202,17 @@ public final class Selections {
             case CHAR -> target = caret + (back ? -n : n);
             case WORD, SYMBOL -> {
                 Text.CharPredicate p = Text.charPred(st.selType == SelType.SYMBOL);
-                target = back
-                        ? Text.Words.prevStart(text, caret, n, p)
-                        : Text.Words.nextEnd(text, caret, n, p);
+                target =
+                        back
+                                ? Text.Words.prevStart(text, caret, n, p)
+                                : Text.Words.nextEnd(text, caret, n, p);
             }
             case LINE -> {
                 int ln = Text.lineOfOffset(text, caret);
-                target = back
-                        ? Text.lineStart(text, Math.max(ln - n, 0))
-                        : Text.lineEnd(text, Math.min(ln + n, Text.lineCount(text) - 1));
+                target =
+                        back
+                                ? Text.lineStart(text, Math.max(ln - n, 0))
+                                : Text.lineEnd(text, Math.min(ln + n, Text.lineCount(text) - 1));
             }
             case FIND, TILL -> {
                 Character ch = st.lastFind;

@@ -20,18 +20,16 @@ package io.github.chubbyhippo.dbmeow.core;
 import java.util.Set;
 
 /**
- * Which editors get meow, by editor kind — the Eclipse analog of the siblings'
- * attach policy (codemeow keys off VS Code document schemes; ideameow off
- * editor kinds). Everything that attaches gets NORMAL: like Emacs, a read-only
- * viewer keeps the full layout and the modify commands gate themselves (see
- * {@link Edits#allowModify}); it just reports non-writable through
- * {@link EditorPort}. Inputs that need their own keys (one-line fields, dialog
- * inputs) keep native editing. The adapter (InterceptorManager) is the intended
- * caller; MOTION exists for mmap setups but nothing attaches to it by default.
+ * Which editors get meow, by editor kind — the Eclipse analog of the siblings' attach policy
+ * (codemeow keys off VS Code document schemes; ideameow off editor kinds). Everything that attaches
+ * gets NORMAL: like Emacs, a read-only viewer keeps the full layout and the modify commands gate
+ * themselves (see {@link Edits#allowModify}); it just reports non-writable through {@link
+ * EditorPort}. Inputs that need their own keys (one-line fields, dialog inputs) keep native
+ * editing. The adapter (InterceptorManager) is the intended caller; MOTION exists for mmap setups
+ * but nothing attaches to it by default.
  */
 public final class AttachPolicy {
-    private AttachPolicy() {
-    }
+    private AttachPolicy() {}
 
     /** Read-only kinds: attach in NORMAL but report non-writable. */
     private static final Set<String> READONLY = Set.of("diff", "output");

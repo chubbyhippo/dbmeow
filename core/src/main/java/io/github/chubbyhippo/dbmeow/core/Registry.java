@@ -21,15 +21,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Every command under its meow name (plus Emacs' `repeat` and `ignore`,
- * exactly as meow's suggested layout spells them) — the targets a
- * ~/.dbmeowrc line can bind a key to. Each command family contributes its
- * own map; the dispatcher-level entries (counts, keypad, repeat, quit,
- * no-op) live here.
+ * Every command under its meow name (plus Emacs' `repeat` and `ignore`, exactly as meow's suggested
+ * layout spells them) — the targets a ~/.dbmeowrc line can bind a key to. Each command family
+ * contributes its own map; the dispatcher-level entries (counts, keypad, repeat, quit, no-op) live
+ * here.
  */
 public final class Registry {
-    private Registry() {
-    }
+    private Registry() {}
 
     public static final Map<String, MeowCommand> COMMANDS = new LinkedHashMap<>();
 
@@ -46,12 +44,13 @@ public final class Registry {
         // that exact spelling too so the canonical table pastes verbatim
         COMMANDS.put("negative-argument", ctx -> ctx.st().negative = true);
         COMMANDS.put("meow-quit", ctx -> ctx.port().closeEditor());
-        COMMANDS.put("meow-keypad", ctx -> {
-            ctx.setMode(MeowMode.KEYPAD);
-            ctx.ui().scheduleWhichKey("keypad", "");
-        });
+        COMMANDS.put(
+                "meow-keypad",
+                ctx -> {
+                    ctx.setMode(MeowMode.KEYPAD);
+                    ctx.ui().scheduleWhichKey("keypad", "");
+                });
         COMMANDS.put("repeat", Engine::repeatLast);
-        COMMANDS.put("ignore", ctx -> {
-        });
+        COMMANDS.put("ignore", ctx -> {});
     }
 }

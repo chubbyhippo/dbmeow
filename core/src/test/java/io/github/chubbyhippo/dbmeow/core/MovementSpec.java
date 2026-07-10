@@ -17,15 +17,15 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 /**
- * meow-left/right/next/prev and the -expand variants, counts, negative arg.
- * Name-for-name port of codemeow's movement.test.ts — the h/l cross-newline
- * and j/k goal-column behaviors were batch-probed against meow 1.5.0.
+ * meow-left/right/next/prev and the -expand variants, counts, negative arg. Name-for-name port of
+ * codemeow's movement.test.ts — the h/l cross-newline and j/k goal-column behaviors were
+ * batch-probed against meow 1.5.0.
  */
 class MovementSpec extends SpecDsl {
     @Test
@@ -90,7 +90,8 @@ class MovementSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a char selection when h then the selection survives and extends (meow keeps char selections)")
+    @DisplayName(
+            "given a char selection when h then the selection survives and extends (meow keeps char selections)")
     void hExtendsCharSelection() {
         given("plain text", "hel<caret>lo");
         whenKeys("Hh");
@@ -99,7 +100,8 @@ class MovementSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a word selection when h then the selection is cancelled (only char selections survive)")
+    @DisplayName(
+            "given a word selection when h then the selection is cancelled (only char selections survive)")
     void hCancelsWordSelection() {
         given("plain text", "<caret>hello world");
         whenKeys("w");

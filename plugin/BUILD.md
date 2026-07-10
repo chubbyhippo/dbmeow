@@ -43,6 +43,11 @@ editor and you are in NORMAL mode.
   against the target platform (verified 2026-07-10), runtime-unverified.
 - `lib/dbmeow-core.jar` is a build artifact and is git-ignored; step 2
   regenerates it.
+- Formatting is Spotless (google-java-format, AOSP style — 4-space indent):
+  `mvn spotless:apply` rewrites, and the check goal is bound to `verify` in
+  both the root pom and this standalone one, so `mvn test` stays fast and
+  `mvn verify`/`mvn package` (which runs verify's earlier phases only —
+  the gate fires on `verify` and beyond) enforces the format.
 - The `.dbmeowrc` defaults ride inside the embedded core jar (the core
   packages it as a classpath resource), so `~/.dbmeowrc` overriding works the
   same as the siblings with nothing extra to install.

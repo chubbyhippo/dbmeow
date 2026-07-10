@@ -23,35 +23,36 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * which-key: after a short delay on a pending prefix (keypad SPC sequences,
- * or the , . [ ] thing table), the adapter lists the available continuations
- * in a menu whose input dispatches typed keys through the engine (they never
- * filter — chains must type through the menu unchanged). Descriptions come
- * from `desc` / `let g:WhichKeyDesc_*` entries; delay and on/off from
- * `set timeoutlen` / `set nowhich-key`. The row computation is pure and
- * lives here.
+ * which-key: after a short delay on a pending prefix (keypad SPC sequences, or the , . [ ] thing
+ * table), the adapter lists the available continuations in a menu whose input dispatches typed keys
+ * through the engine (they never filter — chains must type through the menu unchanged).
+ * Descriptions come from `desc` / `let g:WhichKeyDesc_*` entries; delay and on/off from `set
+ * timeoutlen` / `set nowhich-key`. The row computation is pure and lives here.
  */
 public final class WhichKey {
-    private WhichKey() {
-    }
+    private WhichKey() {}
 
     /** One which-key row: the next key and its label. */
-    public record Row(String key, String label) {
-    }
+    public record Row(String key, String label) {}
 
-    public static final List<Row> THINGS = List.of(
-            new Row("r", "round ( )"),
-            new Row("s", "square [ ]"),
-            new Row("c", "curly { }"),
-            new Row("g", "string"),
-            new Row("e", "symbol"),
-            new Row("w", "window"),
-            new Row("b", "buffer"),
-            new Row("p", "paragraph"),
-            new Row("l", "line"),
-            new Row("v", "visual line"),
-            new Row("d", "defun"),
-            new Row(".", "sentence"));
+    /**
+     * The `, . [ ] < >` thing-table rows. Staged for the SWT which-key overlay (a stub today) — the
+     * codemeow adapter reads its THINGS twin the same way (extension.ts, kind == 'things').
+     */
+    public static final List<Row> THINGS =
+            List.of(
+                    new Row("r", "round ( )"),
+                    new Row("s", "square [ ]"),
+                    new Row("c", "curly { }"),
+                    new Row("g", "string"),
+                    new Row("e", "symbol"),
+                    new Row("w", "window"),
+                    new Row("b", "buffer"),
+                    new Row("p", "paragraph"),
+                    new Row("l", "line"),
+                    new Row("v", "visual line"),
+                    new Row("d", "defun"),
+                    new Row(".", "sentence"));
 
     /** One row per next key continuing {@code buffer}: terminal label or group desc. */
     public static List<Row> keypadRows(String buffer) {
@@ -64,11 +65,14 @@ public final class WhichKey {
             String label;
             if (seq.equals(child)) {
                 Rc.Binding b = e.getValue();
-                label = descs.containsKey(seq)
-                        ? descs.get(seq)
-                        : b.action() != null
-                                ? b.action()
-                                : b.command() != null ? b.command() : b.keys() != null ? b.keys() : "";
+                label =
+                        descs.containsKey(seq)
+                                ? descs.get(seq)
+                                : b.action() != null
+                                        ? b.action()
+                                        : b.command() != null
+                                                ? b.command()
+                                                : b.keys() != null ? b.keys() : "";
             } else {
                 label = descs.containsKey(child) ? descs.get(child) : "+more";
             }
@@ -77,10 +81,14 @@ public final class WhichKey {
         List<Row> out = new ArrayList<>();
         rows.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
-                .forEach(e -> {
-                    char key = e.getKey().charAt(e.getKey().length() - 1);
-                    out.add(new Row(key == ' ' ? "SPC" : String.valueOf(key), e.getValue()));
-                });
+                .forEach(
+                        e -> {
+                            char key = e.getKey().charAt(e.getKey().length() - 1);
+                            out.add(
+                                    new Row(
+                                            key == ' ' ? "SPC" : String.valueOf(key),
+                                            e.getValue()));
+                        });
         return out;
     }
 }

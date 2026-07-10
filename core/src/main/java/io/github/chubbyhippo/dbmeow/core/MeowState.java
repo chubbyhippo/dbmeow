@@ -51,19 +51,23 @@ public class MeowState {
     /** Last dispatched command name — the this-command/last-command handoff. */
     public String lastCommand = null;
 
-    /** The grab region (secondary selection), or null; tracks core-applied
-     *  edits via {@link Grab#adjustForEdits}. A selection made inside it spawns
-     *  beacon carets ({@link Grab#beacon}); the SWT adapter renders only the
-     *  primary caret but still applies the multi-range edit. */
+    /**
+     * The grab region (secondary selection), or null; tracks core-applied edits via {@link
+     * Grab#adjustForEdits}. A selection made inside it spawns beacon carets ({@link Grab#beacon});
+     * the SWT adapter renders only the primary caret but still applies the multi-range edit.
+     */
     public EditorPort.OffsetRange grab = null;
 
-    /** In-flight avy jump (S / Q) session, or null — consumes keys until it
-     *  lands or cancels (see {@link Avy}). */
+    /**
+     * In-flight avy jump (S / Q) session, or null — consumes keys until it lands or cancels (see
+     * {@link Avy}).
+     */
     public Avy.AvySession avy = null;
 
-    /** The armed repeat transient (Emacs repeat-mode, see Rc repeat groups):
-     *  member keys re-dispatch their binding, any other key or ESC ends the
-     *  run and falls through to the normal map. */
+    /**
+     * The armed repeat transient (Emacs repeat-mode, see Rc repeat groups): member keys re-dispatch
+     * their binding, any other key or ESC ends the run and falls through to the normal map.
+     */
     public Map<Character, Rc.Binding> repeatMap = null;
 
     public final StringBuilder keypad = new StringBuilder();

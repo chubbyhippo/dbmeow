@@ -17,24 +17,22 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
- * The tree surface: MOTION-map dispatch on workbench trees (TreeMeow).
- * Platform-specific — no meow source of truth for a tree widget; pinned is the
- * resolution order (user maps over defaults, noremap replays skipping user
- * maps — exactly the engine's) and the four motions' translation to the tree's
- * arrow-key vocabulary. The FakeTree below implements those four command
- * semantics over a model tree. (The static keybinding table is SWT/plugin.xml
- * wiring, staged — its manifest spec has no headless analog.)
+ * The tree surface: MOTION-map dispatch on workbench trees (TreeMeow). Platform-specific — no meow
+ * source of truth for a tree widget; pinned is the resolution order (user maps over defaults,
+ * noremap replays skipping user maps — exactly the engine's) and the four motions' translation to
+ * the tree's arrow-key vocabulary. The FakeTree below implements those four command semantics over
+ * a model tree. (The static keybinding table is SWT/plugin.xml wiring, staged — its manifest spec
+ * has no headless analog.)
  */
 class TreeMeowSpec extends SpecDsl {
     private static final class TreeNode {
@@ -55,8 +53,10 @@ class TreeMeowSpec extends SpecDsl {
         }
     }
 
-    /** The focused tree the adapter's run callback stands in front of: the four
-     *  tree commands act on the model, anything else is recorded. */
+    /**
+     * The focused tree the adapter's run callback stands in front of: the four tree commands act on
+     * the model, anything else is recorded.
+     */
     private static final class FakeTree {
         final TreeNode root = new TreeNode("root", null);
         TreeNode focus = root;
@@ -117,9 +117,7 @@ class TreeMeowSpec extends SpecDsl {
         }
     }
 
-    /**
-     * root ├── a (├── a1 └── a2) └── b — root expanded, so rows are root, a, b.
-     */
+    /** root ├── a (├── a1 └── a2) └── b — root expanded, so rows are root, a, b. */
     private static FakeTree givenTree() {
         FakeTree tree = new FakeTree();
         TreeNode a = tree.root.add("a");
@@ -234,7 +232,8 @@ class TreeMeowSpec extends SpecDsl {
     void boundCharsMerges() {
         givenRc("mmap w meow-next-word");
         var bound = TreeMeow.boundChars();
-        for (char c : "jkhlqw".toCharArray()) assertTrue(bound.contains(c), "'" + c + "' must be bound");
+        for (char c : "jkhlqw".toCharArray())
+            assertTrue(bound.contains(c), "'" + c + "' must be bound");
         assertFalse(bound.contains('z'), "unmapped letters stay native (type-to-find)");
     }
 

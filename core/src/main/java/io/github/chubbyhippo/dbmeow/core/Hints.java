@@ -22,15 +22,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * meow's expand hints: after an expandable selection (word/symbol/line/
- * find/till), digit labels mark where 1-9 and 0 (=10) would take the
- * selection. The core computes the offsets; the adapter renders them as
- * decorations and removes them after meow-expand-hint-remove-delay (1 s)
- * or on the next key, whichever comes first.
+ * meow's expand hints: after an expandable selection (word/symbol/line/ find/till), digit labels
+ * mark where 1-9 and 0 (=10) would take the selection. The core computes the offsets; the adapter
+ * renders them as decorations and removes them after meow-expand-hint-remove-delay (1 s) or on the
+ * next key, whichever comes first.
  */
 public final class Hints {
-    private Hints() {
-    }
+    private Hints() {}
 
     public static List<Integer> expandHintPositions(Ctx ctx) {
         return expandHintPositions(ctx, 10);
@@ -49,9 +47,10 @@ public final class Hints {
                 Text.CharPredicate pred = Text.charPred(st.selType == SelType.SYMBOL);
                 int i = caret;
                 for (int k = 0; k < count; k++) {
-                    i = backward
-                            ? Text.Words.prevStart(text, i, 1, pred)
-                            : Text.Words.nextEnd(text, i, 1, pred);
+                    i =
+                            backward
+                                    ? Text.Words.prevStart(text, i, 1, pred)
+                                    : Text.Words.nextEnd(text, i, 1, pred);
                     if (backward ? i <= 0 : i >= text.length()) break;
                     out.add(i);
                 }
@@ -67,20 +66,17 @@ public final class Hints {
             case FIND, TILL -> {
                 Character c = st.lastFind;
                 if (c == null) return out;
-                int i = caret;
-                for (int k = 0; k < count; k++) {
-                    int next = backward
-                            ? Text.lastIndexOfChar(text, c, i - 1)
-                            : Text.indexOfChar(text, c, i + 1);
-                    if (next < 0) break;
-                    out.add(st.selType == SelType.TILL
-                            ? next
-                            : Math.min(next + 1, text.length()));
-                    i = next;
+                // the SAME scan the digit expand runs (nthCharTarget), so the
+                // painted digits can never disagree with where the selection
+                // would land — e.g. a target char sitting right at the caret
+                boolean till = st.selType == SelType.TILL;
+                for (int k = 1; k <= count; k++) {
+                    int t = Text.nthCharTarget(text, c, caret, k, backward, till);
+                    if (t < 0) break;
+                    out.add(t);
                 }
             }
-            default -> {
-            }
+            default -> {}
         }
         return new ArrayList<>(new LinkedHashSet<>(out));
     }

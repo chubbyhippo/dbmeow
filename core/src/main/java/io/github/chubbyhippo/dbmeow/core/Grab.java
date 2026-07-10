@@ -18,7 +18,6 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 import io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -28,16 +27,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * meow-grab / swap-grab / sync-grab — the secondary-selection stand-in — plus
- * the BEACON multi-cursor approximation. A name-for-name port of codemeow's
- * grab.ts, against meow-command.el (see meow-semantics.md). The beacon LOGIC
- * ports and is tested headless over FakeEditor (which can hold several carets);
- * the SWT adapter renders only the primary caret (single-caret StyledText) but
- * still applies the multi-range edit — see the README for that adapter note.
+ * meow-grab / swap-grab / sync-grab — the secondary-selection stand-in — plus the BEACON
+ * multi-cursor approximation. A name-for-name port of codemeow's grab.ts, against meow-command.el
+ * (see meow-semantics.md). The beacon LOGIC ports and is tested headless over FakeEditor (which can
+ * hold several carets); the SWT adapter renders only the primary caret (single-caret StyledText)
+ * but still applies the multi-range edit — see the README for that adapter note.
  */
 public final class Grab {
-    private Grab() {
-    }
+    private Grab() {}
 
     public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
@@ -56,8 +53,8 @@ public final class Grab {
     }
 
     /**
-     * Keep the grab tracking core-applied edits, like a range marker would:
-     * edits before it shift it, edits inside it grow/shrink it.
+     * Keep the grab tracking core-applied edits, like a range marker would: edits before it shift
+     * it, edits inside it grow/shrink it.
      */
     public static void adjustForEdits(MeowState st, List<TextEdit> edits) {
         OffsetRange g = st.grab;
@@ -81,8 +78,10 @@ public final class Grab {
         st.grab = new OffsetRange(gs, ge);
     }
 
-    /** meow-grab: region -> secondary selection; with NO region the grab is
-     *  cancelled instead (meow 1.5.0 body, despite its docstring). */
+    /**
+     * meow-grab: region -> secondary selection; with NO region the grab is cancelled instead (meow
+     * 1.5.0 body, despite its docstring).
+     */
     private static void grab(Ctx ctx) {
         clear(ctx);
         SelRange sel = Selections.primary(ctx);
@@ -104,8 +103,10 @@ public final class Grab {
         Selections.cancel(ctx);
     }
 
-    /** meow-swap-grab: exchange region and secondary text; the secondary stays
-     *  at its location holding the swapped-in text. */
+    /**
+     * meow-swap-grab: exchange region and secondary text; the secondary stays at its location
+     * holding the swapped-in text.
+     */
     private static void swap(Ctx ctx) {
         if (Edits.blockedReadOnly(ctx)) return; // swap-grab edits both regions
         MeowState st = ctx.st();
@@ -131,9 +132,7 @@ public final class Grab {
         String grabText = text.substring(gs, ge);
         String selText = text.substring(ss, se);
         st.grab = null; // replaced wholesale below; skip marker adjustment
-        ctx.port().edit(List.of(
-                new TextEdit(ss, se, grabText),
-                new TextEdit(gs, ge, selText)));
+        ctx.port().edit(List.of(new TextEdit(ss, se, grabText), new TextEdit(gs, ge, selText)));
         if (gs <= ss) {
             int delta = selText.length() - (ge - gs);
             set(ctx, gs, gs + selText.length());
@@ -160,12 +159,11 @@ public final class Grab {
     }
 
     /**
-     * BEACON: with a grab active, creating a selection inside it drops a
-     * cursor+selection on every similar range in the grab, so a following edit
-     * (change/delete/…) hits them all — meow's kmacro replay, done with
-     * multiple carets. Invoked from the selection primitive, so every selecting
-     * command participates. The SWT adapter shows only the primary caret, but
-     * the multi-range edit still applies.
+     * BEACON: with a grab active, creating a selection inside it drops a cursor+selection on every
+     * similar range in the grab, so a following edit (change/delete/…) hits them all — meow's
+     * kmacro replay, done with multiple carets. Invoked from the selection primitive, so every
+     * selecting command participates. The SWT adapter shows only the primary caret, but the
+     * multi-range edit still applies.
      */
     public static void beacon(Ctx ctx) {
         MeowState st = ctx.st();
@@ -183,9 +181,10 @@ public final class Grab {
                 String selText = text.substring(ss, se);
                 if (selText.trim().isEmpty()) return;
                 boolean bounded = st.selType == SelType.WORD || st.selType == SelType.SYMBOL;
-                String pat = bounded
-                        ? "\\b" + Text.escapeRegExp(selText) + "\\b"
-                        : Text.escapeRegExp(selText);
+                String pat =
+                        bounded
+                                ? "\\b" + Text.escapeRegExp(selText) + "\\b"
+                                : Text.escapeRegExp(selText);
                 Matcher m;
                 try {
                     m = Pattern.compile(pat).matcher(text.substring(g.start(), g.end()));
