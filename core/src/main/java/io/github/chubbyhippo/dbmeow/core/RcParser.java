@@ -48,8 +48,13 @@ final class RcParser {
     private RcParser() {
     }
 
+    // The id inside <action>(...) is either a bare Eclipse command id or the
+    // serialized *parameterized* form commandId(paramId=value,...) — which
+    // EclipseUi.runCommand feeds straight to ICommandService.deserialize. Hence
+    // the extra ( ) , = characters (e.g. opening the Bookmarks view via
+    // org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=...)).
     private static final Pattern ACTION_RE =
-            Pattern.compile("^<action>\\(([\\w.\\-$]+)\\)$", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("^<action>\\(([\\w.\\-$(),=]+)\\)$", Pattern.CASE_INSENSITIVE);
     private static final Pattern WHICHKEY_LET_RE =
             Pattern.compile("^let\\s+g:WhichKeyDesc\\w*\\s*=\\s*\"(.+)\"$");
     private static final Pattern TRAILING_COMMENT_RE = Pattern.compile("\\s\"");

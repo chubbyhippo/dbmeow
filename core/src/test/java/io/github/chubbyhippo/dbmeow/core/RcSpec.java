@@ -31,6 +31,16 @@ class RcSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given a parameterized action then the whole serialized command is kept")
+    void givenAParameterizedActionThenTheWholeSerializedCommandIsKept() {
+        String id = "org.eclipse.ui.views.showView("
+                + "org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView)";
+        Rc.Config c = Rc.parse(List.of("map <leader>bj <action>(" + id + ")"));
+        assertEquals(id, c.keypad.get("bj").action());
+        assertEquals(List.of(), c.errors);
+    }
+
+    @Test
     @DisplayName("given a key-sequence mapping then it parses as replay keys")
     void givenAKeySequenceMappingThenItParsesAsReplayKeys() {
         Rc.Config c = Rc.parse(List.of("nmap Z ,b"));
@@ -198,8 +208,8 @@ class RcSpec extends SpecDsl {
     @DisplayName("given an rc keypad mapping then it overrides the bundled entry")
     void givenAnRcKeypadMappingThenItOverridesTheBundledEntry() {
         given("two words", "on<caret>e two");
-        givenRc("map <leader>b ,b"); // bundled-default SPC b arrives with the keypad table
-        whenKeys(" b");
+        givenRc("map <leader>bm ,b"); // overrides the bundled SPC b m (addBookmark)
+        whenKeys(" bm");
         thenSelection("one two");
     }
 

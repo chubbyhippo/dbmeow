@@ -115,3 +115,11 @@ map <leader>ef <action>(org.eclipse.ui.edit.findReplace)
 desc <leader>j jump
 map <leader>jo <action>(org.eclipse.ui.navigate.backwardHistory)
 map <leader>ji <action>(org.eclipse.ui.navigate.forwardHistory)
+
+" SPC b — bookmarks (mirrors the siblings' SPC b). m sets a line bookmark;
+" j opens the Bookmarks view to jump. Ids verified against the installed
+" DBeaver (org.eclipse.ui.ide is bundled, so the marker infra + view exist);
+" the parameterized showView flows through EclipseUi's deserialize path.
+desc <leader>b bookmark (m set / j jump)
+map <leader>bm <action>(org.eclipse.ui.edit.addBookmark)
+map <leader>bj <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView))
