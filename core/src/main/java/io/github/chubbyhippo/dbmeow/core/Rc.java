@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The two rc layers and their layering rules. Like meow in Emacs, the engine
@@ -54,6 +55,10 @@ public final class Rc {
         public final Map<Character, Binding> motion = new HashMap<>();
         public final Map<String, Binding> keypad = new LinkedHashMap<>();
         public final Map<String, String> keypadDesc = new HashMap<>();
+
+        /** Repeat groups (Emacs repeat-mode transient maps): group name ->
+         *  member key -> the binding it re-dispatches while the run is live. */
+        public final Map<String, Map<Character, Binding>> repeat = new LinkedHashMap<>();
         public Boolean whichKey = null;
         public Integer whichKeyDelayMs = null;
         public final List<String> errors = new ArrayList<>();
@@ -127,6 +132,41 @@ public final class Rc {
         Map<String, String> merged = new HashMap<>(defaults().keypadDesc);
         merged.putAll(cfg().keypadDesc);
         return merged;
+    }
+
+    /** Effective repeat groups: ~/.dbmeowrc lines layer per (group, key)
+     *  over the bundled defaults; a member re-bound to `ignore` gives its key
+     *  back (like `mmap <key> ignore` on trees) and an emptied group is gone. */
+    public static Map<String, Map<Character, Binding>> repeatGroups() {
+        Map<String, Map<Character, Binding>> merged = new LinkedHashMap<>();
+        for (Map.Entry<String, Map<Character, Binding>> e : defaults().repeat.entrySet()) {
+            merged.put(e.getKey(), new LinkedHashMap<>(e.getValue()));
+        }
+        for (Map.Entry<String, Map<Character, Binding>> e : cfg().repeat.entrySet()) {
+            merged.computeIfAbsent(e.getKey(), k -> new LinkedHashMap<>()).putAll(e.getValue());
+        }
+        for (Map<Character, Binding> members : merged.values()) {
+            members.values().removeIf(b -> "ignore".equals(b.command()));
+        }
+        merged.values().removeIf(Map::isEmpty);
+        return merged;
+    }
+
+    /** The transient map a just-dispatched binding arms — Emacs' repeat-map
+     *  symbol property, ported: membership is the TARGET (action, command or
+     *  keys — not the key that ran it, repeat-check-key 'no style), and the
+     *  first declared group wins. Null when the binding repeats nothing. */
+    public static Map<Character, Binding> repeatMapFor(Binding b) {
+        for (Map<Character, Binding> members : repeatGroups().values()) {
+            for (Binding m : members.values()) {
+                if (Objects.equals(m.action(), b.action())
+                        && Objects.equals(m.command(), b.command())
+                        && Objects.equals(m.keys(), b.keys())) {
+                    return members;
+                }
+            }
+        }
+        return null;
     }
 
     public static boolean whichKeyEnabled() {

@@ -12,7 +12,9 @@
        platform. -->
 
   <groupId>io.github.chubbyhippo</groupId>
-  <artifactId>dbmeow-plugin</artifactId>
+  <!-- Tycho's validate-id requires the artifactId to equal the manifest's
+       Bundle-SymbolicName -->
+  <artifactId>io.github.chubbyhippo.dbmeow</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 

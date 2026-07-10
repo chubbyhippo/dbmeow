@@ -17,6 +17,7 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -36,6 +37,13 @@ import java.util.regex.Pattern;
  *   desc &lt;leader&gt;g goto things
  *   let g:WhichKeyDesc_g = "&lt;leader&gt;g goto things"   (ideavimrc-compatible)
  *   set nowhich-key / set timeoutlen=300
+ *   repeat error . &lt;action&gt;(org.eclipse.ui.navigate.next)
+ *                                       repeat group (Emacs repeat-mode):
+ *                                       dispatching any binding with a target
+ *                                       listed in a group arms it — the member
+ *                                       keys then re-dispatch until another key
+ *                                       ends the run (see Engine); `ignore` as
+ *                                       the target gives a default key back
  * </pre>
  *
  * A RHS that names a command in the registry binds the command; a misspelled
@@ -90,6 +98,7 @@ final class RcParser {
                 case "desc" -> parseDescBody(c, rest, err);
                 case "map", "noremap", "nmap", "nnoremap", "mmap", "mnoremap" ->
                         parseMap(c, cmd, rest, err);
+                case "repeat" -> parseRepeat(c, rest, err);
                 default -> err.accept("unknown command '" + cmd + "'");
             }
         }
@@ -149,24 +158,8 @@ final class RcParser {
         boolean recursive = cmd.equals("map") || cmd.equals("nmap") || cmd.equals("mmap");
         boolean motion = cmd.equals("mmap") || cmd.equals("mnoremap");
 
-        Matcher am = ACTION_RE.matcher(rhs);
-        Rc.Binding binding;
-        if (am.matches()) {
-            binding = new Rc.Binding(am.group(1), null, null, recursive);
-        } else if (Registry.COMMANDS.containsKey(rhs)) {
-            binding = new Rc.Binding(null, null, rhs, recursive);
-        } else if (rhs.startsWith("meow-")) {
-            err.accept("unknown meow command '" + rhs + "'");
-            return;
-        } else {
-            String keys = parseKeys(rhs.replaceAll("\\s+", ""), err);
-            if (keys == null) return;
-            if (keys.isEmpty()) {
-                err.accept("empty target in '" + cmd + " " + rest + "'");
-                return;
-            }
-            binding = new Rc.Binding(null, keys, null, recursive);
-        }
+        Rc.Binding binding = parseTarget(rhs, recursive, cmd + " " + rest, err);
+        if (binding == null) return;
 
         if (lhs.startsWith("<leader>")) {
             if (motion) {
@@ -195,6 +188,52 @@ final class RcParser {
             err.accept("SPC is the keypad key and cannot be remapped");
         } else {
             (motion ? c.motion : c.normal).put(keys.charAt(0), binding);
+        }
+    }
+
+    /** The shared RHS grammar of map and repeat lines: an &lt;action&gt;(...),
+     *  a named command in the registry, or replayed meow keys. */
+    private static Rc.Binding parseTarget(
+            String rhs, boolean recursive, String errContext, Consumer<String> err) {
+        Matcher am = ACTION_RE.matcher(rhs);
+        if (am.matches()) return new Rc.Binding(am.group(1), null, null, recursive);
+        if (Registry.COMMANDS.containsKey(rhs)) return new Rc.Binding(null, null, rhs, recursive);
+        if (rhs.startsWith("meow-")) {
+            err.accept("unknown meow command '" + rhs + "'");
+            return null;
+        }
+        String keys = parseKeys(rhs.replaceAll("\\s+", ""), err);
+        if (keys == null) return null;
+        if (keys.isEmpty()) {
+            err.accept("empty target in '" + errContext + "'");
+            return null;
+        }
+        return new Rc.Binding(null, keys, null, recursive);
+    }
+
+    /** `repeat <group> <key> <target>` — Emacs repeat-mode's transient maps as
+     *  rc lines. Dispatching any binding whose target is listed in a group
+     *  arms it: the member keys re-dispatch their targets (shadowing the
+     *  normal map) until a non-member key falls through and ends the run.
+     *  The entering key needn't be a member — init.el's repeat-check-key 'no. */
+    private static void parseRepeat(Rc.Config c, String rest, Consumer<String> err) {
+        String[] parts = rest.split("\\s+", 3);
+        if (parts.length < 3) {
+            err.accept("repeat needs a group, a member key and a target");
+            return;
+        }
+        String group = parts[0];
+        String keyToken = parts[1];
+        String key = parseKeys(keyToken, err);
+        if (key == null) return;
+        if (key.length() != 1) {
+            err.accept("repeat member key must be a single printable key: " + keyToken);
+        } else if (key.equals(" ")) {
+            err.accept("SPC is the keypad key and cannot be a repeat member");
+        } else {
+            Rc.Binding binding = parseTarget(parts[2].trim(), true, "repeat " + rest, err);
+            if (binding == null) return;
+            c.repeat.computeIfAbsent(group, k -> new LinkedHashMap<>()).put(key.charAt(0), binding);
         }
     }
 

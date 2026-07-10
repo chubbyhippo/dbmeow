@@ -19,14 +19,18 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The key dispatcher. Like meow in Emacs, the engine binds no keys of its
  * own: every command is registered by its meow name in the registry, and
  * keys resolve through rc bindings only — ~/.dbmeowrc over the bundled
  * default .dbmeowrc (see {@link Rc}). Besides dispatch, this class owns the
- * two pieces of behavior that need the whole-keystroke view: the repeat unit
- * (`'`) and rc-binding replay with its noremap/recursion bookkeeping.
+ * pieces of behavior that need the whole-keystroke view: the repeat unit
+ * (`'`), rc-binding replay with its noremap/recursion bookkeeping, and the
+ * repeat transient (Emacs repeat-mode: rc `repeat` groups arm a one-shot map
+ * whose member keys re-dispatch — tap `.`/`,` to keep walking errors after
+ * SPC . e).
  */
 public final class Engine {
     private Engine() {
@@ -56,11 +60,21 @@ public final class Engine {
         ctx.ui().clearExpandHints();
 
         Pending pend = st.pending;
+        // the repeat transient: a member key of the armed group re-dispatches
+        // its binding, shadowing the normal map for exactly that keypress
+        // (runBinding re-arms it); any other key ends the run and falls
+        // through to the resolve below — Emacs set-transient-map semantics,
+        // never swallowed. ESC ends the run too (escapeKey).
+        Rc.Binding repeatBinding =
+                pend == null && st.repeatMap != null ? st.repeatMap.get(c) : null;
+        if (pend == null && repeatBinding == null) st.repeatMap = null;
         // like Emacs: read-only buffers stay in NORMAL with every motion working
         // (the modify commands gate themselves via allow-modify in edits); the
         // motion map applies only to the MOTION state proper
         boolean motionish = st.mode == MeowMode.MOTION;
-        Rc.Binding binding = pend == null ? resolve(ctx, c, motionish) : null;
+        Rc.Binding binding = pend == null
+                ? repeatBinding != null ? repeatBinding : resolve(ctx, c, motionish)
+                : null;
         String cmd = binding != null ? binding.command() : null;
 
         // the repeat unit: everything since the last complete command, so `'`
@@ -134,8 +148,29 @@ public final class Engine {
 
     /** Run a binding: a named meow command, a host command, or meow keys
      *  replayed through the engine (noremap bindings skip user maps while
-     *  replaying). */
+     *  replaying). Afterwards, Emacs repeat-mode's post-command arming: a
+     *  binding whose target sits in an rc repeat group arms that group's
+     *  transient — membership by target identity (the repeat-map symbol
+     *  property), no entered-with-key check (init.el sets repeat-check-key
+     *  'no for every keypad-entered map, and keypad keys are never members). */
     public static void runBinding(Ctx ctx, Rc.Binding b) {
+        dispatch(ctx, b);
+        Map<Character, Rc.Binding> map = Rc.repeatMapFor(b);
+        if (map == null) return;
+        MeowState st = ctx.st();
+        if (st.repeatMap == null) {
+            // repeat-echo-message, once per run: "Repeat with ., ,"
+            StringBuilder keys = new StringBuilder();
+            for (char k : map.keySet()) {
+                if (!keys.isEmpty()) keys.append(", ");
+                keys.append(k);
+            }
+            ctx.ui().hint("Repeat with " + keys);
+        }
+        st.repeatMap = map;
+    }
+
+    private static void dispatch(Ctx ctx, Rc.Binding b) {
         MeowState st = ctx.st();
         if (b.command() != null) {
             MeowCommand cmd = Registry.COMMANDS.get(b.command());
@@ -182,6 +217,7 @@ public final class Engine {
             return true;
         }
         st.pending = null;
+        st.repeatMap = null; // ESC always ends a repeat run (a non-member key)
         ctx.ui().hideWhichKey();
         ctx.ui().clearExpandHints();
         if (st.mode == MeowMode.INSERT || st.mode == MeowMode.KEYPAD) {

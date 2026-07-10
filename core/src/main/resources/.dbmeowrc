@@ -106,6 +106,13 @@ map <leader>wh <action>(dbmeow.windmoveLeft)
 map <leader>wj <action>(dbmeow.windmoveDown)
 map <leader>wk <action>(dbmeow.windmoveUp)
 map <leader>wl <action>(dbmeow.windmoveRight)
+" zoom, mirroring the siblings' SPC w i/o (no reset — Eclipse text editors
+" only define zoomIn/zoomOut; ids verified in the installed DBeaver's
+" org.eclipse.ui.workbench.texteditor plugin.xml, 2026-07-10)
+map <leader>wi <action>(org.eclipse.ui.edit.text.zoomIn)
+map <leader>w= <action>(org.eclipse.ui.edit.text.zoomIn)
+map <leader>wo <action>(org.eclipse.ui.edit.text.zoomOut)
+map <leader>w- <action>(org.eclipse.ui.edit.text.zoomOut)
 
 desc <leader>e edit
 map <leader>eu <action>(org.eclipse.ui.edit.undo)
@@ -131,3 +138,36 @@ map <leader>cM <action>(dbmeow.reloadRc)
 desc <leader>b bookmark (m set / j jump)
 map <leader>bm <action>(org.eclipse.ui.edit.addBookmark)
 map <leader>bj <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView))
+
+" SPC . / SPC , — next / prev annotation (the siblings' error nav; Eclipse's
+" Next/Previous walks the SQL editor's markers). Ids verified in the
+" installed DBeaver's org.eclipse.ui plugin.xml, 2026-07-10.
+desc <leader>. next (annotation / error)
+map <leader>.e <action>(org.eclipse.ui.navigate.next)
+desc <leader>, previous (annotation / error)
+map <leader>,e <action>(org.eclipse.ui.navigate.previous)
+
+" ============================================================================
+" Repeat groups — Emacs repeat-mode, ported (init.el's transient repeat maps)
+" ----------------------------------------------------------------------------
+" After any binding whose TARGET is listed in a group below — membership is
+" the target, not the key, like the repeat-map property on an Emacs command —
+" the next keypress is first looked up in that group: a member key
+" re-dispatches its target and keeps the run alive; any other key (or ESC)
+" ends the run and keeps its normal meaning (Emacs transient-keymap
+" fall-through — nothing is swallowed, and there is no timeout). The entering
+" keypad key needn't be a member: init.el sets repeat-check-key 'no for the
+" same reason. Syntax:
+"   repeat <group> <key> <target>     target grammar = the map-line RHS
+"   repeat <group> <key> ignore       give a bundled group's key back
+" init.el parity here: flymake -> error (annotation nav), text-scale -> zoom
+" (no u/0 reset member — Eclipse has no zoom-reset command). The siblings'
+" change (VCS markers) and expand (smart select) groups have no verified
+" DBeaver-SQL command ids, so they ship no dbmeow analog.
+" So: SPC . e then . . , walks annotations; SPC w i then i i i keeps zooming.
+repeat error . <action>(org.eclipse.ui.navigate.next)
+repeat error , <action>(org.eclipse.ui.navigate.previous)
+repeat zoom i <action>(org.eclipse.ui.edit.text.zoomIn)
+repeat zoom = <action>(org.eclipse.ui.edit.text.zoomIn)
+repeat zoom o <action>(org.eclipse.ui.edit.text.zoomOut)
+repeat zoom - <action>(org.eclipse.ui.edit.text.zoomOut)

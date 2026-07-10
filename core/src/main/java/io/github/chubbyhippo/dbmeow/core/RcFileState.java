@@ -33,7 +33,7 @@ public final class RcFileState {
     private static volatile Integer state = null;
 
     private static int hash(Rc.Config c) {
-        return Objects.hash(c.normal, c.motion, c.keypad, c.keypadDesc, c.whichKey, c.whichKeyDelayMs);
+        return Objects.hash(c.normal, c.motion, c.keypad, c.keypadDesc, c.repeat, c.whichKey, c.whichKeyDelayMs);
     }
 
     /** Called by {@link Rc#setUserLines} with whatever it just parsed. */

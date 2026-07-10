@@ -20,6 +20,7 @@ package io.github.chubbyhippo.dbmeow.core;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /** Everything meow remembers about one editor. */
 public class MeowState {
@@ -59,6 +60,11 @@ public class MeowState {
     /** In-flight avy jump (S / Q) session, or null — consumes keys until it
      *  lands or cancels (see {@link Avy}). */
     public Avy.AvySession avy = null;
+
+    /** The armed repeat transient (Emacs repeat-mode, see Rc repeat groups):
+     *  member keys re-dispatch their binding, any other key or ESC ends the
+     *  run and falls through to the normal map. */
+    public Map<Character, Rc.Binding> repeatMap = null;
 
     public final StringBuilder keypad = new StringBuilder();
     public final List<Character> unit = new ArrayList<>();

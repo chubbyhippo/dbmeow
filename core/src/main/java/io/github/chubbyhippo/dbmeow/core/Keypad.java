@@ -144,9 +144,14 @@ public final class Keypad {
               SPC 1-9 count   SPC ? this sheet   SPC / describe key
               SPC c m edit ~/.dbmeowrc   SPC c M reload it
               the SPC command table itself is rc lines: map <leader><seq> <target>
+              REPEAT  some entries start a run (Emacs repeat-mode): after
+                      SPC . e keep tapping . / , to walk annotations, after
+                      SPC w i keep tapping i (or = - o) to keep zooming — any
+                      other key ends the run and keeps its normal meaning
 
             ~/.dbmeowrc: nmap <key> <action>(command.id) | nmap <key> meow-command | nmap <key> <meow keys>
               mmap ... (MOTION mode) | map <leader><seq> ... | desc <leader><seq> text | set nowhich-key
+              repeat <group> <key> <target> — tap-to-continue groups (the REPEAT runs above)
               every binding above is an rc line — the defaults ship as a bundled
               .dbmeowrc on the classpath; ~/.dbmeowrc overrides them key by key
             """.strip();

@@ -23,7 +23,9 @@ MAVEN_OPTS="-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts" \
   mise exec -- mvn package
 ```
 
-The bundle lands at `plugin/target/dbmeow-plugin-0.1.0-SNAPSHOT.jar`. Drop it
+The bundle lands at
+`plugin/target/io.github.chubbyhippo.dbmeow-0.1.0-SNAPSHOT.jar` (the
+artifactId must equal the Bundle-SymbolicName — Tycho's validate-id). Drop it
 into DBeaver's `dropins/` (or any Eclipse `dropins/`) and restart; open a SQL
 editor and you are in NORMAL mode.
 
@@ -31,14 +33,14 @@ editor and you are in NORMAL mode.
 
 - **Step 3 downloads the Eclipse 2024-03 target platform** (hundreds of MB)
   from `download.eclipse.org` the first time. Behind this machine's
-  TLS-inspecting proxy that needs the `MAVEN_OPTS` trust-store shown above,
-  and it is slow — it was **not** run to completion in the authoring
-  environment. Steps 1–2 were verified (the core jar builds and stages).
-- The core (`../core`) is fully unit-tested headless (`mvn test`, 104 specs).
+  TLS-inspecting proxy that needs the `MAVEN_OPTS` trust-store shown above.
+  First completed 2026-07-10: the platform resolved and the bundle built
+  (~2 min once cached).
+- The core (`../core`) is fully unit-tested headless (`mvn test`, 236 specs).
   The adapter classes use only APIs verified against the vrapper source
   (cited file:line in each class) but have **not** been exercised inside a
   running DBeaver — that needs the IDE. Treat the adapter as v1: compiles
-  against the target platform, runtime-unverified.
+  against the target platform (verified 2026-07-10), runtime-unverified.
 - `lib/dbmeow-core.jar` is a build artifact and is git-ignored; step 2
   regenerates it.
 - The `.dbmeowrc` defaults ride inside the embedded core jar (the core
