@@ -19,13 +19,13 @@
         <Class name="io.github.chubbyhippo.dbmeow.core.Ctx"/>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
-    <!-- MeowState is the deliberately open per-editor state bag, mirrored
-         from the ideameow/codemeow siblings: command modules read and write
+    <!-- MeowState is the deliberately open per-editor state bag:
+         command modules read and write
          its public fields directly (mode, selType, negative, pendingCount,
          ...), and takeCount() consumes negative/pendingCount in-class —
          which is exactly what PA_PUBLIC_PRIMITIVE_ATTRIBUTE flags. The open
-         fields are the cross-plugin state contract, so the pattern is
-         excluded for this class only. -->
+         fields are the state contract the command modules program against,
+         so the pattern is excluded for this class only. -->
     <Match>
         <Class name="io.github.chubbyhippo.dbmeow.core.MeowState"/>
         <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE"/>

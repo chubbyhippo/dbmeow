@@ -18,12 +18,11 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 /**
- * Double-ESC in a tool window returns focus to the editor — ideameow's ToolWindowEscape, ported.
- * The pairing state machine is pure and identical to the siblings': a plain ESC reports which
- * surface owns focus (null = not a tool-window surface) and its time; the second press on the SAME
- * surface within {@link #TIMEOUT_MS} is the jump; a miss (different surface, too slow, null)
- * re-arms with the current press. Observing the key and re-emitting a lone first press is SWT
- * adapter wiring, staged for later.
+ * Double-ESC in a tool window returns focus to the editor. The pairing state machine is pure: a
+ * plain ESC reports which surface owns focus (null = not a tool-window surface) and its time; the
+ * second press on the SAME surface within {@link #TIMEOUT_MS} is the jump; a miss (different
+ * surface, too slow, null) re-arms with the current press. Observing the key and re-emitting a lone
+ * first press is SWT adapter wiring, staged for later.
  */
 public final class ToolWindowEscape {
     private ToolWindowEscape() {}

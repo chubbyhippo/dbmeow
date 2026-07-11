@@ -23,9 +23,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * meow-left/right/next/prev and the -expand variants, counts, negative arg. Name-for-name port of
- * codemeow's movement.test.ts — the h/l cross-newline and j/k goal-column behaviors were
- * batch-probed against meow 1.5.0.
+ * meow-left/right/next/prev and the -expand variants, counts, negative arg. The h/l cross-newline
+ * and j/k goal-column behaviors were batch-probed against meow 1.5.0.
  */
 class MovementSpec extends SpecDsl {
     @Test

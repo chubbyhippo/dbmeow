@@ -38,8 +38,8 @@ public final class TreeMeow {
     /**
      * The four motion commands with a native tree meaning → the tree widget's arrow-key vocabulary
      * (down/up move, collapse folds else goes to the parent, expand unfolds else enters the first
-     * child — the JTree ActionMap contract the siblings pin). Values are dbmeow tree commands the
-     * SWT adapter maps; every other meow command needs a text buffer, inert here.
+     * child — the standard tree arrow-key contract). Values are dbmeow tree commands the SWT
+     * adapter maps; every other meow command needs a text buffer, inert here.
      */
     private static final Map<String, String> LIST_MOTIONS =
             Map.of(

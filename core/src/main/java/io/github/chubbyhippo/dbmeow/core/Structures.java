@@ -25,8 +25,7 @@ import java.util.Map;
  * Structural selections: the char-thing table behind {@code , . [ ]} (see {@link Things}), bracket
  * blocks (meow-block / meow-to-block), and the join region (meow-join). The thing commands park a
  * {@link Pending} key and let the dispatcher hand the thing char to {@link #thingSelect}. Ported
- * from codemeow's structures.ts against meow-command.el and the direction rules in meow-var.el
- * (meow-thing-selection-directions).
+ * against meow-command.el and the direction rules in meow-var.el (meow-thing-selection-directions).
  */
 public final class Structures {
     private Structures() {}

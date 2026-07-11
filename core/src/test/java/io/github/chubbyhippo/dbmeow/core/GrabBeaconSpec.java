@@ -25,10 +25,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * meow-grab, swap-grab, sync-grab, and the multi-cursor BEACON approximation. A name-for-name port
- * of codemeow's grabBeacon.test.ts. The beacon LOGIC runs headless here over FakeEditor; the SWT
- * adapter renders only the primary caret (single-caret StyledText) but still applies the
- * multi-range edit.
+ * meow-grab, swap-grab, sync-grab, and the multi-cursor BEACON approximation. The beacon LOGIC runs
+ * headless here over FakeEditor; the SWT adapter renders only the primary caret (single-caret
+ * StyledText) but still applies the multi-range edit.
  */
 class GrabBeaconSpec extends SpecDsl {
     @Test

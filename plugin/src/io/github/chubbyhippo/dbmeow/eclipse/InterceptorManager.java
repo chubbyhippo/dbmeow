@@ -35,8 +35,7 @@ import java.util.WeakHashMap;
 /**
  * Attaches (and detaches) a {@link DbmeowInterceptor} to every text editor as
  * its part opens, activates, and closes — one meow {@link MeowState} per
- * editor. This is the DBeaver/Eclipse analog of ideameow's editor-factory
- * listener and codemeow's {@code type} override.
+ * editor.
  *
  * <p>Mechanism, all from the local vrapper clone
  * (net.sourceforge.vrapper.eclipse):

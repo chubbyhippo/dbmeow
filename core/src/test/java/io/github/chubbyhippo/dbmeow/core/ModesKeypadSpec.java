@@ -26,10 +26,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * State transitions: INSERT/NORMAL/MOTION/KEYPAD, escape, keypad dispatch. A name-for-name port of
- * codemeow's modesKeypad.test.ts.
- */
+/** State transitions: INSERT/NORMAL/MOTION/KEYPAD, escape, keypad dispatch. */
 class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName("given INSERT when escape then back to NORMAL")
@@ -100,9 +97,9 @@ class ModesKeypadSpec extends SpecDsl {
     @DisplayName(
             "given INSERT when the keypad action fires then a keypad command returns to INSERT")
     void keypadActionReturnsToInsert() {
-        // init.el: M-SPC reaches the leader even from INSERT; meow records
+        // the keypad is reachable even from INSERT: meow records
         // meow--keypad-previous-state and every exit path restores it. The
-        // staged adapter chord (the siblings' Alt+;) drives this same core
+        // staged adapter chord (Alt+;) drives this same core
         // entry point, Engine.enterKeypad.
         given("word", "ab<caret>cd");
         givenRc("map <leader>zz meow-left");
@@ -191,7 +188,7 @@ class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName("given INSERT then the adapter is told to swap the cursor, and back on escape")
     void insertSwapsCursorAndBack() {
-        // the ideameow block/bar-cursor spec, at the port seam: the adapter maps
+        // block/bar cursor at the port seam: the adapter maps
         // these notifications to the host's bar / block cursor styles
         given("word", "<caret>hello");
         whenKeys("i");

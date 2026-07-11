@@ -2,8 +2,8 @@
 " .dbmeowrc — THE default keymap of the dbmeow plugin
 " ----------------------------------------------------------------------------
 " Like meow in Emacs, the plugin binds no keys in code: these lines ARE the
-" default NORMAL/MOTION layout (meow's suggested QWERTY), adapted from the
-" ideameow sibling's .ideameowrc, plus the SPC keypad <action> table below —
+" default NORMAL/MOTION layout (meow's suggested QWERTY), plus the SPC
+" keypad <action> table below —
 " Eclipse workbench command ids verified against IWorkbenchCommandConstants
 " or the installed DBeaver 26.1 plugin.xmls (Quick Access joined once its id
 " and default handler verified there, 2026-07-11).
@@ -95,7 +95,7 @@ map <leader><Space> <action>(org.eclipse.ui.window.previousEditor)
 desc <leader><Space> last editor
 
 desc <leader>x files
-" f = the siblings' SPC x f goto-file: Eclipse's Open Resource dialog
+" f = goto-file: Eclipse's Open Resource dialog
 " (org.eclipse.ui.navigate.openResource, defined with a default handler in
 " the installed DBeaver 26.1 org.eclipse.ui.ide plugin.xml, 2026-07-11)
 map <leader>xf <action>(org.eclipse.ui.navigate.openResource)
@@ -112,7 +112,7 @@ map <leader>wh <action>(dbmeow.windmoveLeft)
 map <leader>wj <action>(dbmeow.windmoveDown)
 map <leader>wk <action>(dbmeow.windmoveUp)
 map <leader>wl <action>(dbmeow.windmoveRight)
-" zoom, mirroring the siblings' SPC w i/o (no reset — Eclipse text editors
+" zoom on SPC w i/o (no reset — Eclipse text editors
 " only define zoomIn/zoomOut; ids verified in the installed DBeaver's
 " org.eclipse.ui.workbench.texteditor plugin.xml, 2026-07-10)
 map <leader>wi <action>(org.eclipse.ui.edit.text.zoomIn)
@@ -129,40 +129,40 @@ desc <leader>j jump
 map <leader>jo <action>(org.eclipse.ui.navigate.backwardHistory)
 map <leader>ji <action>(org.eclipse.ui.navigate.forwardHistory)
 
-" SPC c m / M — edit and reload ~/.dbmeowrc, mirroring the siblings. The
+" SPC c m / M — edit and reload ~/.dbmeowrc. The
 " dbmeow.* ids are adapter-mapped (EclipseUi.runCommand), not Eclipse
-" commands; reload flushes a dirty rc editor first (the ideameow
-" stale-reload fix / IdeaVim's ReloadVimRc saveDocumentAsIs precedent).
+" commands; reload flushes a dirty rc editor first (Eclipse saves documents
+" lazily; IdeaVim's ReloadVimRc saveDocumentAsIs precedent).
 desc <leader>c config
 map <leader>cm <action>(dbmeow.editRc)
 map <leader>cM <action>(dbmeow.reloadRc)
 
-" SPC m — meta, the slots of the siblings' M- group that verify here. m x =
-" Quick Access, Eclipse's M-x/GotoAction analog (org.eclipse.ui.window
+" SPC m — meta, the M- group slots that verify here. m x =
+" Quick Access, Eclipse's M-x analog (org.eclipse.ui.window
 " .quickAccess, defined with a default handler in the installed DBeaver 26.1
 " org.eclipse.ui plugin.xml, 2026-07-11 — absent until exactly this check).
-" m o / m g are the siblings' native avy jumps on this prefix — core meow
-" commands, no Eclipse id involved; m g tracks ideameow's 2026-07-11 move of
-" SPC m g from the native goto-line dialog to avy-goto-line.
+" m o / m g are the native avy jumps on this prefix — core meow
+" commands, no Eclipse id involved; m g is avy-goto-line rather than the
+" native goto-line dialog.
 desc <leader>m meta
 map <leader>mx <action>(org.eclipse.ui.window.quickAccess)
 map <leader>mo avy-goto-char-timer
 map <leader>mg avy-goto-line
 
-" SPC b — bookmarks (mirrors the siblings' SPC b). m sets a line bookmark;
+" SPC b — bookmarks. m sets a line bookmark;
 " j opens the Bookmarks view to jump. Ids verified against the installed
 " DBeaver (org.eclipse.ui.ide is bundled, so the marker infra + view exist);
 " the parameterized showView flows through EclipseUi's deserialize path.
-" The siblings' SPC x r b (init.el's C-x r b bookmark list, added to
-" ideameow 2026-07-11) is covered by SPC b j here — dbmeow's SPC x r is the
-" file.refresh leaf, so no x r b prefix can exist; and their numbered slots
+" An Emacs-style C-x r b bookmark list (an SPC x r b slot) is covered by
+" SPC b j here — dbmeow's SPC x r is the
+" file.refresh leaf, so no x r b prefix can exist; and numbered slots
 " (SPC b 0-9) have no Eclipse analog: the installed 26.1 jars define only
 " org.eclipse.ui.edit.addBookmark, no toggle-bookmark-N commands.
 desc <leader>b bookmark (m set / j jump)
 map <leader>bm <action>(org.eclipse.ui.edit.addBookmark)
 map <leader>bj <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView))
 
-" SPC . / SPC , — next / prev annotation (the siblings' error nav; Eclipse's
+" SPC . / SPC , — next / prev annotation (error nav; Eclipse's
 " Next/Previous walks the SQL editor's markers). Ids verified in the
 " installed DBeaver's org.eclipse.ui plugin.xml, 2026-07-10.
 desc <leader>. next (annotation / error)
@@ -171,7 +171,7 @@ desc <leader>, previous (annotation / error)
 map <leader>,e <action>(org.eclipse.ui.navigate.previous)
 
 " ============================================================================
-" Repeat groups — Emacs repeat-mode, ported (init.el's transient repeat maps)
+" Repeat groups — Emacs repeat-mode, ported (repeat.el's transient maps)
 " ----------------------------------------------------------------------------
 " After any binding whose TARGET is listed in a group below — membership is
 " the target, not the key, like the repeat-map property on an Emacs command —
@@ -179,15 +179,16 @@ map <leader>,e <action>(org.eclipse.ui.navigate.previous)
 " re-dispatches its target and keeps the run alive; any other key (or ESC)
 " ends the run and keeps its normal meaning (Emacs transient-keymap
 " fall-through — nothing is swallowed, and there is no timeout). The entering
-" keypad key needn't be a member: init.el sets repeat-check-key 'no for the
-" same reason. Syntax:
+" keypad key needn't be a member: repeat.el's repeat-check-key 'no is the
+" same idea. Syntax:
 "   repeat <group> <key> <target>     target grammar = the map-line RHS
 "   repeat <group> <key> ignore       give a bundled group's key back
-" init.el parity here: flymake -> error (annotation nav), text-scale -> zoom
-" (no u/0 reset member — Eclipse has no zoom-reset command). The siblings'
+" The Emacs repeat maps that port here: flymake -> error (annotation nav),
+" text-scale -> zoom
+" (no u/0 reset member — Eclipse has no zoom-reset command). Would-be
 " change (VCS markers) and expand (smart select) groups have no verified
-" DBeaver-SQL command ids, so they ship no dbmeow analog — likewise
-" ideameow's SPC r h (show current change marker, added 2026-07-11): Eclipse
+" DBeaver-SQL command ids, so they ship no dbmeow analog — likewise a
+" show-current-change-marker binding: Eclipse
 " quickdiff defines only toggle/revert commands (installed 26.1
 " org.eclipse.ui.editors plugin.xml), nothing that pops the change at point.
 " So: SPC . e then . . , walks annotations; SPC w i then i i i keeps zooming.

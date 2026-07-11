@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * ~/.dbmeowrc parsing, nmap/mmap/map dispatch (including relayouting the meow keys themselves), and
- * which-key rows. A name-for-name port of codemeow's rc.test.ts.
+ * which-key rows.
  */
 class RcSpec extends SpecDsl {
     // ------------------------------------------------------------------ parsing
@@ -117,7 +117,7 @@ class RcSpec extends SpecDsl {
         assertEquals("editor.action.revealDefinition", Rc.cfg().keypad.get("gd").action());
         assertEquals("goto things", Rc.cfg().keypadDesc.get("g"));
         assertEquals("editor.action.revealDefinition", Rc.keypad().get("gd").action());
-        // the bundled defaults stay layered beneath the override (codemeow parity)
+        // the bundled defaults stay layered beneath the override
         assertEquals("dbmeow.editRc", Rc.keypad().get("cm").action());
     }
 
@@ -138,7 +138,7 @@ class RcSpec extends SpecDsl {
                         List.of(
                                 "set nowhich-key",
                                 "set timeoutlen=400",
-                                "set clipboard+=unnamedplus", // pasted from .ideavimrc: ignored
+                                "set clipboard+=unnamedplus", // pasted from an IdeaVim rc: ignored
                                 "let mapleader=\" \""));
         assertEquals(false, c.whichKey);
         assertEquals(400, c.whichKeyDelayMs);
@@ -355,8 +355,7 @@ class RcSpec extends SpecDsl {
     /**
      * meow's suggested QWERTY layout (KEYBINDING_QWERTY in meow's README; {@code <} and {@code >}
      * are aliases for {@code [} and {@code ]}) — the contract the bundled .dbmeowrc layout block
-     * must satisfy. Identical to the siblings' contract, so the three plugins can never drift apart
-     * silently.
+     * must satisfy, pinned in full so the layout can never drift silently.
      */
     private static Map<Character, String> qwerty() {
         Map<Character, String> m = new LinkedHashMap<>();

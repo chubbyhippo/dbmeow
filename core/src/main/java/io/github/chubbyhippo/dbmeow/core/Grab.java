@@ -28,10 +28,10 @@ import java.util.regex.Pattern;
 
 /**
  * meow-grab / swap-grab / sync-grab — the secondary-selection stand-in — plus the BEACON
- * multi-cursor approximation. A name-for-name port of codemeow's grab.ts, against meow-command.el
- * (see meow-semantics.md). The beacon LOGIC ports and is tested headless over FakeEditor (which can
- * hold several carets); the SWT adapter renders only the primary caret (single-caret StyledText)
- * but still applies the multi-range edit — see the README for that adapter note.
+ * multi-cursor approximation. Ported against meow-command.el (see meow-semantics.md). The beacon
+ * LOGIC ports and is tested headless over FakeEditor (which can hold several carets); the SWT
+ * adapter renders only the primary caret (single-caret StyledText) but still applies the
+ * multi-range edit — see the README for that adapter note.
  */
 public final class Grab {
     private Grab() {}

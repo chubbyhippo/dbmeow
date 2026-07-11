@@ -26,8 +26,8 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
 
 /**
- * The kill-ring is the system clipboard (meow-use-clipboard behavior, same as
- * the siblings). Uses the SWT {@link Clipboard} on the viewer's display.
+ * The kill-ring is the system clipboard (meow-use-clipboard behavior).
+ * Uses the SWT {@link Clipboard} on the viewer's display.
  */
 final class EclipseClipboard implements ClipboardPort {
 

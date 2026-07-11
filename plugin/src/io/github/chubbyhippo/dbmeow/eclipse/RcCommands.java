@@ -41,13 +41,13 @@ import java.nio.file.Paths;
 import java.util.List;
 
 /**
- * ~/.dbmeowrc load / edit / reload — the siblings' SPC c m / SPC c M, mapped
+ * ~/.dbmeowrc load / edit / reload — SPC c m / SPC c M, mapped
  * from the rc's {@code <action>(dbmeow.editRc)} / {@code (dbmeow.reloadRc)}
  * ids in {@link EclipseUi#runCommand}. Reload flushes a dirty rc editor to
  * disk FIRST: Eclipse saves documents lazily like IntelliJ, so a disk re-read
  * without the flush reloads stale content and looks dead until a restart —
- * the exact ideameow SPC c M bug (fixed 2026-07-10) and the reason IdeaVim's
- * ReloadVimRc calls saveDocumentAsIs before re-executing (ui/ReloadVimRc.kt).
+ * the reason IdeaVim's ReloadVimRc calls saveDocumentAsIs before
+ * re-executing (ui/ReloadVimRc.kt).
  *
  * <p>Like the rest of the adapter bundle this is written against the Eclipse
  * APIs but runtime-unverified (no live DBeaver in the authoring environment —

@@ -23,9 +23,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * meow-find, meow-till (+expand), meow-visit, meow-search. A name-for-name port of codemeow's
- * findSearch.test.ts; the find-replaces-word and search-wrap behaviors were probed against meow
- * 1.5.0 (see meow-semantics.md).
+ * meow-find, meow-till (+expand), meow-visit, meow-search. The find-replaces-word and search-wrap
+ * behaviors were probed against meow 1.5.0 (see meow-semantics.md).
  */
 class FindSearchSpec extends SpecDsl {
     private int selMin() {

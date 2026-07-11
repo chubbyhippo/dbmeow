@@ -22,8 +22,8 @@ import java.util.Objects;
 
 /**
  * Snapshot of the last-LOADED ~/.dbmeowrc, as a hash of the PARSED config — so comment and
- * formatting edits never demand a reload. The adapter's reload surface gates on this (ideameow's
- * RcFileState; IdeaVim's VimRcFileState hashes the parsed Script for the same reason).
+ * formatting edits never demand a reload. The adapter's reload surface gates on this (IdeaVim's
+ * VimRcFileState hashes the parsed Script for the same reason).
  */
 public final class RcFileState {
     private RcFileState() {}
@@ -48,8 +48,7 @@ public final class RcFileState {
 
     /**
      * Do these rc LINES parse to the same user config the engine runs? False before any load — the
-     * not-yet-loaded guard the ideameow sibling keeps as a separate loaded() (its floating action
-     * needs both).
+     * null initial state doubles as the not-yet-loaded guard.
      */
     public static boolean equalTo(List<String> lines) {
         Integer s = state;

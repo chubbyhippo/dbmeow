@@ -26,9 +26,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * The native avy port (S = avy-goto-char-timer, Q = avy-goto-line). A name-for-name port of
- * codemeow's avy.test.ts; every behavior read out of avy 0.5.0's avy.el. The 250 ms timeout is a
- * real timer in the host adapter; these specs end the input phase with {@link Avy#finishInput}.
+ * The native avy port (S = avy-goto-char-timer, Q = avy-goto-line); every behavior read out of avy
+ * 0.5.0's avy.el. The 250 ms timeout is a real timer in the host adapter; these specs end the input
+ * phase with {@link Avy#finishInput}.
  */
 class AvySpec extends SpecDsl {
     private void timeout() {

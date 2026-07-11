@@ -28,8 +28,8 @@ import io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange;
  * </pre>
  *
  * {@link #inner} excludes delimiters, {@link #bounds} includes them; both return a half-open {@link
- * OffsetRange} or null when the thing does not exist at point. Ported from codemeow's things.ts
- * (itself the ideameow Things.kt), against meow-command.el's char-thing table.
+ * OffsetRange} or null when the thing does not exist at point. Ported against meow-command.el's
+ * char-thing table.
  */
 public final class Things {
     private Things() {}

@@ -22,8 +22,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * meow-inner/bounds/beginning/end-of-thing with the char table, meow-block, meow-to-block,
- * meow-join (the selection half; the kill half is in editing). Name-for-name port of codemeow's
- * things.test.ts.
+ * meow-join (the selection half; the kill half is in editing).
  */
 class ThingsSpec extends SpecDsl {
     @Test

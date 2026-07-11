@@ -25,11 +25,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A native port of avy's two jumps (S = avy-goto-char-timer, Q = avy-goto-line), name-for-name with
- * codemeow/ideameow; every behavior read out of avy 0.5.0's avy.el, not guessed — the tree/subdiv
- * math is editor-agnostic and lives here. The 250 ms timeout is a real timer in the host adapter;
- * the core exposes {@link #finishInput} so the input phase can be ended (the specs call it, the SWT
- * adapter schedules it). Match/label painting is UiPort (staged in SWT).
+ * A native port of avy's two jumps (S = avy-goto-char-timer, Q = avy-goto-line); every behavior
+ * read out of avy 0.5.0's avy.el, not guessed — the tree/subdiv math is editor-agnostic and lives
+ * here. The 250 ms timeout is a real timer in the host adapter; the core exposes {@link
+ * #finishInput} so the input phase can be ended (the specs call it, the SWT adapter schedules it).
+ * Match/label painting is UiPort (staged in SWT).
  */
 public final class Avy {
     private Avy() {}

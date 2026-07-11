@@ -40,7 +40,7 @@ public final class Engine {
      * meow-keypad (meow-keypad.el): record meow--keypad-previous-state, then switch — {@link
      * Keypad#exit} restores it, so SPC round-trips to NORMAL (or MOTION) and a keypad chord pressed
      * in INSERT returns to INSERT. Shared by the rc-dispatched 'meow-keypad' command ({@link
-     * Registry}) and the adapter's keypad chord — the siblings' Alt+;, staged for dbmeow:
+     * Registry}) and the adapter's keypad chord — Alt+;, staged for dbmeow:
      * DbmeowInterceptor.verifyKey would call this on SWT.ALT + ';' just before its modifier-chord
      * pass-through (the adapter is runtime-unverified by charter). A no-op when KEYPAD is already
      * active — meow's overriding keypad map cannot re-enter either.
@@ -172,8 +172,8 @@ public final class Engine {
      * (noremap bindings skip user maps while replaying). Afterwards, Emacs repeat-mode's
      * post-command arming: a binding whose target sits in an rc repeat group arms that group's
      * transient — membership by target identity (the repeat-map symbol property), no
-     * entered-with-key check (init.el sets repeat-check-key 'no for every keypad-entered map, and
-     * keypad keys are never members).
+     * entered-with-key check (repeat.el's repeat-check-key 'no semantics, and keypad keys are never
+     * members anyway).
      */
     public static void runBinding(Ctx ctx, Rc.Binding b) {
         dispatch(ctx, b);

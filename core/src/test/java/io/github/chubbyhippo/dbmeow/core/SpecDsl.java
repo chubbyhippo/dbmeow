@@ -34,9 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
  * </pre>
  *
  * Every behavior asserted in these specs was cross-checked against meow-edit/meow's source
- * (docstrings and command bodies) — not against vim intuition. The suite is a straight port of the
- * codemeow specs (themselves a port of the ideameow specs), so the three plugins stay
- * behavior-identical.
+ * (docstrings and command bodies) — not against vim intuition.
  */
 public abstract class SpecDsl {
     protected FakeEditor editor;

@@ -18,14 +18,14 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 /**
- * windmove — the ideameow port's sibling of Emacs' windmove-left/right/up/down (windmove.el, Emacs
- * 30.2). Like codemeow, no window geometry is exposed to a plain plugin, so this is a composed step
- * decision, not window.el's caret-band pick: the two panes of a side-by-side compare editor are
- * windows (original sits left of modified) that directional focus never crosses, so
- * left-from-modified / right-from-original switch sides first, then leave toward the editor. What
- * survives exactly: the direction model, no wrap, and Emacs' user-error verbatim. SPC w h/j/k/l
- * dispatch dbmeow.windmove* (plugin commands, staged); {@link #plan} picks the underlying step
- * (directional editor focus, or the compare-side switch).
+ * windmove — Emacs' windmove-left/right/up/down (windmove.el, Emacs 30.2), ported. No window
+ * geometry is exposed to a plain plugin, so this is a composed step decision, not window.el's
+ * caret-band pick: the two panes of a side-by-side compare editor are windows (original sits left
+ * of modified) that directional focus never crosses, so left-from-modified / right-from-original
+ * switch sides first, then leave toward the editor. What survives exactly: the direction model, no
+ * wrap, and Emacs' user-error verbatim. SPC w h/j/k/l dispatch dbmeow.windmove* (plugin commands,
+ * staged); {@link #plan} picks the underlying step (directional editor focus, or the compare-side
+ * switch).
  */
 public final class Windmove {
     private Windmove() {}

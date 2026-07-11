@@ -26,8 +26,8 @@ import java.util.regex.Pattern;
 
 /**
  * meow-search / meow-visit and the regexp ring they share. Mark-word pushes into the same ring (see
- * {@link Motions}), which is why `n` works right after `w`. A name-for-name port of codemeow's
- * search.ts (string-pattern ring), against meow-command.el; semantics in meow-semantics.md.
+ * {@link Motions}), which is why `n` works right after `w`. The ring stores string patterns; ported
+ * against meow-command.el, semantics in meow-semantics.md.
  */
 public final class Search {
     private Search() {}

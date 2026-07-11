@@ -99,8 +99,7 @@ public final class Rc {
     }
 
     /**
-     * The bundled rc verbatim — what a first ~/.dbmeowrc is seeded from (the adapter's SPC c m,
-     * mirroring the siblings).
+     * The bundled rc verbatim — what a first ~/.dbmeowrc is seeded from (the adapter's SPC c m).
      */
     public static List<String> bundledLines() {
         return readBundledLines();

@@ -11,8 +11,8 @@
         <Class name="io.github.chubbyhippo.dbmeow.core.Ctx"/>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
-    <!-- MeowState is the deliberately open per-editor state bag mirrored
-         from the siblings; negative/pendingCount being public-and-set-inside
+    <!-- MeowState is the deliberately open per-editor state bag;
+         negative/pendingCount being public-and-set-inside
          is that open-state contract. -->
     <Match>
         <Class name="io.github.chubbyhippo.dbmeow.core.MeowState"/>

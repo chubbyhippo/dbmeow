@@ -30,12 +30,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * The repeat transient — Emacs repeat-mode, ported (init.el's transient repeat maps, repeat.el read
- * from Emacs 30.2 source). Rc `repeat` groups make multi-key entries tap-to-continue: dispatching
- * any binding whose TARGET is a group member arms the group (target identity, like the repeat-map
- * symbol property; the entering key needn't be a member — repeat-check-key 'no), then member keys
- * re-dispatch their targets and any other key or ESC ends the run and keeps its normal meaning
- * (set-transient-map fall-through — never swallowed, no timeout).
+ * The repeat transient — Emacs repeat-mode, ported (repeat.el read from Emacs 30.2 source). Rc
+ * `repeat` groups make multi-key entries tap-to-continue: dispatching any binding whose TARGET is a
+ * group member arms the group (target identity, like the repeat-map symbol property; the entering
+ * key needn't be a member — repeat-check-key 'no), then member keys re-dispatch their targets and
+ * any other key or ESC ends the run and keeps its normal meaning (set-transient-map fall-through —
+ * never swallowed, no timeout).
  */
 class RepeatSpec extends SpecDsl {
     /**
@@ -112,9 +112,9 @@ class RepeatSpec extends SpecDsl {
     @Test
     @DisplayName("the bundled default dbmeowrc declares the init el repeat groups")
     void bundledRcDeclaresRepeatGroups() {
-        // init.el parity within verified Eclipse ids: flymake -> error
-        // (annotation nav), text-scale -> zoom (no reset id exists); the
-        // siblings' change/expand groups have no DBeaver-SQL analog
+        // the Emacs repeat maps that fit verified Eclipse ids: flymake ->
+        // error (annotation nav), text-scale -> zoom (no reset id exists);
+        // change (VCS markers) / expand (smart select) have no DBeaver-SQL analog
         Map<String, Map<Character, Rc.Binding>> d = Rc.defaults().repeat;
         assertEquals("org.eclipse.ui.navigate.next", d.get("error").get('.').action());
         assertEquals("org.eclipse.ui.navigate.previous", d.get("error").get(',').action());

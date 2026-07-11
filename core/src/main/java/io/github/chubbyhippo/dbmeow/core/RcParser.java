@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The .dbmeowrc syntax — an .ideavimrc-flavored line format:
+ * The .dbmeowrc syntax — an IdeaVim-style line format:
  *
  * <pre>
  *   " comments start with a double quote (or #)
@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  *   mmap j meow-next                    the same, for MOTION mode
  *   map &lt;leader&gt;gd &lt;action&gt;(org.example.gotoDeclaration)
  *   desc &lt;leader&gt;g goto things
- *   let g:WhichKeyDesc_g = "&lt;leader&gt;g goto things"   (ideavimrc-compatible)
+ *   let g:WhichKeyDesc_g = "&lt;leader&gt;g goto things"   (IdeaVim-compatible)
  *   set nowhich-key / set timeoutlen=300
  *   repeat error . &lt;action&gt;(org.eclipse.ui.navigate.next)
  *                                       repeat group (Emacs repeat-mode):
@@ -48,8 +48,8 @@ import java.util.regex.Pattern;
  *
  * A RHS that names a command in the registry binds the command; a misspelled `meow-*` name is an
  * error; any other RHS is replayed as keys. Keypad keys 0-9, ? and / are reserved; SPC itself
- * cannot be remapped. Unknown `set` options and `let` lines are ignored so an
- * .ideavimrc/.ideameowrc can be pasted without errors.
+ * cannot be remapped. Unknown `set` options and `let` lines are ignored so an IdeaVim rc can be
+ * pasted without errors.
  */
 final class RcParser {
     private RcParser() {}
@@ -116,7 +116,7 @@ final class RcParser {
                                     rest.split("\\s+").length > 1 ? rest.split("\\s+")[1] : "");
             if (n != null && n >= 0) c.whichKeyDelayMs = n;
         }
-        // ignore unknown options so .ideavimrc content pastes cleanly
+        // ignore unknown options so IdeaVim rc content pastes cleanly
     }
 
     private static Integer parseIntOrNull(String s) {
@@ -218,7 +218,7 @@ final class RcParser {
      * `repeat <group> <key> <target>` — Emacs repeat-mode's transient maps as rc lines. Dispatching
      * any binding whose target is listed in a group arms it: the member keys re-dispatch their
      * targets (shadowing the normal map) until a non-member key falls through and ends the run. The
-     * entering key needn't be a member — init.el's repeat-check-key 'no.
+     * entering key needn't be a member — repeat.el's repeat-check-key 'no.
      */
     private static void parseRepeat(Rc.Config c, String rest, Consumer<String> err) {
         String[] parts = rest.split("\\s+", 3);

@@ -34,7 +34,7 @@ import org.eclipse.swt.events.VerifyEvent;
  * clone interceptor/VimInputInterceptorFactory.java:354).
  *
  * <p>Modifier chords (Ctrl/Alt/Cmd) and non-printable keys pass straight
- * through: like the siblings, only printable keys reach the modal engine, and
+ * through: only printable keys reach the modal engine, and
  * the Emacs {@code C-}/{@code M-} layer stays on the platform's own bindings.
  */
 public final class DbmeowInterceptor implements VerifyKeyListener {
@@ -56,7 +56,7 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
 
         // leave modifier chords to the platform (C-/M- Emacs layer, shortcuts).
         // STAGED here, runtime-unverified like the rest of the adapter: the
-        // siblings' keypad chord (ideameow's Alt+; KeypadAction) — before this
+        // keypad chord (Alt+;) — before this
         // pass-through, match (event.stateMask & SWT.ALT) != 0 with
         // event.character == ';' and call Engine.enterKeypad(ctx) with
         // event.doit = false; the core records the previous state, so a

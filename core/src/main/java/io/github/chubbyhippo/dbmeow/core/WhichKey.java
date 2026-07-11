@@ -35,10 +35,7 @@ public final class WhichKey {
     /** One which-key row: the next key and its label. */
     public record Row(String key, String label) {}
 
-    /**
-     * The `, . [ ] < >` thing-table rows. Staged for the SWT which-key overlay (a stub today) — the
-     * codemeow adapter reads its THINGS twin the same way (extension.ts, kind == 'things').
-     */
+    /** The `, . [ ] < >` thing-table rows. Staged for the SWT which-key overlay (a stub today). */
     public static final List<Row> THINGS =
             List.of(
                     new Row("r", "round ( )"),

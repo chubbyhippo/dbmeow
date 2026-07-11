@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * meow-mark-word/symbol, next/back word/symbol, meow-line, goto-line, meow-expand digits,
- * meow-reverse, meow-pop-selection. Name-for-name port of codemeow's selection.test.ts. The
- * word-motion mark-fix and the pop-selection history model were batch-probed against meow 1.5.0.
+ * meow-reverse, meow-pop-selection. The word-motion mark-fix and the pop-selection history model
+ * were batch-probed against meow 1.5.0.
  */
 class SelectionSpec extends SpecDsl {
     @Test
@@ -223,7 +223,7 @@ class SelectionSpec extends SpecDsl {
     @DisplayName(
             "given a selection then expand hints overlay the text without inserting inline content")
     void expandHintsOverlay() {
-        // parity with ideameow's overlay regression: the core hands the adapter
+        // overlay regression guard: the core hands the adapter
         // positions to paint OVER the text (absolute-positioned decorations, the
         // meow-visual.el 'display equivalent) — nothing enters the layout flow
         given("three words", "<caret>hello world again");

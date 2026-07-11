@@ -25,9 +25,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * meow-insert/append/open, change, delete/backward-delete, kill (+ the kill-line and join
- * fallbacks), save, yank, replace, undo, repeat. A name-for-name port of codemeow's
- * editing.test.ts; the kill/save newline rules were probed against meow 1.5.0 (see
- * meow-semantics.md).
+ * fallbacks), save, yank, replace, undo, repeat. The kill/save newline rules were probed against
+ * meow 1.5.0 (see meow-semantics.md).
  */
 class EditingSpec extends SpecDsl {
     @Test
@@ -318,8 +317,8 @@ class EditingSpec extends SpecDsl {
     @Test
     @DisplayName("given x x then repeated u past the undo stack then nothing blows up")
     void repeatedUPastStackNoCrash() {
-        // ideameow's crash (performing IntelliJ's UndoAction while disabled
-        // fails a platform assertion) has no analog here: the EditorPort.undo
+        // IntelliJ's UndoAction fails a platform assertion when performed
+        // while disabled; nothing like that exists here: the EditorPort.undo
         // is a plain call and an exhausted stack is a silent no-op, so every
         // press just dispatches it safely.
         given("three lines", "<caret>one\ntwo\nthree");
