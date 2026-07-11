@@ -64,6 +64,20 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Same SpotBugs block as the root pom (standalone reactor): report
+           via spotbugs:spotbugs, check gates verify. -->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.10.2.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.eclipse.tycho</groupId>
         <artifactId>target-platform-configuration</artifactId>

@@ -42,6 +42,22 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Static analysis: SpotBugs on the compiled main classes. `mvn
+           spotbugs:spotbugs` writes target/spotbugsXml.xml (report only);
+           the check goal binds to verify and gates like Spotless. The
+           standalone Tycho plugin/pom.xml carries the same block. -->
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>4.10.2.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
