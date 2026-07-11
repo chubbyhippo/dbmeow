@@ -109,12 +109,13 @@ public final class Rc {
     private static List<String> readBundledLines() {
         try (InputStream in = Rc.class.getResourceAsStream("/" + FILE_NAME)) {
             if (in == null) return List.of();
-            List<String> lines = new ArrayList<>();
-            BufferedReader r =
-                    new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-            String line;
-            while ((line = r.readLine()) != null) lines.add(line);
-            return lines;
+            try (BufferedReader r =
+                    new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                List<String> lines = new ArrayList<>();
+                String line;
+                while ((line = r.readLine()) != null) lines.add(line);
+                return lines;
+            }
         } catch (IOException e) {
             return List.of();
         }
