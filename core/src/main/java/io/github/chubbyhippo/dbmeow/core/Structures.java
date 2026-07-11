@@ -31,7 +31,7 @@ import java.util.Map;
 public final class Structures {
     private Structures() {}
 
-    public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
         commands.put("meow-inner-of-thing", ctx -> pendThing(ctx, Pending.INNER));

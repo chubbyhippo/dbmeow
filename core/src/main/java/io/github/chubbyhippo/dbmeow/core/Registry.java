@@ -17,6 +17,7 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -29,28 +30,33 @@ import java.util.Map;
 public final class Registry {
     private Registry() {}
 
-    public static final Map<String, MeowCommand> COMMANDS = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> COMMANDS;
 
     static {
-        COMMANDS.putAll(Motions.commands);
-        COMMANDS.putAll(Selections.commands);
-        COMMANDS.putAll(Search.commands);
-        COMMANDS.putAll(Structures.commands);
-        COMMANDS.putAll(Grab.commands);
-        COMMANDS.putAll(Avy.commands);
-        COMMANDS.putAll(Edits.commands);
-        COMMANDS.put("meow-negative-argument", ctx -> ctx.st().negative = true);
+        // Built once here, then frozen: nothing mutates the registry after
+        // class init (Engine/RcParser only read it). LinkedHashMap keeps the
+        // module-contribution iteration order.
+        Map<String, MeowCommand> commands = new LinkedHashMap<>();
+        commands.putAll(Motions.commands);
+        commands.putAll(Selections.commands);
+        commands.putAll(Search.commands);
+        commands.putAll(Structures.commands);
+        commands.putAll(Grab.commands);
+        commands.putAll(Avy.commands);
+        commands.putAll(Edits.commands);
+        commands.put("meow-negative-argument", ctx -> ctx.st().negative = true);
         // meow's QWERTY table binds Emacs' own `negative-argument`; accept
         // that exact spelling too so the canonical table pastes verbatim
-        COMMANDS.put("negative-argument", ctx -> ctx.st().negative = true);
-        COMMANDS.put("meow-quit", ctx -> ctx.port().closeEditor());
-        COMMANDS.put(
+        commands.put("negative-argument", ctx -> ctx.st().negative = true);
+        commands.put("meow-quit", ctx -> ctx.port().closeEditor());
+        commands.put(
                 "meow-keypad",
                 ctx -> {
                     ctx.setMode(MeowMode.KEYPAD);
                     ctx.ui().scheduleWhichKey("keypad", "");
                 });
-        COMMANDS.put("repeat", Engine::repeatLast);
-        COMMANDS.put("ignore", ctx -> {});
+        commands.put("repeat", Engine::repeatLast);
+        commands.put("ignore", ctx -> {});
+        COMMANDS = Collections.unmodifiableMap(commands);
     }
 }

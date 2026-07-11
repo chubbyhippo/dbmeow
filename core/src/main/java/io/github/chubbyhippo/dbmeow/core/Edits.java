@@ -51,7 +51,7 @@ public final class Edits {
         return true;
     }
 
-    public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
         commands.put("meow-insert", Edits::insert);

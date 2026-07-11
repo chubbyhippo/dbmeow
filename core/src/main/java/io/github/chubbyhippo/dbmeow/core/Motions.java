@@ -32,7 +32,7 @@ import java.util.Set;
 public final class Motions {
     private Motions() {}
 
-    public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
         commands.put("meow-left", ctx -> moveChar(ctx, -ctx.st().takeCount(1)));

@@ -1,6 +1,19 @@
 // Copyright (C) 2026 Chubby Hippo
+//
+// This program is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option)
+// any later version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+// more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program. If not, see <https://www.gnu.org/licenses/>.
+//
 // SPDX-License-Identifier: GPL-3.0-or-later
-// (see LICENSE for the full GPL-3.0-or-later text)
 
 package io.github.chubbyhippo.dbmeow.core;
 
@@ -17,11 +30,10 @@ import org.junit.jupiter.api.Test;
  * State transitions: INSERT/NORMAL/MOTION/KEYPAD, escape, keypad dispatch. A name-for-name port of
  * codemeow's modesKeypad.test.ts.
  */
-@DisplayName("ModesKeypadSpec")
 class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName("given INSERT when escape then back to NORMAL")
-    void givenInsertWhenEscapeThenBackToNormal() {
+    void escapeExitsInsert() {
         given("word", "<caret>hello");
         whenKeys("i");
         thenMode(MeowMode.INSERT);
@@ -31,7 +43,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given beacon cursors in NORMAL when escape then they collapse")
-    void givenBeaconCursorsInNormalWhenEscapeThenTheyCollapse() {
+    void escapeCollapsesBeaconCursors() {
         given("repeats", "<caret>foo bar foo");
         whenKeys(",bG");
         givenCaretAt(0);
@@ -44,7 +56,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a pending find when escape then the pending key is dropped")
-    void givenAPendingFindWhenEscapeThenThePendingKeyIsDropped() {
+    void escapeDropsPendingFind() {
         given("word", "<caret>hello");
         whenKeys("f");
         assertNotNull(st.pending);
@@ -56,7 +68,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given nothing meow-related when escape then it reports unhandled")
-    void givenNothingMeowRelatedWhenEscapeThenItReportsUnhandled() {
+    void escapeReportsUnhandled() {
         given("word", "<caret>hello");
         assertFalse(pressEsc(), "the host may fall through to its own escape");
     }
@@ -64,7 +76,7 @@ class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName(
             "given a read-only document then all motions work and the modify commands are inert")
-    void givenAReadOnlyDocumentThenAllMotionsWorkAndTheModifyCommandsAreInert() {
+    void readOnlyGatesModifyCommands() {
         // like Emacs: a read-only buffer stays in NORMAL — motions, selections
         // and save all work; only text changes gate (meow--allow-modify-p)
         given("two lines", "<caret>one\ntwo");
@@ -86,7 +98,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given SPC then KEYPAD opens and a digit becomes the count for the next command")
-    void givenSpcThenKeypadOpensAndADigitBecomesTheCountForTheNextCommand() {
+    void keypadDigitBecomesCount() {
         given("four lines", "<caret>a\nb\nc\nd");
         whenKeys(" ");
         thenMode(MeowMode.KEYPAD);
@@ -98,7 +110,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given SPC x then the keypad keeps collecting the prefix")
-    void givenSpcXThenTheKeypadKeepsCollectingThePrefix() {
+    void keypadCollectsPrefix() {
         given("word", "<caret>hello");
         whenKeys(" x");
         thenMode(MeowMode.KEYPAD);
@@ -107,7 +119,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given an undefined keypad sequence then KEYPAD exits back to NORMAL")
-    void givenAnUndefinedKeypadSequenceThenKeypadExitsBackToNormal() {
+    void undefinedKeypadSequenceExits() {
         // with the layout-only bundled rc the keypad table has no x prefix, so
         // the undefined-sequence exit already fires at the first key
         given("word", "<caret>hello");
@@ -118,7 +130,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given KEYPAD when escape then back to NORMAL without dispatch")
-    void givenKeypadWhenEscapeThenBackToNormalWithoutDispatch() {
+    void escapeCancelsKeypad() {
         given("word", "<caret>hello");
         whenKeys(" x");
         pressEsc();
@@ -128,7 +140,7 @@ class ModesKeypadSpec extends SpecDsl {
 
     @Test
     @DisplayName("given INSERT then the adapter is told to swap the cursor, and back on escape")
-    void givenInsertThenTheAdapterIsToldToSwapTheCursorAndBackOnEscape() {
+    void insertSwapsCursorAndBack() {
         // the ideameow block/bar-cursor spec, at the port seam: the adapter maps
         // these notifications to the host's bar / block cursor styles
         given("word", "<caret>hello");

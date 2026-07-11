@@ -34,7 +34,7 @@ import java.util.Set;
 public final class Selections {
     private Selections() {}
 
-    public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
         for (int n = 0; n <= 9; n++) {

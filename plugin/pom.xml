@@ -65,11 +65,15 @@
         </executions>
       </plugin>
       <!-- Same SpotBugs block as the root pom (standalone reactor): report
-           via spotbugs:spotbugs, check gates verify. -->
+           via spotbugs:spotbugs, check gates verify, and the exclude filter
+           is this reactor's mirror copy of core's spotbugs-exclude.xml. -->
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>4.10.2.0</version>
+        <configuration>
+          <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+        </configuration>
         <executions>
           <execution>
             <goals>

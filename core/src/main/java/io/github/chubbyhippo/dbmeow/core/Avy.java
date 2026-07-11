@@ -37,7 +37,7 @@ public final class Avy {
     /** avy-keys default. */
     private static final String KEYS = "asdfghjkl";
 
-    public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
         commands.put("avy-goto-char-timer", Avy::startCharTimer);

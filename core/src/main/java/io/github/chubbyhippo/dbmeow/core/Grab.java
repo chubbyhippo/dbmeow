@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 public final class Grab {
     private Grab() {}
 
-    public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
         commands.put("meow-grab", Grab::grab);

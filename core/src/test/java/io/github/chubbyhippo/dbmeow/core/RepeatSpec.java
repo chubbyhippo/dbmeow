@@ -37,7 +37,6 @@ import org.junit.jupiter.api.Test;
  * re-dispatch their targets and any other key or ESC ends the run and keeps its normal meaning
  * (set-transient-map fall-through — never swallowed, no timeout).
  */
-@DisplayName("RepeatSpec")
 class RepeatSpec extends SpecDsl {
     /**
      * A keypad nav entry plus a repeat group over the same targets; the members deliberately sit on
@@ -54,7 +53,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given repeat lines then named groups parse with their member targets")
-    void givenRepeatLinesThenNamedGroupsParseWithTheirMemberTargets() {
+    void repeatLinesParseGroups() {
         Rc.Config c =
                 Rc.parse(
                         List.of(
@@ -69,7 +68,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a repeat line with a bad target then an error is collected")
-    void givenARepeatLineWithABadTargetThenAnErrorIsCollected() {
+    void badTargetCollectsError() {
         Rc.Config c =
                 Rc.parse(
                         List.of(
@@ -81,7 +80,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a repeat key that is not a single printable key then an error is collected")
-    void givenARepeatKeyThatIsNotASinglePrintableKeyThenAnErrorIsCollected() {
+    void badRepeatKeyCollectsError() {
         Rc.Config c =
                 Rc.parse(
                         List.of(
@@ -92,7 +91,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given home rc repeat lines then they layer per key over the bundled group")
-    void givenHomeRcRepeatLinesThenTheyLayerPerKeyOverTheBundledGroup() {
+    void homeRcLayersOverBundledGroup() {
         givenRc("repeat error , meow-prev\nrepeat error e <action>(org.eclipse.ui.file.save)");
         Map<Character, Rc.Binding> g = Rc.repeatGroups().get("error");
         // bundled default beneath
@@ -103,7 +102,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a repeat member bound to ignore then the key is given back")
-    void givenARepeatMemberBoundToIgnoreThenTheKeyIsGivenBack() {
+    void ignoreGivesMemberBack() {
         givenRc("repeat zoom o ignore");
         Map<Character, Rc.Binding> g = Rc.repeatGroups().get("zoom");
         assertFalse(g.containsKey('o'));
@@ -112,7 +111,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("the bundled default dbmeowrc declares the init el repeat groups")
-    void theBundledDefaultDbmeowrcDeclaresTheInitElRepeatGroups() {
+    void bundledRcDeclaresRepeatGroups() {
         // init.el parity within verified Eclipse ids: flymake -> error
         // (annotation nav), text-scale -> zoom (no reset id exists); the
         // siblings' change/expand groups have no DBeaver-SQL analog
@@ -126,7 +125,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a repeat line edit then the reload button sees a change")
-    void givenARepeatLineEditThenTheReloadButtonSeesAChange() {
+    void repeatLineEditLightsReload() {
         // the reload surface compares the PARSED config — repeat groups are
         // part of it, so editing one must light it up
         Rc.setUserLines(List.of("nmap Z ,b"));
@@ -138,7 +137,7 @@ class RepeatSpec extends SpecDsl {
     @Test
     @DisplayName(
             "given a keypad nav entry in a repeat group then tapping the members keeps walking")
-    void givenAKeypadNavEntryInARepeatGroupThenTappingTheMembersKeepsWalking() {
+    void memberTapsKeepWalking() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn"); // SPC t n -> meow-next, arms the nav group
@@ -154,7 +153,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a normal key bound to a member target then it arms the same run")
-    void givenANormalKeyBoundToAMemberTargetThenItArmsTheSameRun() {
+    void targetIdentityArmsRun() {
         // membership is the TARGET, not the key that ran it — Emacs puts
         // repeat-map on the command symbol, so every binding of it arms
         given("four lines", "<caret>one\ntwo\nthree\nfour");
@@ -167,7 +166,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a non-member key then the run ends and the key keeps its normal meaning")
-    void givenANonMemberKeyThenTheRunEndsAndTheKeyKeepsItsNormalMeaning() {
+    void nonMemberEndsRunAndFallsThrough() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
@@ -179,7 +178,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given the run over then the member keys mean their normal commands again")
-    void givenTheRunOverThenTheMemberKeysMeanTheirNormalCommandsAgain() {
+    void memberKeysRestoredAfterRun() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
@@ -192,7 +191,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given escape then the run ends")
-    void givenEscapeThenTheRunEnds() {
+    void escapeEndsRun() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
@@ -206,7 +205,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given SPC during a run then the keypad still opens")
-    void givenSpcDuringARunThenTheKeypadStillOpens() {
+    void keypadOpensDuringRun() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
@@ -217,7 +216,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a digit during a run then it falls through as a count")
-    void givenADigitDuringARunThenItFallsThroughAsACount() {
+    void digitFallsThroughAsCount() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
@@ -228,7 +227,7 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName("given a run then the armed keys are the group members")
-    void givenARunThenTheArmedKeysAreTheGroupMembers() {
+    void armedKeysAreGroupMembers() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");

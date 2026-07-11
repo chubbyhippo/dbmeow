@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 public final class Search {
     private Search() {}
 
-    public static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
+    static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
         commands.put("meow-search", Search::search);
