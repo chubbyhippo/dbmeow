@@ -5,7 +5,8 @@
 " default NORMAL/MOTION layout (meow's suggested QWERTY), adapted from the
 " ideameow sibling's .ideameowrc, plus the SPC keypad <action> table below —
 " Eclipse workbench command ids verified against IWorkbenchCommandConstants
-" (Quick Access is deliberately absent until its id is verified).
+" or the installed DBeaver 26.1 plugin.xmls (Quick Access joined once its id
+" and default handler verified there, 2026-07-11).
 " A ~/.dbmeowrc overrides this file entry by entry.
 " ============================================================================
 
@@ -87,12 +88,17 @@ mmap q <action>(dbmeow.hideView)
 
 " ── SPC keypad table ────────────────────────────────────────────────────────
 " SPC is the leader; these sequences dispatch Eclipse workbench commands. Ids
-" verified against IWorkbenchCommandConstants (eclipse.platform.ui). SPC 1-9 =
-" digit argument, SPC ? = cheatsheet, SPC / = describe-key (handled in code).
+" verified against IWorkbenchCommandConstants (eclipse.platform.ui) or the
+" installed DBeaver 26.1 plugin.xmls. SPC 1-9 = digit argument, SPC ? =
+" cheatsheet, SPC / = describe-key (handled in code).
 map <leader><Space> <action>(org.eclipse.ui.window.previousEditor)
 desc <leader><Space> last editor
 
 desc <leader>x files
+" f = the siblings' SPC x f goto-file: Eclipse's Open Resource dialog
+" (org.eclipse.ui.navigate.openResource, defined with a default handler in
+" the installed DBeaver 26.1 org.eclipse.ui.ide plugin.xml, 2026-07-11)
+map <leader>xf <action>(org.eclipse.ui.navigate.openResource)
 map <leader>xs <action>(org.eclipse.ui.file.save)
 map <leader>xS <action>(org.eclipse.ui.file.saveAll)
 map <leader>xk <action>(org.eclipse.ui.file.close)
@@ -131,10 +137,27 @@ desc <leader>c config
 map <leader>cm <action>(dbmeow.editRc)
 map <leader>cM <action>(dbmeow.reloadRc)
 
+" SPC m — meta, the slots of the siblings' M- group that verify here. m x =
+" Quick Access, Eclipse's M-x/GotoAction analog (org.eclipse.ui.window
+" .quickAccess, defined with a default handler in the installed DBeaver 26.1
+" org.eclipse.ui plugin.xml, 2026-07-11 — absent until exactly this check).
+" m o / m g are the siblings' native avy jumps on this prefix — core meow
+" commands, no Eclipse id involved; m g tracks ideameow's 2026-07-11 move of
+" SPC m g from the native goto-line dialog to avy-goto-line.
+desc <leader>m meta
+map <leader>mx <action>(org.eclipse.ui.window.quickAccess)
+map <leader>mo avy-goto-char-timer
+map <leader>mg avy-goto-line
+
 " SPC b — bookmarks (mirrors the siblings' SPC b). m sets a line bookmark;
 " j opens the Bookmarks view to jump. Ids verified against the installed
 " DBeaver (org.eclipse.ui.ide is bundled, so the marker infra + view exist);
 " the parameterized showView flows through EclipseUi's deserialize path.
+" The siblings' SPC x r b (init.el's C-x r b bookmark list, added to
+" ideameow 2026-07-11) is covered by SPC b j here — dbmeow's SPC x r is the
+" file.refresh leaf, so no x r b prefix can exist; and their numbered slots
+" (SPC b 0-9) have no Eclipse analog: the installed 26.1 jars define only
+" org.eclipse.ui.edit.addBookmark, no toggle-bookmark-N commands.
 desc <leader>b bookmark (m set / j jump)
 map <leader>bm <action>(org.eclipse.ui.edit.addBookmark)
 map <leader>bj <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView))
@@ -163,7 +186,10 @@ map <leader>,e <action>(org.eclipse.ui.navigate.previous)
 " init.el parity here: flymake -> error (annotation nav), text-scale -> zoom
 " (no u/0 reset member — Eclipse has no zoom-reset command). The siblings'
 " change (VCS markers) and expand (smart select) groups have no verified
-" DBeaver-SQL command ids, so they ship no dbmeow analog.
+" DBeaver-SQL command ids, so they ship no dbmeow analog — likewise
+" ideameow's SPC r h (show current change marker, added 2026-07-11): Eclipse
+" quickdiff defines only toggle/revert commands (installed 26.1
+" org.eclipse.ui.editors plugin.xml), nothing that pops the change at point.
 " So: SPC . e then . . , walks annotations; SPC w i then i i i keeps zooming.
 repeat error . <action>(org.eclipse.ui.navigate.next)
 repeat error , <action>(org.eclipse.ui.navigate.previous)

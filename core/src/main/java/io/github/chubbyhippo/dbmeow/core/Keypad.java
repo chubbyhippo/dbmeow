@@ -84,7 +84,9 @@ public final class Keypad {
 
     public static void exit(Ctx ctx) {
         ctx.ui().hideWhichKey();
-        ctx.setMode(MeowMode.NORMAL);
+        // meow--exit-keypad-state: back to meow--keypad-previous-state, so a
+        // keypad entered from INSERT (the staged Alt+; chord) returns there
+        ctx.setMode(ctx.st().keypadPreviousState);
     }
 
     private static String spaced(String seq) {

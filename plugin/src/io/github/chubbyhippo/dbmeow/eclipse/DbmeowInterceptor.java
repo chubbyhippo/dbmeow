@@ -54,7 +54,14 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
             return;
         }
 
-        // leave modifier chords to the platform (C-/M- Emacs layer, shortcuts)
+        // leave modifier chords to the platform (C-/M- Emacs layer, shortcuts).
+        // STAGED here, runtime-unverified like the rest of the adapter: the
+        // siblings' keypad chord (ideameow's Alt+; KeypadAction) — before this
+        // pass-through, match (event.stateMask & SWT.ALT) != 0 with
+        // event.character == ';' and call Engine.enterKeypad(ctx) with
+        // event.doit = false; the core records the previous state, so a
+        // command run from INSERT drops back into INSERT (meow-keypad.el's
+        // meow--keypad-previous-state, restored by Keypad.exit).
         int chord = SWT.CTRL | SWT.ALT | SWT.COMMAND;
         if ((event.stateMask & chord) != 0) return;
 

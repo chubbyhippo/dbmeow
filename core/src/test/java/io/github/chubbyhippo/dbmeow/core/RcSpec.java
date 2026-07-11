@@ -19,9 +19,12 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -114,9 +117,8 @@ class RcSpec extends SpecDsl {
         assertEquals("editor.action.revealDefinition", Rc.cfg().keypad.get("gd").action());
         assertEquals("goto things", Rc.cfg().keypadDesc.get("g"));
         assertEquals("editor.action.revealDefinition", Rc.keypad().get("gd").action());
-        // codemeow additionally asserts the bundled defaults stay beneath
-        // (Rc.keypad().get("b")): deferred — the bundled .dbmeowrc carries no
-        // keypad table yet.
+        // the bundled defaults stay layered beneath the override (codemeow parity)
+        assertEquals("dbmeow.editRc", Rc.keypad().get("cm").action());
     }
 
     @Test
@@ -165,6 +167,31 @@ class RcSpec extends SpecDsl {
         assertEquals("extension.aceJump", c.normal.get('S').action());
         assertEquals(",b", c.keypad.get("zz").keys());
         assertEquals(List.of(), c.errors);
+    }
+
+    @Test
+    @DisplayName("the bundled default dbmeowrc defines the whole keymap")
+    void bundledRcDefinesWholeKeymap() {
+        Rc.Config d = Rc.defaults();
+        assertEquals(List.of(), d.errors, "bundled default must parse clean");
+        // the layout block must define meow's full QWERTY layout (Q and S are
+        // the deliberate avy overrides further down the file)
+        qwerty().forEach(
+                        (key, cmd) -> {
+                            if (key == 'Q') return;
+                            Rc.Binding b = d.normal.get(key);
+                            assertNotNull(b, "bundled layout line for '" + key + "'");
+                            assertEquals(cmd, b.command(), "bundled layout line for '" + key + "'");
+                        });
+        assertEquals("avy-goto-line", d.normal.get('Q').command());
+        assertEquals("avy-goto-char-timer", d.normal.get('S').command());
+        assertEquals("meow-next", d.motion.get('j').command());
+        assertEquals("meow-prev", d.motion.get('k').command());
+        // the keypad table lives in the file too — nothing is bound in code
+        assertEquals("org.eclipse.ui.window.previousEditor", d.keypad.get(" ").action());
+        assertEquals("dbmeow.editRc", d.keypad.get("cm").action());
+        assertEquals("dbmeow.reloadRc", d.keypad.get("cM").action());
+        assertTrue(d.keypad.size() > 25, "keypad table (got " + d.keypad.size() + ")");
     }
 
     @Test
@@ -323,5 +350,69 @@ class RcSpec extends SpecDsl {
     @DisplayName("given the default table then the SPC SPC entry renders as SPC")
     void spcSpcRendersAsSpc() {
         assertTrue(WhichKey.keypadRows("").stream().anyMatch(r -> r.key().equals("SPC")));
+    }
+
+    /**
+     * meow's suggested QWERTY layout (KEYBINDING_QWERTY in meow's README; {@code <} and {@code >}
+     * are aliases for {@code [} and {@code ]}) — the contract the bundled .dbmeowrc layout block
+     * must satisfy. Identical to the siblings' contract, so the three plugins can never drift apart
+     * silently.
+     */
+    private static Map<Character, String> qwerty() {
+        Map<Character, String> m = new LinkedHashMap<>();
+        for (int n = 0; n <= 9; n++) m.put((char) ('0' + n), "meow-expand-" + n);
+        m.put('-', "meow-negative-argument");
+        m.put(';', "meow-reverse");
+        m.put(',', "meow-inner-of-thing");
+        m.put('.', "meow-bounds-of-thing");
+        m.put('[', "meow-beginning-of-thing");
+        m.put(']', "meow-end-of-thing");
+        m.put('<', "meow-beginning-of-thing");
+        m.put('>', "meow-end-of-thing");
+        m.put('a', "meow-append");
+        m.put('A', "meow-open-below");
+        m.put('b', "meow-back-word");
+        m.put('B', "meow-back-symbol");
+        m.put('c', "meow-change");
+        m.put('d', "meow-delete");
+        m.put('D', "meow-backward-delete");
+        m.put('e', "meow-next-word");
+        m.put('E', "meow-next-symbol");
+        m.put('f', "meow-find");
+        m.put('g', "meow-cancel-selection");
+        m.put('G', "meow-grab");
+        m.put('h', "meow-left");
+        m.put('H', "meow-left-expand");
+        m.put('i', "meow-insert");
+        m.put('I', "meow-open-above");
+        m.put('j', "meow-next");
+        m.put('J', "meow-next-expand");
+        m.put('k', "meow-prev");
+        m.put('K', "meow-prev-expand");
+        m.put('l', "meow-right");
+        m.put('L', "meow-right-expand");
+        m.put('m', "meow-join");
+        m.put('n', "meow-search");
+        m.put('o', "meow-block");
+        m.put('O', "meow-to-block");
+        m.put('p', "meow-yank");
+        m.put('q', "meow-quit");
+        m.put('Q', "meow-goto-line");
+        m.put('r', "meow-replace");
+        m.put('R', "meow-swap-grab");
+        m.put('s', "meow-kill");
+        m.put('t', "meow-till");
+        m.put('u', "meow-undo");
+        m.put('U', "meow-undo-in-selection");
+        m.put('v', "meow-visit");
+        m.put('w', "meow-mark-word");
+        m.put('W', "meow-mark-symbol");
+        m.put('x', "meow-line");
+        m.put('X', "meow-goto-line");
+        m.put('y', "meow-save");
+        m.put('Y', "meow-sync-grab");
+        m.put('z', "meow-pop-selection");
+        m.put('\'', "repeat");
+        return m;
     }
 }

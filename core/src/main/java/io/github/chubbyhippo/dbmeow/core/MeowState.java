@@ -71,6 +71,10 @@ public class MeowState {
     public Map<Character, Rc.Binding> repeatMap = null;
 
     public final StringBuilder keypad = new StringBuilder();
+
+    /** meow--keypad-previous-state: the state KEYPAD returns to on exit. */
+    public MeowMode keypadPreviousState = MeowMode.NORMAL;
+
     public final List<Character> unit = new ArrayList<>();
     public List<Character> lastKeys = List.of();
     public boolean replaying = false;

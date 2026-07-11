@@ -37,6 +37,23 @@ public final class Engine {
             new Rc.Binding(null, null, "meow-keypad", true);
 
     /**
+     * meow-keypad (meow-keypad.el): record meow--keypad-previous-state, then switch — {@link
+     * Keypad#exit} restores it, so SPC round-trips to NORMAL (or MOTION) and a keypad chord pressed
+     * in INSERT returns to INSERT. Shared by the rc-dispatched 'meow-keypad' command ({@link
+     * Registry}) and the adapter's keypad chord — the siblings' Alt+;, staged for dbmeow:
+     * DbmeowInterceptor.verifyKey would call this on SWT.ALT + ';' just before its modifier-chord
+     * pass-through (the adapter is runtime-unverified by charter). A no-op when KEYPAD is already
+     * active — meow's overriding keypad map cannot re-enter either.
+     */
+    public static void enterKeypad(Ctx ctx) {
+        MeowState st = ctx.st();
+        if (st.mode == MeowMode.KEYPAD) return;
+        st.keypadPreviousState = st.mode;
+        ctx.setMode(MeowMode.KEYPAD);
+        ctx.ui().scheduleWhichKey("keypad", "");
+    }
+
+    /**
      * @return true when the key was consumed (the type handler skips insertion).
      */
     public static boolean handleChar(Ctx ctx, char c) {
@@ -210,9 +227,9 @@ public final class Engine {
     }
 
     /**
-     * The ESC key: INSERT/KEYPAD -> NORMAL, drops pending keys, collapses beacon cursors. @return
-     * false when there was nothing meow-related to do (the host may fall through to its own escape
-     * behavior).
+     * The ESC key: INSERT -> NORMAL, KEYPAD -> the state it was entered from, drops pending keys,
+     * collapses beacon cursors. @return false when there was nothing meow-related to do (the host
+     * may fall through to its own escape behavior).
      */
     public static boolean escapeKey(Ctx ctx) {
         MeowState st = ctx.st();
@@ -225,8 +242,14 @@ public final class Engine {
         st.repeatMap = null; // ESC always ends a repeat run (a non-member key)
         ctx.ui().hideWhichKey();
         ctx.ui().clearExpandHints();
-        if (st.mode == MeowMode.INSERT || st.mode == MeowMode.KEYPAD) {
+        if (st.mode == MeowMode.INSERT) {
             ctx.setMode(MeowMode.NORMAL);
+            ctx.ui().refresh(st);
+            return true;
+        }
+        if (st.mode == MeowMode.KEYPAD) {
+            // meow-keypad-quit: back to the state keypad was entered from
+            Keypad.exit(ctx);
             ctx.ui().refresh(st);
             return true;
         }

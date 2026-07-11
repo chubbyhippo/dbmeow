@@ -97,6 +97,47 @@ class ModesKeypadSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName(
+            "given INSERT when the keypad action fires then a keypad command returns to INSERT")
+    void keypadActionReturnsToInsert() {
+        // init.el: M-SPC reaches the leader even from INSERT; meow records
+        // meow--keypad-previous-state and every exit path restores it. The
+        // staged adapter chord (the siblings' Alt+;) drives this same core
+        // entry point, Engine.enterKeypad.
+        given("word", "ab<caret>cd");
+        givenRc("map <leader>zz meow-left");
+        whenKeys("i");
+        thenMode(MeowMode.INSERT);
+        Engine.enterKeypad(ctx());
+        thenMode(MeowMode.KEYPAD);
+        whenKeys("zz");
+        thenMode(MeowMode.INSERT);
+        thenCaretAt(1);
+    }
+
+    @Test
+    @DisplayName("given INSERT when the keypad action then escape then back to INSERT")
+    void keypadActionEscapeBackToInsert() {
+        // meow-keypad-quit -> meow--exit-keypad-state: previous state returns
+        given("word", "<caret>hello");
+        whenKeys("i");
+        Engine.enterKeypad(ctx());
+        thenMode(MeowMode.KEYPAD);
+        pressEsc();
+        thenMode(MeowMode.INSERT);
+    }
+
+    @Test
+    @DisplayName("given NORMAL when the keypad action fires then KEYPAD round-trips to NORMAL")
+    void keypadActionRoundTripsToNormal() {
+        given("word", "<caret>hello");
+        Engine.enterKeypad(ctx());
+        thenMode(MeowMode.KEYPAD);
+        pressEsc();
+        thenMode(MeowMode.NORMAL);
+    }
+
+    @Test
     @DisplayName("given SPC then KEYPAD opens and a digit becomes the count for the next command")
     void keypadDigitBecomesCount() {
         given("four lines", "<caret>a\nb\nc\nd");
@@ -136,6 +177,15 @@ class ModesKeypadSpec extends SpecDsl {
         pressEsc();
         thenMode(MeowMode.NORMAL);
         thenText("hello");
+    }
+
+    @Test
+    @DisplayName("given a keypad action entry then the host command runs")
+    void keypadActionEntryRunsHostCommand() {
+        given("word", "<caret>hello");
+        whenKeys(" xs"); // bundled: SPC x s -> org.eclipse.ui.file.save
+        thenMode(MeowMode.NORMAL);
+        assertEquals(List.of("org.eclipse.ui.file.save"), ui.ran);
     }
 
     @Test

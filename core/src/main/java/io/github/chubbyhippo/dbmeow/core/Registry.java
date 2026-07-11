@@ -49,12 +49,7 @@ public final class Registry {
         // that exact spelling too so the canonical table pastes verbatim
         commands.put("negative-argument", ctx -> ctx.st().negative = true);
         commands.put("meow-quit", ctx -> ctx.port().closeEditor());
-        commands.put(
-                "meow-keypad",
-                ctx -> {
-                    ctx.setMode(MeowMode.KEYPAD);
-                    ctx.ui().scheduleWhichKey("keypad", "");
-                });
+        commands.put("meow-keypad", Engine::enterKeypad);
         commands.put("repeat", Engine::repeatLast);
         commands.put("ignore", ctx -> {});
         COMMANDS = Collections.unmodifiableMap(commands);
