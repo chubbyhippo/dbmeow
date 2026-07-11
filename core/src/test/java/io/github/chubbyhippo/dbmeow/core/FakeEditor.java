@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/** The {@link EditorPort} of the BDD suite: a plain string buffer. */
 public class FakeEditor implements EditorPort {
     public final StringBuilder text = new StringBuilder();
     public List<SelRange> sels = new ArrayList<>(List.of(new SelRange(0, 0)));

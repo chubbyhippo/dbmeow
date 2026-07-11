@@ -27,11 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Which editors get meow, by kind — the attach-policy checks. Platform-specific (no meow source of
- * truth), so dbmeow-shaped rather than name-for-name: read-only kinds attach in NORMAL like Emacs
- * read-only buffers and report non-writable, while dialog inputs keep native editing.
- */
 class AttachSpec {
     @Test
     @DisplayName("given a SQL editor then meow attaches in NORMAL")

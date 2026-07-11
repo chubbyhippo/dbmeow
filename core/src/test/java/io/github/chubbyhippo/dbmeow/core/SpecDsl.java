@@ -23,29 +23,12 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 
-/**
- * BDD harness for the meow specs, over a fake editor implementing the same ports a host adapter
- * does:
- *
- * <pre>
- *   given("a buffer", "hello &lt;caret&gt;world");
- *   whenKeys("we");
- *   thenSelection("world");
- * </pre>
- *
- * Every behavior asserted in these specs was cross-checked against meow-edit/meow's source
- * (docstrings and command bodies) — not against vim intuition.
- */
 public abstract class SpecDsl {
     protected FakeEditor editor;
     protected FakeClipboard clip;
     protected FakeUi ui;
     protected MeowState st;
 
-    /**
-     * A spec with an empty user layer: a developer's real ~/.dbmeowrc never leaks in; the bundled
-     * classpath .dbmeowrc stays the defaults layer.
-     */
     @BeforeEach
     void freshSpec() {
         editor = new FakeEditor();

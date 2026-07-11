@@ -21,13 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * KEYPAD state. In Emacs, SPC x/c/m reach the C-x / C-c / M- keymaps; here the same key sequences
- * dispatch host commands. Like the NORMAL/MOTION layout, the whole table lives in rc lines: the
- * bundled default .dbmeowrc defines it and ~/.dbmeowrc `map <leader>...` entries layer on top (see
- * {@link Rc#keypad()}). SPC 1-9 = digit argument, SPC ? = cheatsheet, SPC / = describe key. A
- * which-key hint lists continuations of a prefix.
- */
 public final class Keypad {
     private Keypad() {}
 
@@ -84,8 +77,6 @@ public final class Keypad {
 
     public static void exit(Ctx ctx) {
         ctx.ui().hideWhichKey();
-        // meow--exit-keypad-state: back to meow--keypad-previous-state, so a
-        // keypad entered from INSERT (the staged Alt+; chord) returns there
         ctx.setMode(ctx.st().keypadPreviousState);
     }
 

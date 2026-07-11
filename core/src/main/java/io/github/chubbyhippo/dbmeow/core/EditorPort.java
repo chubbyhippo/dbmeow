@@ -19,38 +19,26 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import java.util.List;
 
-/**
- * The engine's entire view of the host editor. The core never imports a UI toolkit: the host
- * adapter implements these ports, and the test suite implements them over a plain string buffer —
- * which is what makes every meow behavior testable without an editor process.
- */
 public interface EditorPort {
-    /** An inclusive span of line numbers. */
     record LineRange(int first, int last) {}
 
-    /** A half-open offset range, e.g. a language-aware defun. */
     record OffsetRange(int start, int end) {}
 
     String getText();
 
-    /** All selections, primary first. An empty range is a bare caret. */
     List<SelRange> getSelections();
 
-    /** Replace all selections (primary first) and reveal the primary caret. */
     void setSelections(List<SelRange> sels);
 
-    /** Apply non-overlapping edits as ONE undo step. */
     void edit(List<TextEdit> edits);
 
     boolean isWritable();
 
-    /** Line span currently on screen (the `w` window thing); null = unknown. */
     LineRange visibleLineRange();
 
     void undo();
 
     void closeEditor();
 
-    /** Language-aware defun range at offset when the host can provide one. */
     OffsetRange symbolRangeAt(int offset);
 }

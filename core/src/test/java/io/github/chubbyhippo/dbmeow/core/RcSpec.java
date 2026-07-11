@@ -28,12 +28,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * ~/.dbmeowrc parsing, nmap/mmap/map dispatch (including relayouting the meow keys themselves), and
- * which-key rows.
- */
 class RcSpec extends SpecDsl {
-    // ------------------------------------------------------------------ parsing
 
     @Test
     @DisplayName("given an action mapping then it parses into a normal override")
@@ -57,9 +52,6 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given comment-only rc edits then the reload button reports no changes")
     void commentOnlyEditsNoReload() {
-        // the reload surface compares the PARSED config (IdeaVim's
-        // VimRcFileState hashes the parsed Script the same way) — formatting
-        // and comment edits never demand a reload
         Rc.setUserLines(List.of("nmap Z ,b"));
         assertTrue(RcFileState.equalTo(List.of("\" just a comment", "nmap Z ,b")));
         assertFalse(RcFileState.equalTo(List.of("nmap Q meow-goto-line")));
@@ -117,7 +109,6 @@ class RcSpec extends SpecDsl {
         assertEquals("editor.action.revealDefinition", Rc.cfg().keypad.get("gd").action());
         assertEquals("goto things", Rc.cfg().keypadDesc.get("g"));
         assertEquals("editor.action.revealDefinition", Rc.keypad().get("gd").action());
-        // the bundled defaults stay layered beneath the override
         assertEquals("dbmeow.editRc", Rc.keypad().get("cm").action());
     }
 
@@ -138,7 +129,7 @@ class RcSpec extends SpecDsl {
                         List.of(
                                 "set nowhich-key",
                                 "set timeoutlen=400",
-                                "set clipboard+=unnamedplus", // pasted from an IdeaVim rc: ignored
+                                "set clipboard+=unnamedplus",
                                 "let mapleader=\" \""));
         assertEquals(false, c.whichKey);
         assertEquals(400, c.whichKeyDelayMs);
@@ -148,7 +139,6 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("which-key settings layer user over bundled defaults")
     void whichKeyLayersUserOverBundled() {
-        // empty user config: the bundled file's `set which-key` / timeoutlen=300
         assertTrue(Rc.whichKeyEnabled());
         assertEquals(300, Rc.whichKeyDelayMs());
         givenRc("set nowhich-key\nset timeoutlen=150");
@@ -174,8 +164,6 @@ class RcSpec extends SpecDsl {
     void bundledRcDefinesWholeKeymap() {
         Rc.Config d = Rc.defaults();
         assertEquals(List.of(), d.errors, "bundled default must parse clean");
-        // the layout block must define meow's full QWERTY layout (Q and S are
-        // the deliberate avy overrides further down the file)
         qwerty().forEach(
                         (key, cmd) -> {
                             if (key == 'Q') return;
@@ -187,7 +175,6 @@ class RcSpec extends SpecDsl {
         assertEquals("avy-goto-char-timer", d.normal.get('S').command());
         assertEquals("meow-next", d.motion.get('j').command());
         assertEquals("meow-prev", d.motion.get('k').command());
-        // the keypad table lives in the file too — nothing is bound in code
         assertEquals("org.eclipse.ui.window.previousEditor", d.keypad.get(" ").action());
         assertEquals("dbmeow.editRc", d.keypad.get("cm").action());
         assertEquals("dbmeow.reloadRc", d.keypad.get("cM").action());
@@ -200,16 +187,14 @@ class RcSpec extends SpecDsl {
         Rc.Config c =
                 Rc.parse(
                         List.of(
-                                "frobnicate everything", // unknown command
-                                "nmap <Space> ,b", // SPC is reserved
-                                "map <leader>1 <action>(X)", // keypad digits are reserved
-                                "nmap Q <CR>", // unsupported key token
-                                "mmap <leader>x ,b")); // keypad entries are mode-independent
+                                "frobnicate everything",
+                                "nmap <Space> ,b",
+                                "map <leader>1 <action>(X)",
+                                "nmap Q <CR>",
+                                "mmap <leader>x ,b"));
         assertEquals(5, c.errors.size());
         assertTrue(c.errors.get(0).startsWith("line 1"));
     }
-
-    // ------------------------------------------------------------------ dispatch
 
     @Test
     @DisplayName("given an rc key-sequence override then the key replays through the engine")
@@ -226,7 +211,7 @@ class RcSpec extends SpecDsl {
         given("two words", "one two<caret>");
         givenRc("nmap B ,b\nnmap Y B");
         whenKeys("Y");
-        thenSelection("one two"); // Y -> user B -> whole buffer
+        thenSelection("one two");
     }
 
     @Test
@@ -235,7 +220,7 @@ class RcSpec extends SpecDsl {
         given("two words", "one two<caret>");
         givenRc("nmap B ,b\nnnoremap Z B");
         whenKeys("Z");
-        thenSelection("two"); // bundled-default B = back-symbol, not the user map
+        thenSelection("two");
     }
 
     @Test
@@ -243,7 +228,7 @@ class RcSpec extends SpecDsl {
     void selfReferenceDepthLimited() {
         given("plain", "<caret>hello");
         givenRc("nmap Z Z");
-        whenKeys("Z"); // must terminate via the depth guard
+        whenKeys("Z");
         thenText("hello");
     }
 
@@ -261,7 +246,7 @@ class RcSpec extends SpecDsl {
     @DisplayName("given an rc keypad mapping then it overrides the bundled entry")
     void keypadMappingOverridesBundled() {
         given("two words", "on<caret>e two");
-        givenRc("map <leader>bm ,b"); // overrides the bundled SPC b m (addBookmark)
+        givenRc("map <leader>bm ,b");
         whenKeys(" bm");
         thenSelection("one two");
     }
@@ -270,7 +255,7 @@ class RcSpec extends SpecDsl {
     @DisplayName("given a layout rebinding then the key runs the meow command")
     void layoutRebindingRunsCommand() {
         given("two words", "on<caret>e two");
-        givenRc("nmap n meow-mark-word"); // bundled-default n = meow-search
+        givenRc("nmap n meow-mark-word");
         whenKeys("n");
         thenSelection("one");
     }
@@ -287,14 +272,12 @@ class RcSpec extends SpecDsl {
     @Test
     @DisplayName("given a motion rebinding then MOTION-state editors use it")
     void motionRebindingApplies() {
-        // read-only documents stay in NORMAL these days (like Emacs read-only
-        // buffers); the mmap table applies to the MOTION state proper
         given("three lines", "<caret>one\ntwo\nthree");
         givenRc("mmap n meow-next");
         st.mode = MeowMode.MOTION;
         whenKeys("n");
         assertEquals(1, caretLine());
-        whenKeys("j"); // the default motion keys stay underneath
+        whenKeys("j");
         assertEquals(2, caretLine());
     }
 
@@ -319,8 +302,6 @@ class RcSpec extends SpecDsl {
         whenKeys("'");
         thenText("cdef");
     }
-
-    // ------------------------------------------------------------------ which-key
 
     @Test
     @DisplayName("given keypad entries then which-key rows show terminals and groups")
@@ -352,11 +333,6 @@ class RcSpec extends SpecDsl {
         assertTrue(WhichKey.keypadRows("").stream().anyMatch(r -> r.key().equals("SPC")));
     }
 
-    /**
-     * meow's suggested QWERTY layout (KEYBINDING_QWERTY in meow's README; {@code <} and {@code >}
-     * are aliases for {@code [} and {@code ]}) — the contract the bundled .dbmeowrc layout block
-     * must satisfy, pinned in full so the layout can never drift silently.
-     */
     private static Map<Character, String> qwerty() {
         Map<Character, String> m = new LinkedHashMap<>();
         for (int n = 0; n <= 9; n++) m.put((char) ('0' + n), "meow-expand-" + n);

@@ -19,24 +19,13 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import java.util.Set;
 
-/**
- * Which editors get meow, by editor kind — the attach policy. Everything that attaches gets NORMAL:
- * like Emacs, a read-only viewer keeps the full layout and the modify commands gate themselves (see
- * {@link Edits#allowModify}); it just reports non-writable through {@link EditorPort}. Inputs that
- * need their own keys (one-line fields, dialog inputs) keep native editing. The adapter
- * (InterceptorManager) is the intended caller; MOTION exists for mmap setups but nothing attaches
- * to it by default.
- */
 public final class AttachPolicy {
     private AttachPolicy() {}
 
-    /** Read-only kinds: attach in NORMAL but report non-writable. */
     private static final Set<String> READONLY = Set.of("diff", "output");
 
-    /** Kinds that keep native editing (meow never attaches). */
     private static final Set<String> SKIP = Set.of("oneline", "search", "comment");
 
-    /** NORMAL for an attaching editor, or null when meow stays away. */
     public static MeowMode attachMode(String kind) {
         return SKIP.contains(kind) ? null : MeowMode.NORMAL;
     }

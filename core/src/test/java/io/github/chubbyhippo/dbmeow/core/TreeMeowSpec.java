@@ -26,14 +26,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * The tree surface: MOTION-map dispatch on workbench trees (TreeMeow). Platform-specific — no meow
- * source of truth for a tree widget; pinned is the resolution order (user maps over defaults,
- * noremap replays skipping user maps — exactly the engine's) and the four motions' translation to
- * the tree's arrow-key vocabulary. The FakeTree below implements those four command semantics over
- * a model tree. (The static keybinding table is SWT/plugin.xml wiring, staged — its manifest spec
- * has no headless analog.)
- */
 class TreeMeowSpec extends SpecDsl {
     private static final class TreeNode {
         final String name;
@@ -53,10 +45,6 @@ class TreeMeowSpec extends SpecDsl {
         }
     }
 
-    /**
-     * The focused tree the adapter's run callback stands in front of: the four tree commands act on
-     * the model, anything else is recorded.
-     */
     private static final class FakeTree {
         final TreeNode root = new TreeNode("root", null);
         TreeNode focus = root;
@@ -68,11 +56,11 @@ class TreeMeowSpec extends SpecDsl {
             switch (id) {
                 case "dbmeow.tree.focusDown" -> focus = rows.get(Math.min(at + 1, rows.size() - 1));
                 case "dbmeow.tree.focusUp" -> focus = rows.get(Math.max(at - 1, 0));
-                case "dbmeow.tree.collapse" -> { // fold, else go to the parent
+                case "dbmeow.tree.collapse" -> {
                     if (focus.expanded) focus.expanded = false;
                     else if (focus.parent != null) focus = focus.parent;
                 }
-                case "dbmeow.tree.expand" -> { // unfold, else enter the first child
+                case "dbmeow.tree.expand" -> {
                     if (!focus.children.isEmpty() && !focus.expanded) focus.expanded = true;
                     else if (!focus.children.isEmpty()) focus = focus.children.get(0);
                 }
@@ -117,7 +105,6 @@ class TreeMeowSpec extends SpecDsl {
         }
     }
 
-    /** root ├── a (├── a1 └── a2) └── b — root expanded, so rows are root, a, b. */
     private static FakeTree givenTree() {
         FakeTree tree = new FakeTree();
         TreeNode a = tree.root.add("a");
@@ -155,7 +142,7 @@ class TreeMeowSpec extends SpecDsl {
     @DisplayName("given a collapsed node when l then it expands, and l again enters it")
     void lExpandsThenEnters() {
         FakeTree tree = givenTree();
-        tree.select("a"); // collapsed
+        tree.select("a");
         TreeMeow.dispatch(tree::run, 'l');
         assertTrue(tree.isExpanded("a"), "l on a collapsed node expands it");
         assertEquals("a", tree.selectedText());
@@ -168,7 +155,7 @@ class TreeMeowSpec extends SpecDsl {
     void hCollapsesThenParent() {
         FakeTree tree = givenTree();
         tree.select("a");
-        tree.focus.expanded = true; // open "a"
+        tree.focus.expanded = true;
         tree.select("a1");
         TreeMeow.dispatch(tree::run, 'h');
         assertEquals("a", tree.selectedText());

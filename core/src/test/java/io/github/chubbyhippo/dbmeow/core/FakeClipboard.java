@@ -17,7 +17,6 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-/** The {@link ClipboardPort} of the BDD suite: an in-memory kill-ring. */
 public class FakeClipboard implements ClipboardPort {
     public String content = null;
 

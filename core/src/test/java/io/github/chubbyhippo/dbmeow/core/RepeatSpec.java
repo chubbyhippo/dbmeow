@@ -29,27 +29,12 @@ import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * The repeat transient — Emacs repeat-mode, ported (repeat.el read from Emacs 30.2 source). Rc
- * `repeat` groups make multi-key entries tap-to-continue: dispatching any binding whose TARGET is a
- * group member arms the group (target identity, like the repeat-map symbol property; the entering
- * key needn't be a member — repeat-check-key 'no), then member keys re-dispatch their targets and
- * any other key or ESC ends the run and keeps its normal meaning (set-transient-map fall-through —
- * never swallowed, no timeout).
- */
 class RepeatSpec extends SpecDsl {
-    /**
-     * A keypad nav entry plus a repeat group over the same targets; the members deliberately sit on
-     * `.`/`,` — meow's bounds/inner-of-thing — to pin that a live run shadows them and a finished
-     * run gives them back.
-     */
     private static final String NAV_RC =
             """
             map <leader>tn meow-next
             repeat nav . meow-next
             repeat nav , meow-prev""";
-
-    // ------------------------------------------------------------- parsing
 
     @Test
     @DisplayName("given repeat lines then named groups parse with their member targets")
@@ -69,11 +54,7 @@ class RepeatSpec extends SpecDsl {
     @Test
     @DisplayName("given a repeat line with a bad target then an error is collected")
     void badTargetCollectsError() {
-        Rc.Config c =
-                Rc.parse(
-                        List.of(
-                                "repeat nav . meow-frobnicate", // misspelled command
-                                "repeat nav")); // group and key but no target
+        Rc.Config c = Rc.parse(List.of("repeat nav . meow-frobnicate", "repeat nav"));
         assertEquals(2, c.errors.size());
         assertTrue(c.errors.get(0).contains("meow-frobnicate"));
     }
@@ -81,11 +62,7 @@ class RepeatSpec extends SpecDsl {
     @Test
     @DisplayName("given a repeat key that is not a single printable key then an error is collected")
     void badRepeatKeyCollectsError() {
-        Rc.Config c =
-                Rc.parse(
-                        List.of(
-                                "repeat nav ab meow-next", // two keys
-                                "repeat nav <Space> meow-next")); // SPC is the keypad key
+        Rc.Config c = Rc.parse(List.of("repeat nav ab meow-next", "repeat nav <Space> meow-next"));
         assertEquals(2, c.errors.size());
     }
 
@@ -94,10 +71,9 @@ class RepeatSpec extends SpecDsl {
     void homeRcLayersOverBundledGroup() {
         givenRc("repeat error , meow-prev\nrepeat error e <action>(org.eclipse.ui.file.save)");
         Map<Character, Rc.Binding> g = Rc.repeatGroups().get("error");
-        // bundled default beneath
         assertEquals("org.eclipse.ui.navigate.next", g.get('.').action());
-        assertEquals("meow-prev", g.get(',').command()); // the user override
-        assertEquals("org.eclipse.ui.file.save", g.get('e').action()); // the extension
+        assertEquals("meow-prev", g.get(',').command());
+        assertEquals("org.eclipse.ui.file.save", g.get('e').action());
     }
 
     @Test
@@ -106,15 +82,12 @@ class RepeatSpec extends SpecDsl {
         givenRc("repeat zoom o ignore");
         Map<Character, Rc.Binding> g = Rc.repeatGroups().get("zoom");
         assertFalse(g.containsKey('o'));
-        assertEquals("org.eclipse.ui.edit.text.zoomIn", g.get('i').action()); // the rest stays
+        assertEquals("org.eclipse.ui.edit.text.zoomIn", g.get('i').action());
     }
 
     @Test
     @DisplayName("the bundled default dbmeowrc declares the init el repeat groups")
     void bundledRcDeclaresRepeatGroups() {
-        // the Emacs repeat maps that fit verified Eclipse ids: flymake ->
-        // error (annotation nav), text-scale -> zoom (no reset id exists);
-        // change (VCS markers) / expand (smart select) have no DBeaver-SQL analog
         Map<String, Map<Character, Rc.Binding>> d = Rc.defaults().repeat;
         assertEquals("org.eclipse.ui.navigate.next", d.get("error").get('.').action());
         assertEquals("org.eclipse.ui.navigate.previous", d.get("error").get(',').action());
@@ -126,13 +99,9 @@ class RepeatSpec extends SpecDsl {
     @Test
     @DisplayName("given a repeat line edit then the reload button sees a change")
     void repeatLineEditLightsReload() {
-        // the reload surface compares the PARSED config — repeat groups are
-        // part of it, so editing one must light it up
         Rc.setUserLines(List.of("nmap Z ,b"));
         assertFalse(RcFileState.equalTo(List.of("nmap Z ,b", "repeat nav . meow-next")));
     }
-
-    // ------------------------------------------------------------ dispatch
 
     @Test
     @DisplayName(
@@ -140,13 +109,13 @@ class RepeatSpec extends SpecDsl {
     void memberTapsKeepWalking() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
-        whenKeys(" tn"); // SPC t n -> meow-next, arms the nav group
+        whenKeys(" tn");
         thenCaretLine(1);
-        whenKeys("."); // member: re-dispatches meow-next, re-arms
+        whenKeys(".");
         thenCaretLine(2);
         whenKeys(".");
         thenCaretLine(3);
-        whenKeys(","); // the other member walks back
+        whenKeys(",");
         thenCaretLine(2);
         thenMode(MeowMode.NORMAL);
     }
@@ -154,11 +123,9 @@ class RepeatSpec extends SpecDsl {
     @Test
     @DisplayName("given a normal key bound to a member target then it arms the same run")
     void targetIdentityArmsRun() {
-        // membership is the TARGET, not the key that ran it — Emacs puts
-        // repeat-map on the command symbol, so every binding of it arms
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
-        whenKeys("j"); // bundled-default j = meow-next, a nav member by identity
+        whenKeys("j");
         thenCaretLine(1);
         whenKeys(".");
         thenCaretLine(2);
@@ -171,7 +138,7 @@ class RepeatSpec extends SpecDsl {
         givenRc(NAV_RC);
         whenKeys(" tn");
         assertNotNull(st.repeatMap);
-        whenKeys("w"); // not a member: falls through to meow-mark-word
+        whenKeys("w");
         thenSelection("two");
         assertNull(st.repeatMap);
     }
@@ -182,11 +149,11 @@ class RepeatSpec extends SpecDsl {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
-        whenKeys("x"); // ends the run (meow-line)
+        whenKeys("x");
         thenSelection("two");
-        whenKeys("."); // meow-bounds-of-thing again, waiting for its thing key
+        whenKeys(".");
         assertEquals(Pending.BOUNDS, st.pending);
-        thenCaretLine(1); // and no nav happened
+        thenCaretLine(1);
     }
 
     @Test
@@ -209,7 +176,7 @@ class RepeatSpec extends SpecDsl {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
-        whenKeys(" tn"); // SPC is not a member: run ends, keypad works as ever
+        whenKeys(" tn");
         thenCaretLine(2);
         thenMode(MeowMode.NORMAL);
     }
@@ -221,7 +188,7 @@ class RepeatSpec extends SpecDsl {
         givenRc(NAV_RC);
         whenKeys(" tn");
         thenCaretLine(1);
-        whenKeys("2j"); // 2 ends the run and counts the next command
+        whenKeys("2j");
         thenCaretLine(3);
     }
 

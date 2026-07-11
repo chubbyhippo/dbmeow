@@ -17,11 +17,9 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-/** Plain-text scanning shared by the command modules and the expand hints. */
 public final class Text {
     private Text() {}
 
-    /** A predicate over buffer chars (avoids Character boxing in the scans). */
     @FunctionalInterface
     public interface CharPredicate {
         boolean test(char c);
@@ -34,8 +32,6 @@ public final class Text {
     public static String escapeRegExp(String s) {
         return s.replaceAll("[.*+?^${}()|\\[\\]\\\\]", "\\\\$0");
     }
-
-    // ------------------------------------------------------------------ lines
 
     public static int lineOfOffset(String text, int offset) {
         int ln = 0;
@@ -63,14 +59,11 @@ public final class Text {
         return text.length();
     }
 
-    /** Offset of the line's newline (or end of text) — eol is not included. */
     public static int lineEnd(String text, int line) {
         int s = lineStart(text, line);
         int nl = text.indexOf('\n', s);
         return nl < 0 ? text.length() : nl;
     }
-
-    // ------------------------------------------------------------ char classes
 
     public static boolean isWordChar(char c) {
         return Character.isLetterOrDigit(c);
@@ -80,12 +73,9 @@ public final class Text {
         return isWordChar(c) || c == '_' || c == '$';
     }
 
-    /** The char class a word or symbol motion scans by. */
     public static CharPredicate charPred(boolean symbol) {
         return symbol ? Text::isSymbolChar : Text::isWordChar;
     }
-
-    // ------------------------------------------------------------- char scans
 
     public static int indexOfChar(String text, char c, int from) {
         for (int i = Math.max(from, 0); i < text.length(); i++) {
@@ -101,11 +91,6 @@ public final class Text {
         return -1;
     }
 
-    /**
-     * Selection target after the nth occurrence of {@code ch} from {@code caret} — the scan behind
-     * meow-find (selects THROUGH the char) and meow-till (stops short of it), shared by the
-     * find/till commands and their digit expand. -1 when there is no nth occurrence.
-     */
     public static int nthCharTarget(
             String text, char ch, int caret, int n, boolean backward, boolean till) {
         int found = -1;
@@ -120,9 +105,6 @@ public final class Text {
         return till ? found : found + 1;
     }
 
-    // --------------------------------------------------------- words / symbols
-
-    /** Word/symbol scanning shared by commands and hints. */
     public static final class Words {
         private Words() {}
 
@@ -144,14 +126,6 @@ public final class Text {
             return i;
         }
 
-        /**
-         * meow--fix-thing-selection-mark (meow 1.5.0): the mark of a fresh next/back-thing
-         * selection snaps to the selected thing's own bounds, so the separators between the old
-         * point and the thing stay outside — e e e steps bare word by bare word (batch-probed).
-         * Forward (mark < pos): max(mark, start of the thing ending at pos); backward: min(mark,
-         * end of the thing starting at pos). Expand chains ignore this (the anchor comes from the
-         * region ends).
-         */
         public static int fixSelectionMark(String text, int pos, int mark, CharPredicate pred) {
             int probe = clamp(mark > pos ? pos : pos - 1, 0, Math.max(text.length() - 1, 0));
             int[] bounds = boundsAt(text, probe, pred);
@@ -159,16 +133,12 @@ public final class Text {
             return mark > pos ? Math.min(mark, bounds[1]) : Math.max(mark, bounds[0]);
         }
 
-        /**
-         * The [start, end) of the word/symbol at (or next after) offset; null when there is none.
-         */
         public static int[] boundsAt(String text, int offset, CharPredicate pred) {
             int o = offset;
             if (o >= text.length() || !pred.test(text.charAt(o))) {
                 if (o > 0 && pred.test(text.charAt(o - 1))) {
                     o--;
                 } else {
-                    // between words: take the next word, like forward-thing
                     int f = o;
                     while (f < text.length() && !pred.test(text.charAt(f))) f++;
                     if (f >= text.length()) return null;

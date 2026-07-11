@@ -33,14 +33,6 @@ import org.eclipse.swt.custom.StyledText;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * {@link EditorPort} over an Eclipse source viewer. Meow works in MODEL
- * offsets (document coordinates); the widget caret is in WIDGET coordinates
- * that differ under folding, so every read/write converts through
- * {@link ITextViewerExtension5} when the viewer provides it — the identity
- * otherwise. This is vrapper's cursor/selection contract (the local vrapper
- * clone platform/EclipseCursorAndSelection.java:155,257,299).
- */
 final class EclipseEditorPort implements EditorPort {
 
     private final ITextViewer viewer;
@@ -62,16 +54,16 @@ final class EclipseEditorPort implements EditorPort {
     public List<SelRange> getSelections() {
         StyledText w = viewer.getTextWidget();
         int caretModel = widgetToModel(w.getCaretOffset());
-        org.eclipse.swt.graphics.Point sel = w.getSelectionRange(); // widget coords
+        org.eclipse.swt.graphics.Point sel = w.getSelectionRange();
         int start = widgetToModel(sel.x);
         int end = widgetToModel(sel.x + sel.y);
         List<SelRange> out = new ArrayList<>();
         if (sel.y == 0) {
             out.add(new SelRange(caretModel, caretModel));
         } else if (caretModel <= start) {
-            out.add(new SelRange(end, start)); // reversed: caret at the start
+            out.add(new SelRange(end, start));
         } else {
-            out.add(new SelRange(start, end)); // forward: caret at the end
+            out.add(new SelRange(start, end));
         }
         return out;
     }
@@ -83,8 +75,6 @@ final class EclipseEditorPort implements EditorPort {
         StyledText w = viewer.getTextWidget();
         int anchorW = modelToWidget(p.anchor());
         int activeW = modelToWidget(p.active());
-        // signed length keeps the caret on the active side (SWT places the
-        // caret at start+length, so a negative length reverses the selection)
         w.setSelectionRange(anchorW, activeW - anchorW);
         w.showSelection();
     }
@@ -94,16 +84,15 @@ final class EclipseEditorPort implements EditorPort {
         IDocument doc = viewer.getDocument();
         if (doc == null) return;
         List<TextEdit> ordered = new ArrayList<>(edits);
-        ordered.sort((a, b) -> Integer.compare(b.start(), a.start())); // high offset first
+        ordered.sort((a, b) -> Integer.compare(b.start(), a.start()));
         IRewriteTarget rewrite =
                 viewer instanceof ITextViewerExtension ext ? ext.getRewriteTarget() : null;
-        if (rewrite != null) rewrite.beginCompoundChange(); // ONE undo step
+        if (rewrite != null) rewrite.beginCompoundChange();
         try {
             for (TextEdit e : ordered) {
                 doc.replace(e.start(), e.end() - e.start(), e.text());
             }
-        } catch (BadLocationException ex) {
-            // out-of-range edit: leave the buffer untouched, like a no-op guard
+        } catch (BadLocationException ignored) {
         } finally {
             if (rewrite != null) rewrite.endCompoundChange();
         }
@@ -137,12 +126,8 @@ final class EclipseEditorPort implements EditorPort {
 
     @Override
     public OffsetRange symbolRangeAt(int offset) {
-        // DBeaver's SQL editor exposes no generic defun provider; the Things
-        // defun command falls back to the outermost brace pair (see Things).
         return null;
     }
-
-    // ---- widget/model offset conversion (folding-aware) --------------------
 
     private int widgetToModel(int widgetOffset) {
         if (viewer instanceof ITextViewerExtension5 ext) {

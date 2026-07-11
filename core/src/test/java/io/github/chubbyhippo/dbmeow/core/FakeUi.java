@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-/** The {@link UiPort} of the BDD suite: it records everything it is told. */
 public class FakeUi implements UiPort {
     public record Info(String title, String body) {}
 
@@ -30,16 +29,10 @@ public class FakeUi implements UiPort {
     public final List<Info> infos = new ArrayList<>();
     public final Deque<String> answers = new ArrayDeque<>();
 
-    /** Host command ids dispatched through <action>(...) bindings. */
     public final List<String> ran = new ArrayList<>();
 
-    /**
-     * Mode notifications, in order — the adapter turns these into the block/bar cursor switch and
-     * the status widget text.
-     */
     public final List<MeowMode> modes = new ArrayList<>();
 
-    /** The offsets the adapter would overlay with digit labels. */
     public List<Integer> expandHints = new ArrayList<>();
 
     @Override

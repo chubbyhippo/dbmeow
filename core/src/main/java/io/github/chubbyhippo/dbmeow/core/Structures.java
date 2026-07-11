@@ -21,12 +21,6 @@ import io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Structural selections: the char-thing table behind {@code , . [ ]} (see {@link Things}), bracket
- * blocks (meow-block / meow-to-block), and the join region (meow-join). The thing commands park a
- * {@link Pending} key and let the dispatcher hand the thing char to {@link #thingSelect}. Ported
- * against meow-command.el and the direction rules in meow-var.el (meow-thing-selection-directions).
- */
 public final class Structures {
     private Structures() {}
 
@@ -47,7 +41,6 @@ public final class Structures {
         ctx.ui().scheduleWhichKey("things", "");
     }
 
-    /** The second half of the thing commands, once the thing char arrives. */
     public static void thingSelect(Ctx ctx, Pending kind, char ch) {
         int off = Selections.primary(ctx).active();
         OffsetRange b =
@@ -58,8 +51,6 @@ public final class Structures {
         }
         switch (kind) {
             case INNER -> Selections.select(ctx, SelType.TRANSIENT, b.start(), b.end(), false);
-            // meow-thing-selection-directions: bounds select BACKWARD (caret at
-            // the opening delimiter), inner forward — verified by probe
             case BOUNDS -> Selections.select(ctx, SelType.TRANSIENT, b.end(), b.start(), false);
             case BEGIN -> Selections.select(ctx, SelType.TRANSIENT, off, b.start(), false);
             case END -> Selections.select(ctx, SelType.TRANSIENT, off, b.end(), false);
@@ -67,12 +58,6 @@ public final class Structures {
         }
     }
 
-    // ------------------------------------------------------------------ blocks
-
-    /**
-     * Smallest bracket pair strictly enclosing [s, e). Same-line quoted runs are skipped — a text
-     * approximation of syntax-ppss. Returns {open, close} offsets or null.
-     */
     private static int[] enclosingPair(String text, int s, int e) {
         String opens = "([{";
         String closes = ")]}";
@@ -111,16 +96,10 @@ public final class Structures {
         return best;
     }
 
-    /**
-     * meow-block: innermost pair INCLUDING delimiters; with an active block selection it expands to
-     * the parent. Backward (caret at the opening delimiter) when the region is reversed XOR a
-     * negative argument.
-     */
     private static void block(Ctx ctx) {
         String text = ctx.port().getText();
         SelRange sel = Selections.primary(ctx);
         boolean active = ctx.st().selType == SelType.BLOCK && Selections.hasSelection(sel);
-        // xor, like meow-block; read the direction BEFORE takeCount consumes it
         boolean back = Selections.backwardP(ctx) != (ctx.st().takeCount(1) < 0);
         int s = active ? Math.min(sel.anchor(), sel.active()) : sel.active();
         int e = active ? Math.max(sel.anchor(), sel.active()) : sel.active();
@@ -133,10 +112,6 @@ public final class Structures {
         else Selections.select(ctx, SelType.BLOCK, p[0], p[1] + 1, true);
     }
 
-    /**
-     * meow-to-block: from point to the closing delimiter of the enclosing block (to the opening one
-     * when the block selection is reversed or the argument is negative).
-     */
     private static void toBlock(Ctx ctx) {
         String text = ctx.port().getText();
         boolean back =
@@ -151,13 +126,6 @@ public final class Structures {
         Selections.select(ctx, SelType.BLOCK, caret, back ? p[0] : p[1] + 1, true);
     }
 
-    // -------------------------------------------------------------------- join
-
-    /**
-     * meow-join: select (expand . join) — end of the previous non-empty line through this line's
-     * indentation (forward variant with a negative arg); killing that selection is
-     * delete-indentation (see Edits).
-     */
     private static void join(Ctx ctx) {
         String text = ctx.port().getText();
         if (text.isEmpty()) return;

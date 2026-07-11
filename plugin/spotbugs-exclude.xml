@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mirror of core/spotbugs-exclude.xml for the standalone Tycho reactor
-     (this pom is not a module of the root pom — same reason Spotless and
-     SpotBugs carry duplicate blocks in both poms). Keep the two files
-     identical; see core's copy for the rationale of each exclusion. -->
 <FindBugsFilter>
-    <!-- Ctx is the hexagonal port holder: storing and returning the injected
-         EditorPort/ClipboardPort/UiPort references is its entire job, so
-         EI_EXPOSE_REP/EI_EXPOSE_REP2 are design, not exposure bugs. -->
     <Match>
         <Class name="io.github.chubbyhippo.dbmeow.core.Ctx"/>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
-    <!-- MeowState is the deliberately open per-editor state bag;
-         negative/pendingCount being public-and-set-inside
-         is that open-state contract. -->
     <Match>
         <Class name="io.github.chubbyhippo.dbmeow.core.MeowState"/>
         <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE"/>

@@ -26,12 +26,6 @@ import io.github.chubbyhippo.dbmeow.core.Windmove.Dir;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * The window surface: windmove (windmove.el), ported. Platform-specific (no window geometry
- * exposed), so dbmeow-shaped rather than name-for-name: pinned is the composed step decision
- * (compare panes are windows, crossed before leaving the editor), Emacs' user-error verbatim, and
- * the rc's SPC w map. SPC w h/j/k/l dispatch dbmeow.windmove* (plugin commands, staged).
- */
 class WindmoveSpec extends SpecDsl {
     @Test
     @DisplayName(

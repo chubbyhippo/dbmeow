@@ -31,17 +31,6 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import java.util.List;
 
-/**
- * {@link UiPort} for the Eclipse workbench. Mode and hint text go to the
- * editor's status line; {@code <action>(...)} bindings dispatch Eclipse
- * command ids via {@link ICommandService}/{@link IHandlerService} — the same
- * pair vrapper uses ({@code commandService.deserialize(id)} then
- * {@code handlerService.executeCommand(cmd, null)}; the local vrapper clone
- * commands/EclipseCommand.java:88-89).
- *
- * <p>The which-key popup and the on-buffer expand-hint overlay are v1 stubs
- * (they need SWT painting work) — see BUILD.md and dbmeow-CLAUDE.md.
- */
 final class EclipseUi implements UiPort {
 
     private final AbstractTextEditor editor;
@@ -75,9 +64,6 @@ final class EclipseUi implements UiPort {
 
     @Override
     public void runCommand(String id) {
-        // dbmeow-internal ids — the rc's <action>(dbmeow.*) config entries —
-        // are mapped right here, not registered with the Eclipse command
-        // service (same pattern the staged windmove/tree ids will use)
         if ("dbmeow.reloadRc".equals(id)) {
             RcCommands.reload(this);
             return;
@@ -97,44 +83,31 @@ final class EclipseUi implements UiPort {
             ParameterizedCommand command = commands.deserialize(id);
             handlers.executeCommand(command, null);
         } catch (Exception e) {
-            // UiPort's contract: throw on an unknown/failed id so the engine
-            // reports it (Engine.runBinding catches and hints)
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void scheduleWhichKey(String kind, String buffer) {
-        // v1: no popup — the mode indicator shows KEYPAD; a which-key overlay
-        // is staged (see dbmeow-CLAUDE.md)
-    }
+    public void scheduleWhichKey(String kind, String buffer) {}
 
     @Override
-    public void hideWhichKey() {
-    }
+    public void hideWhichKey() {}
 
     @Override
-    public void showExpandHints(List<Integer> positions) {
-        // v1: no on-buffer digit overlay yet (needs StyledText paint listeners)
-    }
+    public void showExpandHints(List<Integer> positions) {}
 
     @Override
-    public void clearExpandHints() {
-    }
+    public void clearExpandHints() {}
 
     @Override
-    public void showAvyMatches(List<io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange> matches) {
-        // v1: no avy match highlight yet (needs StyledText paint listeners)
-    }
+    public void showAvyMatches(
+            List<io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange> matches) {}
 
     @Override
-    public void showAvyLabels(List<UiPort.AvyLabel> labels) {
-        // v1: no avy label overlay yet
-    }
+    public void showAvyLabels(List<UiPort.AvyLabel> labels) {}
 
     @Override
-    public void clearAvy() {
-    }
+    public void clearAvy() {}
 
     @Override
     public void modeChanged(MeowState state) {

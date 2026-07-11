@@ -9,8 +9,6 @@
     <version>0.1.0-SNAPSHOT</version>
   </parent>
   <artifactId>dbmeow-core</artifactId>
-  <!-- The engine: pure Java, ZERO Eclipse/SWT imports — the port seam that
-       lets the whole BDD suite run headless over a fake editor. -->
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -26,7 +24,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.2</version>
         <configuration>
-          <!-- The BDD suites are *Spec classes -->
           <includes>
             <include>**/*Spec.java</include>
             <include>**/*Test.java</include>

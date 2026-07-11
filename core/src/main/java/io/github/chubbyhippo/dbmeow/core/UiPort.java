@@ -19,23 +19,19 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import java.util.List;
 
-/** Everything the engine tells (or asks) the host UI. */
 public interface UiPort {
     void hint(String text);
 
     void info(String title, String body);
 
-    /** Minibuffer-style prompt; null when the user cancelled. */
     String input(String prompt, String initial);
 
     default String input(String prompt) {
         return input(prompt, null);
     }
 
-    /** Run a host command by id; throws when the id is unknown. */
     void runCommand(String id);
 
-    /** kind is "keypad" or "things"; buffer is the pending prefix. */
     void scheduleWhichKey(String kind, String buffer);
 
     void hideWhichKey();
@@ -44,18 +40,15 @@ public interface UiPort {
 
     void clearExpandHints();
 
-    /** Avy: paint the live match ranges while collecting, then the labels. */
     void showAvyMatches(List<EditorPort.OffsetRange> matches);
 
     void showAvyLabels(List<AvyLabel> labels);
 
     void clearAvy();
 
-    /** A jump label ("as", "d", …) to paint over the candidate at [offset]. */
     record AvyLabel(int offset, String label) {}
 
     void modeChanged(MeowState st);
 
-    /** Called after every handled key so the status widget stays fresh. */
     void refresh(MeowState st);
 }

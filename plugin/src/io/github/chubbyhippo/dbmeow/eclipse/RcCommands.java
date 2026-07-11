@@ -40,44 +40,25 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-/**
- * ~/.dbmeowrc load / edit / reload — SPC c m / SPC c M, mapped
- * from the rc's {@code <action>(dbmeow.editRc)} / {@code (dbmeow.reloadRc)}
- * ids in {@link EclipseUi#runCommand}. Reload flushes a dirty rc editor to
- * disk FIRST: Eclipse saves documents lazily like IntelliJ, so a disk re-read
- * without the flush reloads stale content and looks dead until a restart —
- * the reason IdeaVim's ReloadVimRc calls saveDocumentAsIs before
- * re-executing (ui/ReloadVimRc.kt).
- *
- * <p>Like the rest of the adapter bundle this is written against the Eclipse
- * APIs but runtime-unverified (no live DBeaver in the authoring environment —
- * see BUILD.md). Editor discovery mirrors the workbench iteration in
- * DbmeowStartup; {@link IURIEditorInput} covers both external-file editors
- * (FileStoreEditorInput) and workspace ones (FileEditorInput implements it).
- */
 final class RcCommands {
-    private RcCommands() {
-    }
+    private RcCommands() {}
 
     static File rcFile() {
         return new File(System.getProperty("user.home"), Rc.FILE_NAME);
     }
 
-    /** Startup + reload read path: ~/.dbmeowrc -> the core user layer. */
     static Rc.Config load() {
         List<String> lines = List.of();
         File f = rcFile();
         if (f.isFile()) {
             try {
                 lines = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                // unreadable rc: run on the bundled defaults alone
+            } catch (IOException ignored) {
             }
         }
         return Rc.setUserLines(lines);
     }
 
-    /** SPC c M — flush any dirty rc editor, re-read, report the counts. */
     static void reload(UiPort ui) {
         saveDirtyRcEditors();
         Rc.Config c = load();
@@ -86,8 +67,6 @@ final class RcCommands {
                 + (c.errors.isEmpty() ? "" : ", " + c.errors.size() + " problem(s)"));
     }
 
-    /** SPC c m — open ~/.dbmeowrc, seeding a full copy of the bundled
-     *  defaults on first use (never touching an existing file). */
     static void edit() {
         File f = rcFile();
         seedIfMissing(f);
@@ -97,8 +76,7 @@ final class RcCommands {
             IDE.openEditorOnFileStore(
                     window.getActivePage(),
                     EFS.getLocalFileSystem().getStore(new Path(f.getAbsolutePath())));
-        } catch (PartInitException e) {
-            // the workbench already logs it; nothing sensible to add
+        } catch (PartInitException ignored) {
         }
     }
 
@@ -106,18 +84,16 @@ final class RcCommands {
         if (f.exists()) return;
         try {
             Files.write(f.toPath(), Rc.bundledLines(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            // a first SPC c m without a seed still opens an empty editor
+        } catch (IOException ignored) {
         }
     }
 
-    /** Save every dirty open editor whose input is ~/.dbmeowrc. */
     private static void saveDirtyRcEditors() {
         URI rc = rcFile().toURI();
         for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
             for (IWorkbenchPage page : window.getPages()) {
                 for (IEditorReference ref : page.getEditorReferences()) {
-                    IEditorPart part = ref.getEditor(false); // don't restore closed ones
+                    IEditorPart part = ref.getEditor(false);
                     if (part == null || !part.isDirty()) continue;
                     IEditorInput input = part.getEditorInput();
                     if (input instanceof IURIEditorInput uriInput && sameFile(uriInput.getURI(), rc)) {

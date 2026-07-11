@@ -23,42 +23,9 @@ import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * The .dbmeowrc syntax — an IdeaVim-style line format:
- *
- * <pre>
- *   " comments start with a double quote (or #)
- *   nmap F &lt;action&gt;(org.example.find)   NORMAL key -> host command
- *   nmap n meow-mark-word               NORMAL key -> a named meow command
- *   nmap Z ,b                           NORMAL key -> meow keys (recursive)
- *   nnoremap Z ,b                       same, but the RHS ignores user maps
- *   mmap j meow-next                    the same, for MOTION mode
- *   map &lt;leader&gt;gd &lt;action&gt;(org.example.gotoDeclaration)
- *   desc &lt;leader&gt;g goto things
- *   let g:WhichKeyDesc_g = "&lt;leader&gt;g goto things"   (IdeaVim-compatible)
- *   set nowhich-key / set timeoutlen=300
- *   repeat error . &lt;action&gt;(org.eclipse.ui.navigate.next)
- *                                       repeat group (Emacs repeat-mode):
- *                                       dispatching any binding with a target
- *                                       listed in a group arms it — the member
- *                                       keys then re-dispatch until another key
- *                                       ends the run (see Engine); `ignore` as
- *                                       the target gives a default key back
- * </pre>
- *
- * A RHS that names a command in the registry binds the command; a misspelled `meow-*` name is an
- * error; any other RHS is replayed as keys. Keypad keys 0-9, ? and / are reserved; SPC itself
- * cannot be remapped. Unknown `set` options and `let` lines are ignored so an IdeaVim rc can be
- * pasted without errors.
- */
 final class RcParser {
     private RcParser() {}
 
-    // The id inside <action>(...) is either a bare Eclipse command id or the
-    // serialized *parameterized* form commandId(paramId=value,...) — which
-    // EclipseUi.runCommand feeds straight to ICommandService.deserialize. Hence
-    // the extra ( ) , = characters (e.g. opening the Bookmarks view via
-    // org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=...)).
     private static final Pattern ACTION_RE =
             Pattern.compile("^<action>\\(([\\w.\\-$(),=]+)\\)$", Pattern.CASE_INSENSITIVE);
     private static final Pattern WHICHKEY_LET_RE =
@@ -80,8 +47,6 @@ final class RcParser {
                 continue;
             }
 
-            // trailing `" comment` (checked after the let-line above, whose
-            // quoted value would otherwise be truncated)
             Matcher cut = TRAILING_COMMENT_RE.matcher(line);
             if (cut.find()) line = line.substring(0, cut.start()).stripTrailing();
             if (line.isEmpty()) continue;
@@ -90,7 +55,7 @@ final class RcParser {
             String cmd = split[0];
             String rest = split.length > 1 ? split[1].trim() : "";
             switch (cmd) {
-                case "let" -> {} // mapleader and friends: accepted, nothing to do
+                case "let" -> {}
                 case "set" -> parseSet(c, rest);
                 case "desc" -> parseDescBody(c, rest, err);
                 case "map", "noremap", "nmap", "nnoremap", "mmap", "mnoremap" ->
@@ -116,7 +81,6 @@ final class RcParser {
                                     rest.split("\\s+").length > 1 ? rest.split("\\s+")[1] : "");
             if (n != null && n >= 0) c.whichKeyDelayMs = n;
         }
-        // ignore unknown options so IdeaVim rc content pastes cleanly
     }
 
     private static Integer parseIntOrNull(String s) {
@@ -192,10 +156,6 @@ final class RcParser {
         }
     }
 
-    /**
-     * The shared RHS grammar of map and repeat lines: an &lt;action&gt;(...), a named command in
-     * the registry, or replayed meow keys.
-     */
     private static Rc.Binding parseTarget(
             String rhs, boolean recursive, String errContext, Consumer<String> err) {
         Matcher am = ACTION_RE.matcher(rhs);
@@ -214,12 +174,6 @@ final class RcParser {
         return new Rc.Binding(null, keys, null, recursive);
     }
 
-    /**
-     * `repeat <group> <key> <target>` — Emacs repeat-mode's transient maps as rc lines. Dispatching
-     * any binding whose target is listed in a group arms it: the member keys re-dispatch their
-     * targets (shadowing the normal map) until a non-member key falls through and ends the run. The
-     * entering key needn't be a member — repeat.el's repeat-check-key 'no.
-     */
     private static void parseRepeat(Rc.Config c, String rest, Consumer<String> err) {
         String[] parts = rest.split("\\s+", 3);
         if (parts.length < 3) {
@@ -241,7 +195,6 @@ final class RcParser {
         }
     }
 
-    /** `<Space>` and `<lt>` tokens plus plain printable chars; null on error. */
     private static String parseKeys(String s, Consumer<String> err) {
         StringBuilder out = new StringBuilder();
         int i = 0;

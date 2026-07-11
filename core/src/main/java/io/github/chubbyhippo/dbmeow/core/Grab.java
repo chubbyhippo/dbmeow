@@ -26,13 +26,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * meow-grab / swap-grab / sync-grab — the secondary-selection stand-in — plus the BEACON
- * multi-cursor approximation. Ported against meow-command.el (see meow-semantics.md). The beacon
- * LOGIC ports and is tested headless over FakeEditor (which can hold several carets); the SWT
- * adapter renders only the primary caret (single-caret StyledText) but still applies the
- * multi-range edit — see the README for that adapter note.
- */
 public final class Grab {
     private Grab() {}
 
@@ -44,6 +37,8 @@ public final class Grab {
         commands.put("meow-swap-grab", Grab::swap);
     }
 
+    private static final int MAX_BEACONS = 500;
+
     public static void clear(Ctx ctx) {
         ctx.st().grab = null;
     }
@@ -52,10 +47,6 @@ public final class Grab {
         ctx.st().grab = new OffsetRange(start, end);
     }
 
-    /**
-     * Keep the grab tracking core-applied edits, like a range marker would: edits before it shift
-     * it, edits inside it grow/shrink it.
-     */
     public static void adjustForEdits(MeowState st, List<TextEdit> edits) {
         OffsetRange g = st.grab;
         if (g == null) return;
@@ -78,10 +69,6 @@ public final class Grab {
         st.grab = new OffsetRange(gs, ge);
     }
 
-    /**
-     * meow-grab: region -> secondary selection; with NO region the grab is cancelled instead (meow
-     * 1.5.0 body, despite its docstring).
-     */
     private static void grab(Ctx ctx) {
         clear(ctx);
         SelRange sel = Selections.primary(ctx);
@@ -91,7 +78,6 @@ public final class Grab {
         Selections.cancel(ctx);
     }
 
-    /** meow-sync-grab: secondary := region; selection cancelled. */
     private static void sync(Ctx ctx) {
         SelRange sel = Selections.primary(ctx);
         if (!Selections.hasSelection(sel)) {
@@ -103,12 +89,8 @@ public final class Grab {
         Selections.cancel(ctx);
     }
 
-    /**
-     * meow-swap-grab: exchange region and secondary text; the secondary stays at its location
-     * holding the swapped-in text.
-     */
     private static void swap(Ctx ctx) {
-        if (Edits.blockedReadOnly(ctx)) return; // swap-grab edits both regions
+        if (Edits.blockedReadOnly(ctx)) return;
         MeowState st = ctx.st();
         OffsetRange g = st.grab;
         SelRange sel = Selections.primary(ctx);
@@ -131,7 +113,7 @@ public final class Grab {
         String text = ctx.port().getText();
         String grabText = text.substring(gs, ge);
         String selText = text.substring(ss, se);
-        st.grab = null; // replaced wholesale below; skip marker adjustment
+        st.grab = null;
         ctx.port().edit(List.of(new TextEdit(ss, se, grabText), new TextEdit(gs, ge, selText)));
         if (gs <= ss) {
             int delta = selText.length() - (ge - gs);
@@ -147,7 +129,6 @@ public final class Grab {
         st.selType = SelType.NONE;
     }
 
-    /** meow-pop-grab, the pop-selection fallback: grab becomes the selection. */
     public static boolean pop(Ctx ctx) {
         OffsetRange g = ctx.st().grab;
         if (g == null) return false;
@@ -158,13 +139,6 @@ public final class Grab {
         return true;
     }
 
-    /**
-     * BEACON: with a grab active, creating a selection inside it drops a cursor+selection on every
-     * similar range in the grab, so a following edit (change/delete/…) hits them all — meow's
-     * kmacro replay, done with multiple carets. Invoked from the selection primitive, so every
-     * selecting command participates. The SWT adapter shows only the primary caret, but the
-     * multi-range edit still applies.
-     */
     public static void beacon(Ctx ctx) {
         MeowState st = ctx.st();
         OffsetRange g = st.grab;
@@ -205,12 +179,12 @@ public final class Grab {
                     int e0 = g.start() + re;
                     if (s0 != ss) {
                         sels.add(new SelRange(s0, e0));
-                        if (++added >= 500) break;
+                        if (++added >= MAX_BEACONS) break;
                     }
                     from = re;
                 }
                 if (sels.isEmpty()) return;
-                sels.add(0, new SelRange(ss, se)); // the original stays primary
+                sels.add(0, new SelRange(ss, se));
             }
             case LINE -> {
                 int first = Text.lineOfOffset(text, g.start());

@@ -21,21 +21,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Every command under its meow name (plus Emacs' `repeat` and `ignore`, exactly as meow's suggested
- * layout spells them) — the targets a ~/.dbmeowrc line can bind a key to. Each command family
- * contributes its own map; the dispatcher-level entries (counts, keypad, repeat, quit, no-op) live
- * here.
- */
 public final class Registry {
     private Registry() {}
 
     static final Map<String, MeowCommand> COMMANDS;
 
     static {
-        // Built once here, then frozen: nothing mutates the registry after
-        // class init (Engine/RcParser only read it). LinkedHashMap keeps the
-        // module-contribution iteration order.
         Map<String, MeowCommand> commands = new LinkedHashMap<>();
         commands.putAll(Motions.commands);
         commands.putAll(Selections.commands);
@@ -45,8 +36,6 @@ public final class Registry {
         commands.putAll(Avy.commands);
         commands.putAll(Edits.commands);
         commands.put("meow-negative-argument", ctx -> ctx.st().negative = true);
-        // meow's QWERTY table binds Emacs' own `negative-argument`; accept
-        // that exact spelling too so the canonical table pastes verbatim
         commands.put("negative-argument", ctx -> ctx.st().negative = true);
         commands.put("meow-quit", ctx -> ctx.port().closeEditor());
         commands.put("meow-keypad", Engine::enterKeypad);

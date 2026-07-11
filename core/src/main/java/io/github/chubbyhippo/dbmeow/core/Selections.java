@@ -23,14 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * The selection primitive, and the commands that act on the selection itself (reverse, cancel, pop,
- * digit expand). Every selecting command funnels through {@link #select}, which mirrors meow's
- * (expand|select . type) model and its history: the previous selection (or a null placeholder
- * recording where the chain started) is pushed on every select, `z` pops entries back with their
- * type and direction, and meow--cancel-selection (movement, `g`, `i`, `a`, grab…) clears the whole
- * history. Verified against meow 1.5.0 by probe.
- */
 public final class Selections {
     private Selections() {}
 
@@ -46,7 +38,9 @@ public final class Selections {
         commands.put("meow-pop-selection", Selections::pop);
     }
 
-    /** The types digit expand can grow; anything else makes digits a count. */
+    private static final int MAX_SELECTION_HISTORY = 200;
+    private static final int DIGIT_ZERO_EXPAND = 10;
+
     private static final Set<SelType> EXPANDABLE =
             Set.of(
                     SelType.CHAR,
@@ -64,22 +58,16 @@ public final class Selections {
         return sel.anchor() != sel.active();
     }
 
-    /** Is the selection reversed (caret at its start), meow--direction-backward-p. */
     public static boolean backwardP(Ctx ctx) {
         SelRange sel = primary(ctx);
         return hasSelection(sel) && sel.active() < sel.anchor();
     }
 
-    /** The anchor a same-direction re-selection keeps, meow's mark. */
     public static int mark(Ctx ctx) {
         SelRange sel = primary(ctx);
         return hasSelection(sel) ? sel.anchor() : sel.active();
     }
 
-    /**
-     * meow--select's history bookkeeping: push the previous meow--selection — or a null placeholder
-     * at {@code posBefore} when there was none — then remember the new one.
-     */
     public static void recordSelect(
             Ctx ctx, SelType type, int anchor, int active, boolean expand, int posBefore) {
         MeowState st = ctx.st();
@@ -89,7 +77,8 @@ public final class Selections {
                         : new SavedSelection(null, false, posBefore, posBefore);
         SavedSelection head = st.selectionHistory.peekLast();
         if (head == null || !head.equals(prev)) st.selectionHistory.addLast(prev);
-        while (st.selectionHistory.size() > 200) st.selectionHistory.removeFirst();
+        while (st.selectionHistory.size() > MAX_SELECTION_HISTORY)
+            st.selectionHistory.removeFirst();
         st.lastSelection = new SavedSelection(type, expand, anchor, active);
     }
 
@@ -111,20 +100,15 @@ public final class Selections {
         List<SelRange> next = new ArrayList<>(sels);
         next.set(0, new SelRange(m, p));
         ctx.port().setSelections(next);
-        Grab.beacon(ctx); // a selection created inside a grab spawns a caret per similar range
+        Grab.beacon(ctx);
         ctx.ui().showExpandHints(Hints.expandHintPositions(ctx));
     }
 
-    /** Forget the selection chain — the history-clearing half of meow--cancel-selection. */
     public static void resetSelectionMemory(MeowState st) {
         st.selectionHistory.clear();
         st.lastSelection = null;
     }
 
-    /**
-     * Collapse the primary selection WITHOUT touching the history — for edits that kill the region
-     * as a side effect (meow never cancels there).
-     */
     public static void collapse(Ctx ctx) {
         List<SelRange> sels = new ArrayList<>(ctx.port().getSelections());
         sels.set(0, new SelRange(sels.get(0).active(), sels.get(0).active()));
@@ -133,7 +117,6 @@ public final class Selections {
         ctx.st().selExpand = false;
     }
 
-    /** meow--cancel-selection: collapse AND clear the selection history. */
     public static void cancel(Ctx ctx) {
         collapse(ctx);
         resetSelectionMemory(ctx.st());
@@ -153,16 +136,11 @@ public final class Selections {
         ctx.port().setSelections(sels);
     }
 
-    /**
-     * meow-pop-selection: with an active region, pop the history (a typed entry restores type AND
-     * direction; the null placeholder returns the caret to where the chain started and cancels);
-     * without one, pop the grab.
-     */
     private static void pop(Ctx ctx) {
         MeowState st = ctx.st();
         if (hasSelection(primary(ctx))) {
             SavedSelection entry = st.selectionHistory.pollLast();
-            if (entry == null) return; // meow is silent here
+            if (entry == null) return;
             if (entry.type() == null) {
                 List<SelRange> sels = new ArrayList<>(ctx.port().getSelections());
                 sels.set(0, new SelRange(entry.active(), entry.active()));
@@ -173,20 +151,14 @@ public final class Selections {
                 select(ctx, entry.type(), entry.anchor(), entry.active(), entry.expand(), false);
             }
         } else if (!Grab.pop(ctx)) {
-            // meow-pop-grab is the pop-selection fallback with no active region
-            // (meow-selection-command-fallback); with no grab either, only the hint.
             ctx.ui().hint("No previous selection");
         }
     }
 
-    /**
-     * meow-expand-N (0 = 10); without an expandable selection it falls back to meow-digit-argument
-     * (meow-selection-command-fallback).
-     */
     private static void expandOrCount(Ctx ctx, int n) {
         MeowState st = ctx.st();
         if (hasSelection(primary(ctx)) && EXPANDABLE.contains(st.selType)) {
-            expand(ctx, n == 0 ? 10 : n);
+            expand(ctx, n == 0 ? DIGIT_ZERO_EXPAND : n);
         } else {
             st.pendingCount = st.pendingCount * 10 + n;
         }
@@ -225,9 +197,6 @@ public final class Selections {
                 return;
             }
         }
-        // meow-expand-selection-type defaults to 'select: the expanded
-        // selection is demoted, so follow-up word motions re-mark and `x`
-        // re-selects its line instead of extending
         select(ctx, st.selType, mark(ctx), target, false);
     }
 }

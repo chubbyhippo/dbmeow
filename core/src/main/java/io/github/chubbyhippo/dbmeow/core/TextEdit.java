@@ -17,5 +17,4 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-/** One text replacement: [start, end) becomes {@code text}. */
 public record TextEdit(int start, int end, String text) {}

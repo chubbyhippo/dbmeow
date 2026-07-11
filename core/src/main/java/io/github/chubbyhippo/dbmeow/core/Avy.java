@@ -24,17 +24,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A native port of avy's two jumps (S = avy-goto-char-timer, Q = avy-goto-line); every behavior
- * read out of avy 0.5.0's avy.el, not guessed — the tree/subdiv math is editor-agnostic and lives
- * here. The 250 ms timeout is a real timer in the host adapter; the core exposes {@link
- * #finishInput} so the input phase can be ended (the specs call it, the SWT adapter schedules it).
- * Match/label painting is UiPort (staged in SWT).
- */
 public final class Avy {
     private Avy() {}
 
-    /** avy-keys default. */
     private static final String KEYS = "asdfghjkl";
 
     static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
@@ -44,8 +36,6 @@ public final class Avy {
         commands.put("avy-goto-line", Avy::startGotoLine);
     }
 
-    // ---------------------------------------------------------------- the tree
-
     sealed interface AvyNode permits Leaf, Branch {}
 
     record Leaf(int offset) implements AvyNode {}
@@ -54,9 +44,10 @@ public final class Avy {
 
     record Entry(char key, AvyNode child) {}
 
-    /** avy-subdiv: distribute N candidates over B keys in a balanced way. */
+    private static final double SUBDIV_LOG_EPSILON = 1e-6;
+
     public static int[] subdiv(int n, int b) {
-        int p = (int) Math.floor(Math.log(n) / Math.log(b) + 1e-6) - 1;
+        int p = (int) Math.floor(Math.log(n) / Math.log(b) + SUBDIV_LOG_EPSILON) - 1;
         int x1 = 1;
         for (int i = 0; i < p; i++) x1 *= b;
         int x2 = b * x1;
@@ -71,10 +62,6 @@ public final class Avy {
         return out;
     }
 
-    /**
-     * avy-tree: fewer candidates than keys pair up 1:1; otherwise the subdiv sizes decide which
-     * keys are leaves and which host subtrees.
-     */
     static Branch tree(List<Integer> candidates, String keys) {
         List<Entry> children = new ArrayList<>();
         if (candidates.size() < keys.length()) {
@@ -97,7 +84,6 @@ public final class Avy {
         return new Branch(children);
     }
 
-    /** Every leaf with its remaining label path from [node]. */
     static List<UiPort.AvyLabel> labels(Branch node) {
         List<UiPort.AvyLabel> out = new ArrayList<>();
         walk(node, "", out);
@@ -112,9 +98,6 @@ public final class Avy {
         }
     }
 
-    // ---------------------------------------------------------------- sessions
-
-    /** In-flight avy state: collecting the query, or selecting a label. */
     public static final class AvySession {
         enum Phase {
             COLLECTING,
@@ -147,7 +130,6 @@ public final class Avy {
         toSelecting(ctx, session, candidates);
     }
 
-    /** One key of an active session; printable keys only reach us. */
     public static void key(Ctx ctx, char c) {
         AvySession session = ctx.st().avy;
         if (session == null) return;
@@ -165,7 +147,6 @@ public final class Avy {
         ctx.ui().showAvyMatches(ranges);
     }
 
-    /** The avy-timeout-seconds pause ended: label (or jump, or give up). */
     public static void finishInput(Ctx ctx) {
         AvySession session = ctx.st().avy;
         if (session == null || session.phase != AvySession.Phase.COLLECTING) return;
@@ -174,7 +155,7 @@ public final class Avy {
             cancel(ctx);
             ctx.ui().hint("zero candidates");
         } else if (candidates.size() == 1) {
-            cancel(ctx); // avy-single-candidate-jump
+            cancel(ctx);
             jump(ctx, candidates.get(0));
         } else {
             toSelecting(ctx, session, candidates);
@@ -189,7 +170,6 @@ public final class Avy {
     }
 
     private static void select(Ctx ctx, AvySession session, char c) {
-        // avy-goto-line: a digit switches to plain goto-line by number
         if (session.gotoLine && c >= '0' && c <= '9') {
             cancel(ctx);
             String input = ctx.ui().input("Goto line:", String.valueOf(c));
@@ -215,7 +195,7 @@ public final class Avy {
             }
         }
         if (child == null) {
-            ctx.ui().hint("No such candidate: " + c); // avy-handler-default: stay
+            ctx.ui().hint("No such candidate: " + c);
         } else if (child instanceof Leaf leaf) {
             cancel(ctx);
             jump(ctx, leaf.offset());
@@ -225,7 +205,6 @@ public final class Avy {
         }
     }
 
-    /** avy-action-goto: plain goto-char — an active selection extends. */
     private static void jump(Ctx ctx, int offset) {
         SelRange sel = Selections.primary(ctx);
         if (Selections.hasSelection(sel)) {
@@ -240,8 +219,6 @@ public final class Avy {
         ctx.st().avy = null;
     }
 
-    // ------------------------------------------------------------- candidates
-
     private static int[] visibleLines(Ctx ctx) {
         int total = Text.lineCount(ctx.port().getText());
         LineRange vis = ctx.port().visibleLineRange();
@@ -251,10 +228,6 @@ public final class Avy {
         };
     }
 
-    /**
-     * Literal, case-insensitive, non-overlapping matches in the visible region
-     * (avy--read-candidates with regexp-quote + case folding).
-     */
     private static List<Integer> matches(Ctx ctx, String input) {
         if (input.isEmpty()) return List.of();
         String text = ctx.port().getText();
@@ -268,7 +241,7 @@ public final class Avy {
         while (i <= to - needle.length()) {
             if (haystack.startsWith(needle, i)) {
                 out.add(i);
-                i += needle.length(); // non-overlapping
+                i += needle.length();
             } else {
                 i++;
             }

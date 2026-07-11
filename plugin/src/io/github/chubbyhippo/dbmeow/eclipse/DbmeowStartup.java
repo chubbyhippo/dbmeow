@@ -22,29 +22,14 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.PlatformUI;
 
-/**
- * Workbench entry point (contributed at org.eclipse.ui.startup). Registers a
- * single {@link InterceptorManager} as the part listener of every workbench
- * window — the ones already open plus any opened later — so each text editor
- * gets meow's modal key interception.
- *
- * <p>Mirrors vrapper's VrapperStartup + VrapperPlugin.start (the local
- * vrapper clone: activator/VrapperStartup.java:10 defers to the display
- * thread; activator/VrapperPlugin.java:147-162 iterates existing windows,
- * adds an IWindowListener for future ones, and calls
- * {@code window.getPartService().addPartListener(...)}).
- */
 public final class DbmeowStartup implements IStartup {
 
     @Override
     public void earlyStartup() {
-        // must touch the workbench on the UI thread (VrapperStartup.java:10)
         PlatformUI.getWorkbench().getDisplay().asyncExec(DbmeowStartup::hookAllWindows);
     }
 
     private static void hookAllWindows() {
-        // the user layer first, so the very first dispatched key already sees
-        // ~/.dbmeowrc (reloadable later via SPC c M -> dbmeow.reloadRc)
         RcCommands.load();
         InterceptorManager manager = InterceptorManager.INSTANCE;
         for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
@@ -62,12 +47,10 @@ public final class DbmeowStartup implements IStartup {
             }
 
             @Override
-            public void windowActivated(IWorkbenchWindow window) {
-            }
+            public void windowActivated(IWorkbenchWindow window) {}
 
             @Override
-            public void windowDeactivated(IWorkbenchWindow window) {
-            }
+            public void windowDeactivated(IWorkbenchWindow window) {}
         });
     }
 }

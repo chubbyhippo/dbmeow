@@ -22,10 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * meow-left/right/next/prev and the -expand variants, counts, negative arg. The h/l cross-newline
- * and j/k goal-column behaviors were batch-probed against meow 1.5.0.
- */
 class MovementSpec extends SpecDsl {
     @Test
     @DisplayName("given a caret when l then it moves right without selecting")
@@ -149,9 +145,9 @@ class MovementSpec extends SpecDsl {
     void goalColumnKeptThroughShortLine() {
         given("short middle line", "abcd<caret>ef\nxy\nlmnopq");
         whenKeys("j");
-        thenCaretAt(9); // clamped to the short line's end
+        thenCaretAt(9);
         whenKeys("j");
-        thenCaretAt(14); // back out to column 4
+        thenCaretAt(14);
     }
 
     @Test

@@ -26,7 +26,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/** State transitions: INSERT/NORMAL/MOTION/KEYPAD, escape, keypad dispatch. */
 class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName("given INSERT when escape then back to NORMAL")
@@ -59,7 +58,7 @@ class ModesKeypadSpec extends SpecDsl {
         assertNotNull(st.pending);
         pressEsc();
         assertNull(st.pending);
-        whenKeys("l"); // 'l' must act as a motion again, not as the find target
+        whenKeys("l");
         thenCaretAt(1);
     }
 
@@ -74,21 +73,19 @@ class ModesKeypadSpec extends SpecDsl {
     @DisplayName(
             "given a read-only document then all motions work and the modify commands are inert")
     void readOnlyGatesModifyCommands() {
-        // like Emacs: a read-only buffer stays in NORMAL — motions, selections
-        // and save all work; only text changes gate (meow--allow-modify-p)
         given("two lines", "<caret>one\ntwo");
         givenReadOnly();
         whenKeys("j");
         assertEquals(1, caretLine());
         whenKeys("kw");
         thenSelection("one");
-        whenKeys("s"); // meow-kill: gated silently — nothing at all happens
+        whenKeys("s");
         thenText("one\ntwo");
         thenSelection("one");
-        whenKeys("y"); // meow-save is a copy, not a modification: it works
+        whenKeys("y");
         thenClipboard("one");
-        whenKeys("d"); // meow-delete: Emacs' "Buffer is read-only" — inert
-        whenKeys("p"); // meow-yank: same
+        whenKeys("d");
+        whenKeys("p");
         thenText("one\ntwo");
         thenMode(MeowMode.NORMAL);
     }
@@ -97,10 +94,6 @@ class ModesKeypadSpec extends SpecDsl {
     @DisplayName(
             "given INSERT when the keypad action fires then a keypad command returns to INSERT")
     void keypadActionReturnsToInsert() {
-        // the keypad is reachable even from INSERT: meow records
-        // meow--keypad-previous-state and every exit path restores it. The
-        // staged adapter chord (Alt+;) drives this same core
-        // entry point, Engine.enterKeypad.
         given("word", "ab<caret>cd");
         givenRc("map <leader>zz meow-left");
         whenKeys("i");
@@ -115,7 +108,6 @@ class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName("given INSERT when the keypad action then escape then back to INSERT")
     void keypadActionEscapeBackToInsert() {
-        // meow-keypad-quit -> meow--exit-keypad-state: previous state returns
         given("word", "<caret>hello");
         whenKeys("i");
         Engine.enterKeypad(ctx());
@@ -158,8 +150,6 @@ class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName("given an undefined keypad sequence then KEYPAD exits back to NORMAL")
     void undefinedKeypadSequenceExits() {
-        // with the layout-only bundled rc the keypad table has no x prefix, so
-        // the undefined-sequence exit already fires at the first key
         given("word", "<caret>hello");
         whenKeys(" x~");
         thenMode(MeowMode.NORMAL);
@@ -180,7 +170,7 @@ class ModesKeypadSpec extends SpecDsl {
     @DisplayName("given a keypad action entry then the host command runs")
     void keypadActionEntryRunsHostCommand() {
         given("word", "<caret>hello");
-        whenKeys(" xs"); // bundled: SPC x s -> org.eclipse.ui.file.save
+        whenKeys(" xs");
         thenMode(MeowMode.NORMAL);
         assertEquals(List.of("org.eclipse.ui.file.save"), ui.ran);
     }
@@ -188,8 +178,6 @@ class ModesKeypadSpec extends SpecDsl {
     @Test
     @DisplayName("given INSERT then the adapter is told to swap the cursor, and back on escape")
     void insertSwapsCursorAndBack() {
-        // block/bar cursor at the port seam: the adapter maps
-        // these notifications to the host's bar / block cursor styles
         given("word", "<caret>hello");
         whenKeys("i");
         assertEquals(List.of(MeowMode.INSERT), ui.modes);

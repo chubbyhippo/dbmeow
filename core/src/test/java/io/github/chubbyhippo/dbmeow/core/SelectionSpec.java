@@ -24,11 +24,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * meow-mark-word/symbol, next/back word/symbol, meow-line, goto-line, meow-expand digits,
- * meow-reverse, meow-pop-selection. The word-motion mark-fix and the pop-selection history model
- * were batch-probed against meow 1.5.0.
- */
 class SelectionSpec extends SpecDsl {
     @Test
     @DisplayName("given caret on a word when w then the word is marked and caret sits at its end")
@@ -43,7 +38,7 @@ class SelectionSpec extends SpecDsl {
     @Test
     @DisplayName("given caret between words when w then the next word is marked")
     void markWordBetween() {
-        given("gap between words", "hello <caret> world"); // caret between two spaces
+        given("gap between words", "hello <caret> world");
         whenKeys("w");
         thenSelection("world");
     }
@@ -72,8 +67,6 @@ class SelectionSpec extends SpecDsl {
         whenKeys("e");
         thenSelection("one");
         whenKeys("e");
-        // meow--fix-thing-selection-mark: the mark snaps past the separator,
-        // a fresh selection is the bare word (batch-probed, meow 1.5.0)
         thenSelection("two");
     }
 
@@ -83,7 +76,7 @@ class SelectionSpec extends SpecDsl {
     void eeeBareWords() {
         given("comma separated", "<caret>word1, word2 word3");
         whenKeys("ee");
-        thenSelection("word2"); // probed: [8,13), the ", " stays outside
+        thenSelection("word2");
         whenKeys("e");
         thenSelection("word3");
         thenCaretAtSelectionEnd();
@@ -97,7 +90,7 @@ class SelectionSpec extends SpecDsl {
         thenSelection("word3");
         thenCaretAtSelectionStart();
         whenKeys("bb");
-        thenSelection("word1"); // probed: [1,6), separators never included
+        thenSelection("word1");
     }
 
     @Test
@@ -105,7 +98,7 @@ class SelectionSpec extends SpecDsl {
     void ebReselectsBackward() {
         given("comma separated", "<caret>word1, word2 word3");
         whenKeys("eb");
-        thenSelection("word1"); // probed: [1,6) point 1 — b flips onto the word
+        thenSelection("word1");
         thenCaretAtSelectionStart();
     }
 
@@ -116,10 +109,8 @@ class SelectionSpec extends SpecDsl {
         whenKeys("x");
         thenSelection("hello world");
         whenKeys("e");
-        thenSelection("next"); // mark snapped past the newline
+        thenSelection("next");
         whenKeys("z");
-        // probed: meow-next-thing cancelled the line selection first, so z
-        // pops the null placeholder — no region, caret at the chain start
         thenNoSelection();
         thenCaretAt(11);
     }
@@ -223,14 +214,11 @@ class SelectionSpec extends SpecDsl {
     @DisplayName(
             "given a selection then expand hints overlay the text without inserting inline content")
     void expandHintsOverlay() {
-        // overlay regression guard: the core hands the adapter
-        // positions to paint OVER the text (absolute-positioned decorations, the
-        // meow-visual.el 'display equivalent) — nothing enters the layout flow
         given("three words", "<caret>hello world again");
         whenKeys("w");
         assertTrue(ui.expandHints.size() > 0, "hint positions computed");
-        assertEquals(11, ui.expandHints.get(0)); // where digit 1 would take the selection
-        whenKeys("g"); // next key clears the hints
+        assertEquals(11, ui.expandHints.get(0));
+        whenKeys("g");
         assertEquals(0, ui.expandHints.size());
     }
 
@@ -238,8 +226,6 @@ class SelectionSpec extends SpecDsl {
     @DisplayName(
             "given a find selection when the target char sits at the caret then the first hint marks it")
     void findHintAtCaret() {
-        // the preview runs the same nthCharTarget scan as the digit expand: a
-        // second X right at the caret is one expand away and must be hinted
         given("chars", "<caret>aXX");
         whenKeys("fX");
         assertEquals(List.of(3), ui.expandHints);
@@ -304,8 +290,6 @@ class SelectionSpec extends SpecDsl {
     @Test
     @DisplayName("given Q then goto-line as well (QWERTY binds both Q and X)")
     void qGotoLine() {
-        // the bundled defaults override Q to the native avy line jump;
-        // a home-rc line brings meow's own Q binding back — pin that layering
         given("three lines", "<caret>one\ntwo\nthree");
         givenRc("nmap Q meow-goto-line");
         givenMinibufferAnswers("3");
@@ -318,8 +302,8 @@ class SelectionSpec extends SpecDsl {
             "given a selection history when z then the previous selection is restored with its type")
     void zRestoresPreviousSelection() {
         given("two words", "<caret>hello world");
-        whenKeys("w"); // selection 1: hello
-        whenKeys("x"); // selection 2: whole line, pushes selection 1
+        whenKeys("w");
+        whenKeys("x");
         whenKeys("z");
         thenSelection("hello");
         thenSelType(SelType.WORD);
@@ -343,7 +327,7 @@ class SelectionSpec extends SpecDsl {
     void gClearsHistory() {
         given("two words", "<caret>hello world");
         whenKeys("wxg");
-        whenKeys("z"); // no region, no grab, cleared history: nothing to pop
+        whenKeys("z");
         thenNoSelection();
     }
 
@@ -353,8 +337,8 @@ class SelectionSpec extends SpecDsl {
         given("five words", "<caret>one two three four five");
         whenKeys("w2");
         thenSelection("one two three");
-        whenKeys("e"); // (select . word) does not match (expand . word): fresh selection
-        thenSelection("four"); // bare word — the mark-fix applies to every fresh selection
+        whenKeys("e");
+        thenSelection("four");
     }
 
     @Test
@@ -372,11 +356,10 @@ class SelectionSpec extends SpecDsl {
             "given no history but a grab when z then the grab becomes the selection (meow-pop-grab fallback)")
     void popGrabFallback() {
         given("two words", "<caret>hello world");
-        whenKeys("wG"); // grab "hello", no selection, empty history after grab
+        whenKeys("wG");
         st.selectionHistory.clear();
         whenKeys("z");
         thenSelection("hello");
-        // assertNull(st.grab) — deferred: MeowState.grab lands with the grab module
     }
 
     @Test

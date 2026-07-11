@@ -22,20 +22,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * which-key: after a short delay on a pending prefix (keypad SPC sequences, or the , . [ ] thing
- * table), the adapter lists the available continuations in a menu whose input dispatches typed keys
- * through the engine (they never filter — chains must type through the menu unchanged).
- * Descriptions come from `desc` / `let g:WhichKeyDesc_*` entries; delay and on/off from `set
- * timeoutlen` / `set nowhich-key`. The row computation is pure and lives here.
- */
 public final class WhichKey {
     private WhichKey() {}
 
-    /** One which-key row: the next key and its label. */
     public record Row(String key, String label) {}
 
-    /** The `, . [ ] < >` thing-table rows. Staged for the SWT which-key overlay (a stub today). */
     public static final List<Row> THINGS =
             List.of(
                     new Row("r", "round ( )"),
@@ -51,7 +42,6 @@ public final class WhichKey {
                     new Row("d", "defun"),
                     new Row(".", "sentence"));
 
-    /** One row per next key continuing {@code buffer}: terminal label or group desc. */
     public static List<Row> keypadRows(String buffer) {
         Map<String, String> descs = Rc.keypadDescs();
         Map<String, String> rows = new LinkedHashMap<>();

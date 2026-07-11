@@ -20,10 +20,6 @@ package io.github.chubbyhippo.dbmeow.core;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * meow-inner/bounds/beginning/end-of-thing with the char table, meow-block, meow-to-block,
- * meow-join (the selection half; the kill half is in editing).
- */
 class ThingsSpec extends SpecDsl {
     @Test
     @DisplayName("given caret inside parens when comma r then inner round is selected forward")
@@ -42,7 +38,6 @@ class ThingsSpec extends SpecDsl {
         given("round pair", "foo (b<caret>ar baz) qux");
         whenKeys(".r");
         thenSelection("(bar baz)");
-        // meow-thing-selection-directions: bounds -> backward (probed on 1.5.0)
         thenCaretAtSelectionStart();
     }
 

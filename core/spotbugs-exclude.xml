@@ -1,31 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- SpotBugs exclusions for dbmeow-core — class-scoped on purpose: each
-     Match names one class and the design-intended patterns it triggers, so
-     the same pattern anywhere else still fails the verify gate. Wired via
-     <excludeFilterFile> in the spotbugs <configuration> of the root pom
-     (the relative path resolves against each module's basedir; the root is
-     packaging=pom, so only core runs the analysis).
-     plugin/spotbugs-exclude.xml is the mirror copy for the standalone Tycho
-     reactor, per the project's same-block-in-both-poms precedent. -->
 <FindBugsFilter>
-    <!-- Ctx is the hexagonal port holder: a record whose whole job is to
-         store the injected EditorPort/ClipboardPort/UiPort implementations
-         and hand those same references back to commands. Storing and
-         returning the "externally mutable" ports IS the design (there is
-         nothing to copy defensively — they are behavioral seams, not data),
-         so EI_EXPOSE_REP (accessors) and EI_EXPOSE_REP2 (canonical
-         constructor) are excluded for this class only. -->
     <Match>
         <Class name="io.github.chubbyhippo.dbmeow.core.Ctx"/>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
-    <!-- MeowState is the deliberately open per-editor state bag:
-         command modules read and write
-         its public fields directly (mode, selType, negative, pendingCount,
-         ...), and takeCount() consumes negative/pendingCount in-class —
-         which is exactly what PA_PUBLIC_PRIMITIVE_ATTRIBUTE flags. The open
-         fields are the state contract the command modules program against,
-         so the pattern is excluded for this class only. -->
     <Match>
         <Class name="io.github.chubbyhippo.dbmeow.core.MeowState"/>
         <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE"/>

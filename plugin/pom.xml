@@ -4,16 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <!-- Standalone Tycho build of the Eclipse adapter bundle. It is NOT a
-       module of the root reactor: the root pom builds the pure-Java core with
-       plain surefire (headless), and this bundle embeds the built core jar on
-       its Bundle-ClassPath (see build.properties + BUILD.md). Keeping them
-       apart means `mvn test` at the root never needs the Eclipse target
-       platform. -->
-
   <groupId>io.github.chubbyhippo</groupId>
-  <!-- Tycho's validate-id requires the artifactId to equal the manifest's
-       Bundle-SymbolicName -->
   <artifactId>io.github.chubbyhippo.dbmeow</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
@@ -40,9 +31,6 @@
         <version>${tycho.version}</version>
         <extensions>true</extensions>
       </plugin>
-      <!-- Same Spotless block as the root pom (this pom is a standalone
-           reactor — see the note above): google-java-format AOSP, check
-           bound to verify. -->
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
@@ -64,9 +52,6 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Same SpotBugs block as the root pom (standalone reactor): report
-           via spotbugs:spotbugs, check gates verify, and the exclude filter
-           is this reactor's mirror copy of core's spotbugs-exclude.xml. -->
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>

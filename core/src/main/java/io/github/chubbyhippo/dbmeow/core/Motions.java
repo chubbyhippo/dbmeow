@@ -23,12 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Cursor motion and the selections it creates: char/line movement with the -expand variants,
- * word/symbol motions, meow-line, goto-line, and find/till. Every behavior here follows
- * meow-command.el, not vim intuition — see the {@link #wordMotion} doc for the
- * direction-normalization rule that makes `w` then `b` extend instead of re-mark.
- */
 public final class Motions {
     private Motions() {}
 
@@ -45,7 +39,6 @@ public final class Motions {
         commands.put("meow-prev-expand", ctx -> moveExpand(ctx, 0, -ctx.st().takeCount(1)));
         commands.put("meow-next-word", ctx -> wordMotion(ctx, false, ctx.st().takeCount(1)));
         commands.put("meow-next-symbol", ctx -> wordMotion(ctx, true, ctx.st().takeCount(1)));
-        // meow-back-word = meow-next-thing with -N
         commands.put("meow-back-word", ctx -> wordMotion(ctx, false, -ctx.st().takeCount(1)));
         commands.put("meow-back-symbol", ctx -> wordMotion(ctx, true, -ctx.st().takeCount(1)));
         commands.put("meow-mark-word", ctx -> markWord(ctx, false));
@@ -60,7 +53,6 @@ public final class Motions {
         return symbol ? SelType.SYMBOL : SelType.WORD;
     }
 
-    /** The commands whose chains keep Emacs' temporary-goal-column alive. */
     private static final Set<String> VERTICAL =
             Set.of("meow-next", "meow-prev", "meow-next-expand", "meow-prev-expand");
 
@@ -68,16 +60,11 @@ public final class Motions {
         return ctx.st().selType == SelType.CHAR && Selections.hasSelection(Selections.primary(ctx));
     }
 
-    /** meow-left/right run backward-char/forward-char: offsets, crossing newlines. */
     private static SelRange movedChar(int len, SelRange sel, int dx, boolean extend) {
         int active = Text.clamp(sel.active() + dx, 0, len);
         return new SelRange(extend ? sel.anchor() : active, active);
     }
 
-    /**
-     * next-line/previous-line: goal column (primary caret), own column for the rest; past the
-     * first/last line the point goes to the buffer edge.
-     */
     private static SelRange movedLine(
             String text, SelRange sel, int dy, boolean extend, Integer goal) {
         int ln = Text.lineOfOffset(text, sel.active());
@@ -95,10 +82,6 @@ public final class Motions {
         return new SelRange(extend ? sel.anchor() : active, active);
     }
 
-    /**
-     * Set (or keep) the goal column, Emacs temporary-goal-column style: it only survives while the
-     * previous command was a vertical move too.
-     */
     private static int goalColumn(Ctx ctx) {
         MeowState st = ctx.st();
         if (st.goalColumn == null || st.lastCommand == null || !VERTICAL.contains(st.lastCommand)) {
@@ -111,7 +94,6 @@ public final class Motions {
 
     private static void moveChar(Ctx ctx, int dx) {
         boolean extend = charSelActive(ctx);
-        // meow-left/right cancel (clearing the history) only with an active region
         if (!extend && Selections.hasSelection(Selections.primary(ctx))) Selections.cancel(ctx);
         int len = ctx.port().getText().length();
         List<SelRange> moved = new ArrayList<>();
@@ -121,7 +103,6 @@ public final class Motions {
 
     private static void moveLine(Ctx ctx, int dy) {
         boolean extend = charSelActive(ctx);
-        // meow-next/prev run meow--cancel-selection unconditionally for other types
         if (!extend) Selections.cancel(ctx);
         int goal = goalColumn(ctx);
         String text = ctx.port().getText();
@@ -133,10 +114,6 @@ public final class Motions {
         ctx.port().setSelections(moved);
     }
 
-    /**
-     * meow-left/right/next/prev-expand: (expand . char) selection through meow--select — so the
-     * history is recorded — then the char/line motion.
-     */
     private static void moveExpand(Ctx ctx, int dx, int dy) {
         String text = ctx.port().getText();
         Integer goal = dy != 0 ? goalColumn(ctx) : null;
@@ -154,17 +131,8 @@ public final class Motions {
                 ctx, SelType.CHAR, moved.get(0).anchor(), moved.get(0).active(), true, before);
         ctx.st().selType = SelType.CHAR;
         ctx.st().selExpand = true;
-        // Grab.beacon(ctx) lands here with the grab module port.
     }
 
-    /**
-     * meow-next-thing for word/symbol: when the current selection is the matching (expand . type),
-     * the selection direction is normalized to the motion FIRST (meow--direction-forward/-backward)
-     * — so after `w`, `e` extends from the right end and `b` extends from the left end, anchored at
-     * the opposite end (meow--make-selection keeps min/max of the original region as the mark).
-     * Without a matching selection: fresh (select . type) from point. No motion -> no selection
-     * change.
-     */
     private static void wordMotion(Ctx ctx, boolean symbol, int n) {
         if (n == 0) return;
         String text = ctx.port().getText();
@@ -172,9 +140,6 @@ public final class Motions {
         SelRange sel = Selections.primary(ctx);
         int lo = Math.min(sel.anchor(), sel.active());
         int hi = Math.max(sel.anchor(), sel.active());
-        // meow-next-thing: a selection of another type (or none) is cancelled
-        // FIRST — meow--cancel-selection, so the chain history restarts and a
-        // later z pops the null placeholder, not the foreign selection
         if (!(Selections.hasSelection(sel) && ctx.st().selType == type)) Selections.cancel(ctx);
         boolean extend =
                 ctx.st().selExpand && ctx.st().selType == type && Selections.hasSelection(sel);
@@ -184,9 +149,6 @@ public final class Motions {
                         ? Text.Words.nextEnd(text, from, n, Text.charPred(symbol))
                         : Text.Words.prevStart(text, from, -n, Text.charPred(symbol));
         if (target == from) return;
-        // meow--fix-thing-selection-mark: a fresh selection snaps its mark to
-        // the word's own bounds — the separators between the old point and the
-        // word stay OUTSIDE (e e e steps bare words)
         int anchor =
                 extend
                         ? (n < 0 ? hi : lo)
@@ -194,10 +156,6 @@ public final class Motions {
         Selections.select(ctx, type, anchor, target, extend);
     }
 
-    /**
-     * meow-mark-word/-symbol: select the thing at point as (expand . type) and push its bounded
-     * regexp to the search ring — why `n` works after `w`.
-     */
     private static void markWord(Ctx ctx, boolean symbol) {
         boolean neg = ctx.st().takeCount(1) < 0;
         String text = ctx.port().getText();
@@ -214,17 +172,11 @@ public final class Motions {
         Search.push(ctx.st(), "\\b" + Text.escapeRegExp(text.substring(s, e)) + "\\b");
     }
 
-    /**
-     * meow-line: [bol, eol) without the newline; repeats extend in the selection's direction, a
-     * negative argument reverses.
-     */
     private static void line(Ctx ctx) {
         String text = ctx.port().getText();
         if (text.isEmpty()) return;
         int n = ctx.st().takeCount(1);
         int lastLine = Text.lineCount(text) - 1;
-        // extension needs exactly (expand . line) — a digit-expanded
-        // (select . line) selection re-selects the current line instead
         if (ctx.st().selType == SelType.LINE
                 && ctx.st().selExpand
                 && Selections.hasSelection(Selections.primary(ctx))) {
@@ -252,7 +204,6 @@ public final class Motions {
         }
     }
 
-    /** meow-goto-line: select the target line (expand . line) and recenter. */
     private static void gotoLine(Ctx ctx) {
         String input = ctx.ui().input("Goto line:");
         if (input == null) return;
@@ -269,7 +220,6 @@ public final class Motions {
                 ctx, SelType.LINE, Text.lineStart(text, ln), Text.lineEnd(text, ln), true);
     }
 
-    /** The second half of meow-find/meow-till, once the char arrives. */
     public static void findTill(Ctx ctx, char ch, boolean till) {
         int n = ctx.st().takeCount(1);
         String text = ctx.port().getText();
@@ -279,8 +229,6 @@ public final class Motions {
             ctx.ui().hint("char not found: " + ch);
             return;
         }
-        // BEFORE the select: its expand hints preview further occurrences of
-        // THIS char (a stale lastFind painted the previous find's positions)
         ctx.st().lastFind = ch;
         Selections.select(ctx, till ? SelType.TILL : SelType.FIND, caret, target, false);
     }

@@ -24,11 +24,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * meow-search / meow-visit and the regexp ring they share. Mark-word pushes into the same ring (see
- * {@link Motions}), which is why `n` works right after `w`. The ring stores string patterns; ported
- * against meow-command.el, semantics in meow-semantics.md.
- */
 public final class Search {
     private Search() {}
 
@@ -39,10 +34,12 @@ public final class Search {
         commands.put("meow-visit", Search::visit);
     }
 
+    private static final int MAX_SEARCH_HISTORY = 50;
+
     public static void push(MeowState st, String pattern) {
         st.searchHistory.removeIf(p -> p.equals(pattern));
         st.searchHistory.add(pattern);
-        while (st.searchHistory.size() > 50) st.searchHistory.remove(0);
+        while (st.searchHistory.size() > MAX_SEARCH_HISTORY) st.searchHistory.remove(0);
     }
 
     private record Match(int start, int end) {}
@@ -55,7 +52,6 @@ public final class Search {
         }
     }
 
-    /** Non-overlapping, left-to-right, zero-width matches skipped (JS /g). */
     private static List<Match> allMatches(String text, String pattern) {
         Pattern re;
         try {
@@ -77,10 +73,6 @@ public final class Search {
         return out;
     }
 
-    /**
-     * meow-search: car of the ring; a region that doesn't match the pattern becomes the new pattern
-     * (regexp-quoted); wraps at buffer edges; a reversed selection searches backward.
-     */
     private static void search(Ctx ctx) {
         MeowState st = ctx.st();
         SelRange sel = Selections.primary(ctx);
@@ -107,7 +99,6 @@ public final class Search {
         searchWith(ctx, pattern, st.takeCount(1) < 0 || Selections.backwardP(ctx));
     }
 
-    /** meow-visit: read a regexp, push it to the ring, select the match. */
     private static void visit(Ctx ctx) {
         boolean backward = ctx.st().takeCount(1) < 0;
         String input = ctx.ui().input("Visit (regexp):");

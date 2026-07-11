@@ -22,10 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * meow-find, meow-till (+expand), meow-visit, meow-search. The find-replaces-word and search-wrap
- * behaviors were probed against meow 1.5.0 (see meow-semantics.md).
- */
 class FindSearchSpec extends SpecDsl {
     private int selMin() {
         SelRange s = editor.sels.get(0);
@@ -59,8 +55,6 @@ class FindSearchSpec extends SpecDsl {
         whenKeys("w");
         thenSelection("word1");
         whenKeys("f3");
-        // probed (meow 1.5.0): find REPLACES the word selection with
-        // (select . find) from the old point — region [6,19)
         thenSelection(", word2 word3");
         thenSelType(SelType.FIND);
         thenCaretAtSelectionEnd();
@@ -71,7 +65,7 @@ class FindSearchSpec extends SpecDsl {
     void wThenTXTillStops() {
         given("comma separated", "w<caret>ord1, word2 word3");
         whenKeys("wt3");
-        thenSelection(", word2 word"); // probed: region [6,18)
+        thenSelection(", word2 word");
         thenSelType(SelType.TILL);
     }
 
@@ -115,7 +109,7 @@ class FindSearchSpec extends SpecDsl {
     @DisplayName("given w then n repeats the pushed word search forward (meow-search)")
     void wThenNSearchForward() {
         given("repeats", "<caret>foo bar foo baz foo");
-        whenKeys("w"); // marks foo, pushes \bfoo\b
+        whenKeys("w");
         whenKeys("n");
         thenSelection("foo");
         assertEquals(8, selMin());
@@ -125,7 +119,7 @@ class FindSearchSpec extends SpecDsl {
     @DisplayName("given repeated n then the search wraps at the end of the buffer")
     void repeatedNWraps() {
         given("repeats", "<caret>foo bar foo");
-        whenKeys("wnn"); // second n has no match ahead -> wraps to the first foo
+        whenKeys("wnn");
         assertEquals(0, selMin());
         thenSelection("foo");
     }
@@ -134,8 +128,8 @@ class FindSearchSpec extends SpecDsl {
     @DisplayName("given a reversed selection when n then the search goes backward")
     void reversedNSearchBackward() {
         given("repeats", "foo bar <caret>foo bar foo");
-        whenKeys("w"); // marks middle foo
-        whenKeys(";"); // reverse: direction now backward
+        whenKeys("w");
+        whenKeys(";");
         whenKeys("n");
         assertEquals(0, selMin());
         thenSelection("foo");
@@ -148,8 +142,8 @@ class FindSearchSpec extends SpecDsl {
     void nonMatchingSelectionBecomesPattern() {
         given("repeats", "foo <caret>bar foo bar");
         st.searchHistory.add("zzz");
-        whenKeys(",e"); // transient symbol selection "bar" — doesn't match zzz
-        whenKeys("n"); // meow-search adopts the region as the new pattern
+        whenKeys(",e");
+        whenKeys("n");
         thenSelection("bar");
         assertEquals(12, selMin());
     }

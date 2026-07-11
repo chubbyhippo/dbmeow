@@ -25,11 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * The native avy port (S = avy-goto-char-timer, Q = avy-goto-line); every behavior read out of avy
- * 0.5.0's avy.el. The 250 ms timeout is a real timer in the host adapter; these specs end the input
- * phase with {@link Avy#finishInput}.
- */
 class AvySpec extends SpecDsl {
     private void timeout() {
         Avy.finishInput(ctx());
@@ -41,9 +36,9 @@ class AvySpec extends SpecDsl {
         given("repeats", "<caret>foo bar foo baz foo");
         whenKeys("S");
         whenKeys("fo");
-        timeout(); // avy-tree over 3 candidates: labels a, s, d
+        timeout();
         whenKeys("s");
-        thenCaretAt(8); // the second foo
+        thenCaretAt(8);
         assertNull(st.avy, "session ends after the jump");
     }
 
@@ -67,7 +62,7 @@ class AvySpec extends SpecDsl {
         timeout();
         thenCaretAt(0);
         assertNull(st.avy);
-        whenKeys("l"); // keys act as meow again
+        whenKeys("l");
         thenCaretAt(1);
     }
 
@@ -77,7 +72,7 @@ class AvySpec extends SpecDsl {
         given("mixed case", "<caret>Foo bar fOO");
         whenKeys("S");
         whenKeys("foo");
-        timeout(); // two candidates -> labels
+        timeout();
         whenKeys("s");
         thenCaretAt(8);
     }
@@ -86,10 +81,10 @@ class AvySpec extends SpecDsl {
     @DisplayName("given an active selection then the avy jump extends it (avy-action-goto)")
     void activeSelectionJumpExtends() {
         given("words", "<caret>hello world again");
-        whenKeys("w"); // select hello, caret at 5
+        whenKeys("w");
         whenKeys("S");
         whenKeys("aga");
-        timeout(); // single candidate -> jump lands at the match START
+        timeout();
         thenSelection("hello world ");
         thenCaretAtSelectionEnd();
     }
@@ -100,8 +95,8 @@ class AvySpec extends SpecDsl {
         given("repeats", "<caret>xx xx xx");
         whenKeys("S");
         whenKeys("xx");
-        timeout(); // 3 candidates
-        whenKeys("z"); // not a label: message, keep waiting
+        timeout();
+        whenKeys("z");
         assertNotNull(st.avy);
         whenKeys("d");
         thenCaretAt(6);
@@ -111,16 +106,14 @@ class AvySpec extends SpecDsl {
     @DisplayName(
             "given more candidates than keys then leading keys stay single and the last key hosts a subtree")
     void moreCandidatesThanKeysSubtree() {
-        // avy-subdiv(10, 9) = eight 1s then a 2: candidates 1-8 get a..k,
-        // the last two live under 'l' as la / ls
         given("ten es", "<caret>e e e e e e e e e e");
         whenKeys("S");
         whenKeys("e");
         timeout();
-        whenKeys("l"); // descend into the subtree; labels shorten to a / s
+        whenKeys("l");
         assertNotNull(st.avy);
         whenKeys("s");
-        thenCaretAt(18); // the tenth e
+        thenCaretAt(18);
     }
 
     @Test
@@ -140,10 +133,10 @@ class AvySpec extends SpecDsl {
     @DisplayName("given Q then visible lines are labeled and a key jumps to that line")
     void qLabelsVisibleLinesJump() {
         given("four lines", "one\ntwo\nthr<caret>ee\nfour");
-        whenKeys("Q"); // labels: a s d f on the four line starts
+        whenKeys("Q");
         assertNotNull(st.avy);
         whenKeys("f");
-        thenCaretAt(14); // start of "four"
+        thenCaretAt(14);
         assertNull(st.avy);
     }
 
@@ -153,14 +146,13 @@ class AvySpec extends SpecDsl {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenMinibufferAnswers("3");
         whenKeys("Q3");
-        thenCaretAt(8); // start of line 3
+        thenCaretAt(8);
         assertNull(st.avy);
     }
 
     @Test
     @DisplayName("the avy-subdiv distribution matches avy 0-5-0")
     void avySubdivDistribution() {
-        // values computed by the elisp (avy-subdiv n b) itself
         assertArrayEquals(new int[] {1, 1, 1, 1, 1, 1, 1, 1, 1}, Avy.subdiv(9, 9));
         assertArrayEquals(new int[] {1, 1, 1, 1, 1, 1, 1, 1, 2}, Avy.subdiv(10, 9));
         assertArrayEquals(new int[] {1, 1, 1, 1, 9, 9, 9, 9, 9}, Avy.subdiv(49, 9));

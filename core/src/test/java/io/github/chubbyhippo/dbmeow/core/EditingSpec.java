@@ -23,11 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * meow-insert/append/open, change, delete/backward-delete, kill (+ the kill-line and join
- * fallbacks), save, yank, replace, undo, repeat. The kill/save newline rules were probed against
- * meow 1.5.0 (see meow-semantics.md).
- */
 class EditingSpec extends SpecDsl {
     @Test
     @DisplayName("given a selection when i then INSERT starts at the selection beginning")
@@ -317,10 +312,6 @@ class EditingSpec extends SpecDsl {
     @Test
     @DisplayName("given x x then repeated u past the undo stack then nothing blows up")
     void repeatedUPastStackNoCrash() {
-        // IntelliJ's UndoAction fails a platform assertion when performed
-        // while disabled; nothing like that exists here: the EditorPort.undo
-        // is a plain call and an exhausted stack is a silent no-op, so every
-        // press just dispatches it safely.
         given("three lines", "<caret>one\ntwo\nthree");
         whenKeys("xx");
         whenKeys("uuuuuu");
@@ -355,8 +346,6 @@ class EditingSpec extends SpecDsl {
     @Test
     @DisplayName("given quote after finding a quote char then the find repeats")
     void quoteAfterFindingQuoteRepeatsFind() {
-        // a quote as a pending argument is part of the repeat unit; only the
-        // repeat *command* is excluded from it
         given("quotes", "<caret>a'b'c");
         whenKeys("f'");
         thenSelection("a'");

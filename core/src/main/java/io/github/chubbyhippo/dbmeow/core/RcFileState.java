@@ -20,11 +20,6 @@ package io.github.chubbyhippo.dbmeow.core;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Snapshot of the last-LOADED ~/.dbmeowrc, as a hash of the PARSED config — so comment and
- * formatting edits never demand a reload. The adapter's reload surface gates on this (IdeaVim's
- * VimRcFileState hashes the parsed Script for the same reason).
- */
 public final class RcFileState {
     private RcFileState() {}
 
@@ -41,15 +36,10 @@ public final class RcFileState {
                 c.whichKeyDelayMs);
     }
 
-    /** Called by {@link Rc#setUserLines} with whatever it just parsed. */
     static void saveParsed(Rc.Config c) {
         state = hash(c);
     }
 
-    /**
-     * Do these rc LINES parse to the same user config the engine runs? False before any load — the
-     * null initial state doubles as the not-yet-loaded guard.
-     */
     public static boolean equalTo(List<String> lines) {
         Integer s = state;
         return s != null && hash(Rc.parse(lines)) == s;

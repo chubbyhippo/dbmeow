@@ -32,37 +32,12 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-/**
- * Attaches (and detaches) a {@link DbmeowInterceptor} to every text editor as
- * its part opens, activates, and closes — one meow {@link MeowState} per
- * editor.
- *
- * <p>Mechanism, all from the local vrapper clone
- * (net.sourceforge.vrapper.eclipse):
- * <ul>
- *   <li>an {@link IPartListener2}, as in
- *       interceptor/InputInterceptorManager.java:60;</li>
- *   <li>the source viewer is reachable only through the protected
- *       {@code AbstractTextEditor.getSourceViewer()}, obtained by reflection
- *       (InputInterceptorManager.java:206);</li>
- *   <li>the interceptor is added with
- *       {@code ITextViewerExtension.prependVerifyKeyListener(...)} and removed
- *       with {@code removeVerifyKeyListener(...)}
- *       (InputInterceptorManager.java:221,282).</li>
- * </ul>
- * DBeaver's SQL editor qualifies: it is an AbstractTextEditor subclass
- * (SQLEditor -> SQLEditorBase -> BaseTextEditor -> AbstractDecoratedTextEditor
- * -> AbstractTextEditor; verified in the dbeaver repo, 2026-07-08).
- */
 public final class InterceptorManager implements IPartListener2 {
 
     public static final InterceptorManager INSTANCE = new InterceptorManager();
 
-    private InterceptorManager() {
-    }
+    private InterceptorManager() {}
 
-    /** One interceptor per editor, so we can prepend on open and remove on
-     *  close. Weak keys: a closed editor part must not be pinned by us. */
     private final Map<AbstractTextEditor, DbmeowInterceptor> attached = new WeakHashMap<>();
 
     @Override
@@ -72,8 +47,6 @@ public final class InterceptorManager implements IPartListener2 {
 
     @Override
     public void partActivated(IWorkbenchPartReference ref) {
-        // some editors reach activation without a partOpened we saw
-        // (InputInterceptorManager.java:455) — attach idempotently
         attach(ref);
     }
 
@@ -90,24 +63,19 @@ public final class InterceptorManager implements IPartListener2 {
     }
 
     @Override
-    public void partDeactivated(IWorkbenchPartReference ref) {
-    }
+    public void partDeactivated(IWorkbenchPartReference ref) {}
 
     @Override
-    public void partBroughtToTop(IWorkbenchPartReference ref) {
-    }
+    public void partBroughtToTop(IWorkbenchPartReference ref) {}
 
     @Override
-    public void partHidden(IWorkbenchPartReference ref) {
-    }
+    public void partHidden(IWorkbenchPartReference ref) {}
 
     @Override
-    public void partVisible(IWorkbenchPartReference ref) {
-    }
+    public void partVisible(IWorkbenchPartReference ref) {}
 
     @Override
-    public void partInputChanged(IWorkbenchPartReference ref) {
-    }
+    public void partInputChanged(IWorkbenchPartReference ref) {}
 
     private void attach(IWorkbenchPartReference ref) {
         IWorkbenchPart part = ref.getPart(false);
@@ -117,21 +85,17 @@ public final class InterceptorManager implements IPartListener2 {
         if (!(viewer instanceof ITextViewerExtension ext)) return;
 
         MeowState st = new MeowState();
-        st.mode = MeowMode.NORMAL; // like Emacs, editors start in NORMAL
+        st.mode = MeowMode.NORMAL;
         EclipseUi ui = new EclipseUi(editor, st);
         Ctx ctx = new Ctx(
                 new EclipseEditorPort(viewer, editor), new EclipseClipboard(viewer), ui, st);
         DbmeowInterceptor interceptor = new DbmeowInterceptor(ctx);
 
-        // prepend: run BEFORE the editor's own VerifyKeyListeners, so a NORMAL
-        // key never reaches the widget as text (InputInterceptorManager.java:221)
         ext.prependVerifyKeyListener(interceptor);
         attached.put(editor, interceptor);
         ui.refresh(st);
     }
 
-    /** The protected AbstractTextEditor.getSourceViewer(), by reflection —
-     *  the only handle Eclipse exposes (InputInterceptorManager.java:206). */
     private static ISourceViewer sourceViewerOf(AbstractTextEditor editor) {
         try {
             Method m = AbstractTextEditor.class.getDeclaredMethod("getSourceViewer");

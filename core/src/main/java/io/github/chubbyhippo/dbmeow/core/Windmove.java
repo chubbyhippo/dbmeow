@@ -17,16 +17,6 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-/**
- * windmove — Emacs' windmove-left/right/up/down (windmove.el, Emacs 30.2), ported. No window
- * geometry is exposed to a plain plugin, so this is a composed step decision, not window.el's
- * caret-band pick: the two panes of a side-by-side compare editor are windows (original sits left
- * of modified) that directional focus never crosses, so left-from-modified / right-from-original
- * switch sides first, then leave toward the editor. What survives exactly: the direction model, no
- * wrap, and Emacs' user-error verbatim. SPC w h/j/k/l dispatch dbmeow.windmove* (plugin commands,
- * staged); {@link #plan} picks the underlying step (directional editor focus, or the compare-side
- * switch).
- */
 public final class Windmove {
     private Windmove() {}
 
@@ -37,10 +27,6 @@ public final class Windmove {
         DOWN
     }
 
-    /**
-     * What the adapter can see of the active compare editor: which side has the caret, and whether
-     * the sides are laid out side by side at all.
-     */
     public record DiffSideView(boolean onOriginal, boolean onModified, boolean sideBySide) {}
 
     private static String editorFocus(Dir dir) {
@@ -52,16 +38,10 @@ public final class Windmove {
         };
     }
 
-    /** windmove-do-window-select's user-error, verbatim. */
     public static String noWindowMessage(Dir dir) {
         return "No window " + dir.name().toLowerCase() + " from selected window";
     }
 
-    /**
-     * Decide one windmove step: in a side-by-side compare the panes are windows — original sits
-     * left of modified, so left from modified and right from original cross between them;
-     * everything else is the editor in that direction.
-     */
     public static String plan(Dir dir, DiffSideView diff) {
         if (diff != null && diff.sideBySide()) {
             if (dir == Dir.LEFT && diff.onModified()) return "dbmeow.compareSwitch";

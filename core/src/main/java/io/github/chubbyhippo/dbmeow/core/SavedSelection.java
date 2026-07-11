@@ -17,9 +17,4 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-/**
- * A recorded selection, meow--selection style: a null {@code type} is the placeholder meow pushes
- * when a selection is created from nothing — popping it returns the caret to where the selection
- * chain started.
- */
 public record SavedSelection(SelType type, boolean expand, int anchor, int active) {}

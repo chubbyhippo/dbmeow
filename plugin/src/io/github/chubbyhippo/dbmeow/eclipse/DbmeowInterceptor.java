@@ -24,19 +24,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 
-/**
- * The modal gate: a {@link VerifyKeyListener} prepended to the editor's text
- * viewer, so it sees each keystroke before the widget inserts it. Printable
- * keys and ESC feed the meow {@link Engine}; when the engine consumes the key
- * (NORMAL/MOTION/KEYPAD, or an ESC it acted on) we clear {@code event.doit} so
- * the widget never also types it — the exact contract vrapper uses
- * ({@code event.doit = !editorAdaptor.handleKey(...)}, the local vrapper
- * clone interceptor/VimInputInterceptorFactory.java:354).
- *
- * <p>Modifier chords (Ctrl/Alt/Cmd) and non-printable keys pass straight
- * through: only printable keys reach the modal engine, and
- * the Emacs {@code C-}/{@code M-} layer stays on the platform's own bindings.
- */
 public final class DbmeowInterceptor implements VerifyKeyListener {
 
     private final Ctx ctx;
@@ -47,28 +34,20 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
 
     @Override
     public void verifyKey(VerifyEvent event) {
-        if (!event.doit) return; // an earlier listener already consumed it
+        if (!event.doit) return;
 
         if (event.keyCode == SWT.ESC) {
             if (Engine.escapeKey(ctx)) event.doit = false;
             return;
         }
 
-        // leave modifier chords to the platform (C-/M- Emacs layer, shortcuts).
-        // STAGED here, runtime-unverified like the rest of the adapter: the
-        // keypad chord (Alt+;) — before this
-        // pass-through, match (event.stateMask & SWT.ALT) != 0 with
-        // event.character == ';' and call Engine.enterKeypad(ctx) with
-        // event.doit = false; the core records the previous state, so a
-        // command run from INSERT drops back into INSERT (meow-keypad.el's
-        // meow--keypad-previous-state, restored by Keypad.exit).
         int chord = SWT.CTRL | SWT.ALT | SWT.COMMAND;
         if ((event.stateMask & chord) != 0) return;
 
         char c = event.character;
-        if (c == 0 || c < 0x20 || c == SWT.DEL) return; // non-printable
+        if (c == 0 || c < 0x20 || c == SWT.DEL) return;
 
         boolean handled = Engine.handleChar(ctx, c);
-        event.doit = !handled; // consumed in NORMAL; passes through in INSERT
+        event.doit = !handled;
     }
 }

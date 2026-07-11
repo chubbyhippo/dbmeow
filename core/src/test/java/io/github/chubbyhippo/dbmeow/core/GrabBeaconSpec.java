@@ -24,11 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * meow-grab, swap-grab, sync-grab, and the multi-cursor BEACON approximation. The beacon LOGIC runs
- * headless here over FakeEditor; the SWT adapter renders only the primary caret (single-caret
- * StyledText) but still applies the multi-range edit.
- */
 class GrabBeaconSpec extends SpecDsl {
     @Test
     @DisplayName("given a selection when G then it becomes the grab and the selection is cancelled")
@@ -65,7 +60,7 @@ class GrabBeaconSpec extends SpecDsl {
         given("word", "<caret>hello world");
         whenKeys("wG");
         assertNotNull(st.grab);
-        whenKeys("G"); // no selection now: meow-grab cancels the secondary
+        whenKeys("G");
         assertNull(st.grab);
     }
 
@@ -82,9 +77,9 @@ class GrabBeaconSpec extends SpecDsl {
     @DisplayName("given a selection overlapping the grab when R then the swap is refused")
     void overlappingRRefused() {
         given("three words", "<caret>one two three");
-        whenKeys("weG"); // grab "one two" [0,7)
+        whenKeys("weG");
         givenCaretAt(4);
-        whenKeys("fr"); // selection [4,12) overlaps the grab
+        whenKeys("fr");
         whenKeys("R");
         thenText("one two three");
     }
@@ -93,9 +88,9 @@ class GrabBeaconSpec extends SpecDsl {
     @DisplayName("given Y then the grab is re-synced to the current selection (meow-sync-grab)")
     void syncGrabResyncs() {
         given("two words", "<caret>hello world");
-        whenKeys("wG"); // grab "hello"
+        whenKeys("wG");
         givenCaretAt(6);
-        whenKeys("wY"); // sync to "world"
+        whenKeys("wY");
         thenNoSelection();
         assertEquals(6, st.grab.start());
         assertEquals(11, st.grab.end());
@@ -106,7 +101,7 @@ class GrabBeaconSpec extends SpecDsl {
             "given a grab when marking a word inside it then a cursor lands on every occurrence (BEACON)")
     void beaconWordOccurrences() {
         given("repeats", "<caret>foo bar foo baz foo");
-        whenKeys(",bG"); // grab the whole buffer
+        whenKeys(",bG");
         givenCaretAt(0);
         whenKeys("w");
         thenCaretCount(3);
@@ -127,8 +122,6 @@ class GrabBeaconSpec extends SpecDsl {
     @Test
     @DisplayName("given beacon cursors when c then every cursor lands at its own edit")
     void beaconChangeCursorOffsets() {
-        // editCarets re-bases each cursor by the edits below it: the cursors
-        // must sit at POST-edit offsets, not at the pre-edit match positions
         given("repeats", "<caret>foo bar foo baz foo");
         whenKeys(",bG");
         givenCaretAt(0);
@@ -166,9 +159,9 @@ class GrabBeaconSpec extends SpecDsl {
     @DisplayName("given a selection outside the grab then no beacon cursors appear")
     void noBeaconOutsideGrab() {
         given("repeats", "<caret>foo bar foo");
-        whenKeys("wG"); // grab only the first foo
+        whenKeys("wG");
         givenCaretAt(8);
-        whenKeys("w"); // select the last foo — outside the grab
+        whenKeys("w");
         thenCaretCount(1);
     }
 }

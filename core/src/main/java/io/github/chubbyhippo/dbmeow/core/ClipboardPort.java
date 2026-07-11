@@ -17,9 +17,7 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-/** The kill-ring is the system clipboard (meow-use-clipboard behavior). */
 public interface ClipboardPort {
-    /** The clipboard text; null when it holds none. */
     String read();
 
     void write(String text);

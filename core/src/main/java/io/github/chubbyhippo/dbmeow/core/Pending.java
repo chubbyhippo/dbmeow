@@ -17,7 +17,6 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-/** Commands that read one more key before acting. */
 public enum Pending {
     FIND,
     TILL,

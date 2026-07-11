@@ -27,11 +27,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-/**
- * Double-ESC in a tool window (ToolWindowEscape). Platform-specific (no meow source of truth): the
- * pinned behavior is the pure pairing state machine the adapter's escape bindings feed; the
- * re-emission of a lone first press is adapter wiring, outside the core.
- */
 class ToolWindowEscapeSpec {
     @BeforeEach
     void resetState() {

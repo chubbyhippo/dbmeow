@@ -29,33 +29,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * The two rc layers and their layering rules. Like meow in Emacs, the engine binds NO keys — the
- * whole keymap (NORMAL/MOTION layout AND the SPC keypad table) is rc lines. The repo's .dbmeowrc
- * ships on the classpath as the DEFAULTS layer; an optional ~/.dbmeowrc overrides it entry by
- * entry, and `nnoremap`/`mnoremap` replays resolve through the defaults alone. Syntax lives in
- * {@link RcParser}. The core stays IO-free beyond the bundled resource: the host adapter (or the
- * test suite) reads the user file and feeds the lines in.
- */
 public final class Rc {
     private Rc() {}
 
     public static final String FILE_NAME = ".dbmeowrc";
 
-    /** One key's target: a host command, replayed keys, or a named meow command. */
     public record Binding(String action, String keys, String command, boolean recursive) {}
 
-    /** Everything one rc file declares. */
     public static final class Config {
         public final Map<Character, Binding> normal = new HashMap<>();
         public final Map<Character, Binding> motion = new HashMap<>();
         public final Map<String, Binding> keypad = new LinkedHashMap<>();
         public final Map<String, String> keypadDesc = new HashMap<>();
 
-        /**
-         * Repeat groups (Emacs repeat-mode transient maps): group name -> member key -> the binding
-         * it re-dispatches while the run is live.
-         */
         public final Map<String, Map<Character, Binding>> repeat = new LinkedHashMap<>();
 
         public Boolean whichKey = null;
@@ -70,37 +56,31 @@ public final class Rc {
         return RcParser.parse(lines);
     }
 
-    /** The bundled .dbmeowrc — the default layer beneath ~/.dbmeowrc. */
     public static Config initDefaults(List<String> lines) {
         defaultConfig = parse(lines);
         return defaultConfig;
     }
 
-    /** Load (or reload) the user layer from rc lines. */
     public static Config setUserLines(List<String> lines) {
         userConfig = parse(lines);
-        RcFileState.saveParsed(userConfig); // the reload surface's snapshot
+        RcFileState.saveParsed(userConfig);
         return userConfig;
     }
 
     public static void setForTest(Config c) {
         userConfig = c;
-        RcFileState.resetForTest(); // no stale reload state across specs
+        RcFileState.resetForTest();
     }
 
     public static Config cfg() {
         return userConfig;
     }
 
-    /** The bundled defaults, loaded lazily from the classpath resource. */
     public static Config defaults() {
         if (defaultConfig == null) initDefaults(readBundledLines());
         return defaultConfig;
     }
 
-    /**
-     * The bundled rc verbatim — what a first ~/.dbmeowrc is seeded from (the adapter's SPC c m).
-     */
     public static List<String> bundledLines() {
         return readBundledLines();
     }
@@ -120,27 +100,18 @@ public final class Rc {
         }
     }
 
-    // ------------------------------------------------------ effective views
-
-    /** Effective keypad table: bundled defaults with ~/.dbmeowrc on top. */
     public static Map<String, Binding> keypad() {
         Map<String, Binding> merged = new LinkedHashMap<>(defaults().keypad);
         merged.putAll(cfg().keypad);
         return merged;
     }
 
-    /** Effective which-key labels: bundled defaults with ~/.dbmeowrc on top. */
     public static Map<String, String> keypadDescs() {
         Map<String, String> merged = new HashMap<>(defaults().keypadDesc);
         merged.putAll(cfg().keypadDesc);
         return merged;
     }
 
-    /**
-     * Effective repeat groups: ~/.dbmeowrc lines layer per (group, key) over the bundled defaults;
-     * a member re-bound to `ignore` gives its key back (like `mmap <key> ignore` on trees) and an
-     * emptied group is gone.
-     */
     public static Map<String, Map<Character, Binding>> repeatGroups() {
         Map<String, Map<Character, Binding>> merged = new LinkedHashMap<>();
         for (Map.Entry<String, Map<Character, Binding>> e : defaults().repeat.entrySet()) {
@@ -156,11 +127,6 @@ public final class Rc {
         return merged;
     }
 
-    /**
-     * The transient map a just-dispatched binding arms — Emacs' repeat-map symbol property, ported:
-     * membership is the TARGET (action, command or keys — not the key that ran it, repeat-check-key
-     * 'no style), and the first declared group wins. Null when the binding repeats nothing.
-     */
     public static Map<Character, Binding> repeatMapFor(Binding b) {
         for (Map<Character, Binding> members : repeatGroups().values()) {
             for (Binding m : members.values()) {
@@ -180,9 +146,11 @@ public final class Rc {
         return true;
     }
 
+    private static final int DEFAULT_WHICH_KEY_DELAY_MS = 250;
+
     public static int whichKeyDelayMs() {
         if (cfg().whichKeyDelayMs != null) return cfg().whichKeyDelayMs;
         if (defaults().whichKeyDelayMs != null) return defaults().whichKeyDelayMs;
-        return 250;
+        return DEFAULT_WHICH_KEY_DELAY_MS;
     }
 }

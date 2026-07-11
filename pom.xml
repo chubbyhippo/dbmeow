@@ -17,10 +17,6 @@
 
   <build>
     <plugins>
-      <!-- Formatting: google-java-format AOSP (4-space indent, the house
-           style). `mvn spotless:apply` rewrites; the check goal binds to
-           verify, so `mvn test` stays fast and `mvn verify` gates. The
-           standalone Tycho plugin/pom.xml carries the same block. -->
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
@@ -42,13 +38,6 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Static analysis: SpotBugs on the compiled main classes. `mvn
-           spotbugs:spotbugs` writes target/spotbugsXml.xml (report only);
-           the check goal binds to verify and gates like Spotless. The
-           standalone Tycho plugin/pom.xml carries the same block. The
-           exclude filter is class-scoped design exceptions only (Ctx ports,
-           MeowState open fields) — the relative path resolves against each
-           module's basedir, and only core (the sole jar module) runs it. -->
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
