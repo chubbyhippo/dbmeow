@@ -47,6 +47,81 @@ public final class Motions {
         commands.put("meow-goto-line", Motions::gotoLine);
         commands.put("meow-find", ctx -> ctx.st().pending = Pending.FIND);
         commands.put("meow-till", ctx -> ctx.st().pending = Pending.TILL);
+        commands.put("forward-char", ctx -> charOrExpand(ctx, ctx.st().takeCount(1)));
+        commands.put("backward-char", ctx -> charOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put("next-line", ctx -> lineOrExpand(ctx, ctx.st().takeCount(1)));
+        commands.put("previous-line", ctx -> lineOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put(
+                "move-beginning-of-line",
+                ctx -> moveToOrExpand(ctx, SelType.CHAR, Motions::lineStartTarget));
+        commands.put(
+                "move-end-of-line",
+                ctx -> moveToOrExpand(ctx, SelType.CHAR, Motions::lineEndTarget));
+        commands.put("forward-word", ctx -> wordOrExpand(ctx, ctx.st().takeCount(1)));
+        commands.put("backward-word", ctx -> wordOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put("forward-sentence", ctx -> sentenceOrExpand(ctx, ctx.st().takeCount(1)));
+        commands.put("backward-sentence", ctx -> sentenceOrExpand(ctx, -ctx.st().takeCount(1)));
+    }
+
+    private interface OffsetTarget {
+        int at(String text, int offset);
+    }
+
+    private static int lineStartTarget(String text, int off) {
+        return Text.lineStart(text, Text.lineOfOffset(text, off));
+    }
+
+    private static int lineEndTarget(String text, int off) {
+        return Text.lineEnd(text, Text.lineOfOffset(text, off));
+    }
+
+    private static void charOrExpand(Ctx ctx, int dx) {
+        if (Selections.hasSelection(Selections.primary(ctx))) moveExpand(ctx, dx, 0);
+        else moveChar(ctx, dx);
+    }
+
+    private static void lineOrExpand(Ctx ctx, int dy) {
+        if (Selections.hasSelection(Selections.primary(ctx))) moveExpand(ctx, 0, dy);
+        else moveLine(ctx, dy);
+    }
+
+    private static void moveToOrExpand(Ctx ctx, SelType type, OffsetTarget target) {
+        String text = ctx.port().getText();
+        boolean extend = Selections.hasSelection(Selections.primary(ctx));
+        int before = Selections.primary(ctx).active();
+        List<SelRange> moved = new ArrayList<>();
+        for (SelRange s : ctx.port().getSelections()) {
+            int active = Text.clamp(target.at(text, s.active()), 0, text.length());
+            moved.add(new SelRange(extend ? s.anchor() : active, active));
+        }
+        ctx.port().setSelections(moved);
+        if (extend) {
+            Selections.recordSelect(
+                    ctx, type, moved.get(0).anchor(), moved.get(0).active(), true, before);
+            ctx.st().selType = type;
+            ctx.st().selExpand = true;
+        }
+    }
+
+    private static void wordOrExpand(Ctx ctx, int n) {
+        Text.CharPredicate pred = Text.charPred(false);
+        moveToOrExpand(
+                ctx,
+                SelType.WORD,
+                (text, off) ->
+                        n >= 0
+                                ? Text.Words.nextEnd(text, off, n, pred)
+                                : Text.Words.prevStart(text, off, -n, pred));
+    }
+
+    private static void sentenceOrExpand(Ctx ctx, int n) {
+        moveToOrExpand(
+                ctx,
+                SelType.CHAR,
+                (text, off) ->
+                        n >= 0
+                                ? Text.nextSentenceEnd(text, off, n)
+                                : Text.prevSentenceStart(text, off, -n));
     }
 
     private static SelType wordType(boolean symbol) {

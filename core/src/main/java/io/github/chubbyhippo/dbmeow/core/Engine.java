@@ -37,6 +37,12 @@ public final class Engine {
         ctx.ui().scheduleWhichKey("keypad", "");
     }
 
+    public static void runEmacsMotion(Ctx ctx, String command) {
+        MeowCommand cmd = Registry.COMMANDS.get(command);
+        if (cmd != null) cmd.run(ctx);
+        ctx.ui().refresh(ctx.st());
+    }
+
     public static boolean handleChar(Ctx ctx, char c) {
         MeowState st = ctx.st();
         if (st.mode == MeowMode.INSERT) return false;

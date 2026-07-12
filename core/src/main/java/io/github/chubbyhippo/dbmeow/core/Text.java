@@ -105,6 +105,31 @@ public final class Text {
         return till ? found : found + 1;
     }
 
+    public static final String SENTENCE_ENDERS = ".!?";
+
+    private static boolean isSentenceGap(char c) {
+        return Character.isWhitespace(c) || SENTENCE_ENDERS.indexOf(c) >= 0;
+    }
+
+    public static int nextSentenceEnd(String text, int from, int n) {
+        int i = clamp(from, 0, text.length());
+        for (int k = 0; k < n; k++) {
+            while (i < text.length() && SENTENCE_ENDERS.indexOf(text.charAt(i)) < 0) i++;
+            while (i < text.length() && SENTENCE_ENDERS.indexOf(text.charAt(i)) >= 0) i++;
+            while (i < text.length() && Character.isWhitespace(text.charAt(i))) i++;
+        }
+        return i;
+    }
+
+    public static int prevSentenceStart(String text, int from, int n) {
+        int i = clamp(from, 0, text.length());
+        for (int k = 0; k < n; k++) {
+            while (i > 0 && isSentenceGap(text.charAt(i - 1))) i--;
+            while (i > 0 && !isSentenceGap(text.charAt(i - 1))) i--;
+        }
+        return i;
+    }
+
     public static final class Words {
         private Words() {}
 
