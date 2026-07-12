@@ -61,6 +61,8 @@ public final class Motions {
         commands.put("backward-word", ctx -> wordOrExpand(ctx, -ctx.st().takeCount(1)));
         commands.put("forward-sentence", ctx -> sentenceOrExpand(ctx, ctx.st().takeCount(1)));
         commands.put("backward-sentence", ctx -> sentenceOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put("beginning-of-buffer", ctx -> bufferBoundary(ctx, true));
+        commands.put("end-of-buffer", ctx -> bufferBoundary(ctx, false));
     }
 
     private interface OffsetTarget {
@@ -122,6 +124,27 @@ public final class Motions {
                         n >= 0
                                 ? Text.nextSentenceEnd(text, off, n)
                                 : Text.prevSentenceStart(text, off, -n));
+    }
+
+    private static void bufferBoundary(Ctx ctx, boolean top) {
+        boolean counted = ctx.st().pendingCount != 0 || ctx.st().negative;
+        int n = ctx.st().takeCount(1);
+        moveToOrExpand(
+                ctx,
+                SelType.CHAR,
+                (text, off) -> {
+                    int len = text.length();
+                    if (!counted) return top ? 0 : len;
+                    int tenth = len * n / 10;
+                    int raw = Text.clamp(top ? 1 + tenth : len - tenth, 0, len);
+                    return nextLineStart(text, raw);
+                });
+    }
+
+    private static int nextLineStart(String text, int offset) {
+        if (text.isEmpty()) return 0;
+        int ln = Text.lineOfOffset(text, Text.clamp(offset, 0, text.length()));
+        return ln >= Text.lineCount(text) - 1 ? text.length() : Text.lineStart(text, ln + 1);
     }
 
     private static SelType wordType(boolean symbol) {
