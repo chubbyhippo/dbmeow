@@ -143,10 +143,12 @@ map <leader>cM <action>(dbmeow.reloadRc)
 " org.eclipse.ui plugin.xml, 2026-07-11 — absent until exactly this check).
 " m o / m g are the native avy jumps on this prefix — core meow
 " commands, no Eclipse id involved; m g is avy-goto-line rather than the
-" native goto-line dialog.
+" native goto-line dialog. m , = M-, go back (the same
+" org.eclipse.ui.navigate.backwardHistory id as j o).
 desc <leader>m meta
 map <leader>mx <action>(org.eclipse.ui.window.quickAccess)
 map <leader>mo avy-goto-char-timer
+map <leader>m, <action>(org.eclipse.ui.navigate.backwardHistory)
 map <leader>mg avy-goto-line
 
 " SPC b — bookmarks. m sets a line bookmark;

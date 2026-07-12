@@ -190,7 +190,7 @@ public final class Things {
 
     private static OffsetRange sentence(String text, int offset, boolean inner) {
         if (text.isEmpty()) return null;
-        String enders = ".!?";
+        String enders = Text.SENTENCE_ENDERS;
         int s = Text.clamp(offset, 0, text.length() - 1);
         while (s > 0) {
             char c = text.charAt(s - 1);

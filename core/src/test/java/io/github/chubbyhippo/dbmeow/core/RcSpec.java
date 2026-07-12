@@ -178,6 +178,7 @@ class RcSpec extends SpecDsl {
         assertEquals("org.eclipse.ui.window.previousEditor", d.keypad.get(" ").action());
         assertEquals("dbmeow.editRc", d.keypad.get("cm").action());
         assertEquals("dbmeow.reloadRc", d.keypad.get("cM").action());
+        assertEquals("org.eclipse.ui.navigate.backwardHistory", d.keypad.get("m,").action());
         assertTrue(d.keypad.size() > 25, "keypad table (got " + d.keypad.size() + ")");
     }
 
