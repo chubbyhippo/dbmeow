@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public final class Edits {
@@ -52,6 +53,16 @@ public final class Edits {
         commands.put("meow-replace", Edits::replace);
         commands.put("meow-undo", Edits::undo);
         commands.put("meow-undo-in-selection", Edits::undoInSelection);
+        commands.put("upcase-word", ctx -> caseWord(ctx, CaseOp.UPCASE));
+        commands.put("downcase-word", ctx -> caseWord(ctx, CaseOp.DOWNCASE));
+        commands.put("capitalize-word", ctx -> caseWord(ctx, CaseOp.CAPITALIZE));
+        commands.put("kill-word", Edits::killWord);
+    }
+
+    private enum CaseOp {
+        UPCASE,
+        DOWNCASE,
+        CAPITALIZE
     }
 
     private record Computed(TextEdit edit, SelRange sel) {}
@@ -320,6 +331,93 @@ public final class Edits {
                                         new TextEdit(lo, hi, clip),
                                         new SelRange(lo + clip.length(), lo + clip.length())));
         ctx.st().selType = SelType.NONE;
+    }
+
+    private static String casified(String slice, CaseOp op) {
+        return switch (op) {
+            case UPCASE -> slice.toUpperCase(Locale.ROOT);
+            case DOWNCASE -> slice.toLowerCase(Locale.ROOT);
+            case CAPITALIZE -> capitalizedWords(slice);
+        };
+    }
+
+    private static String capitalizedWords(String slice) {
+        Text.CharPredicate pred = Text.charPred(false);
+        StringBuilder out = new StringBuilder(slice.length());
+        boolean inWord = false;
+        for (int i = 0; i < slice.length(); i++) {
+            char c = slice.charAt(i);
+            if (pred.test(c)) {
+                out.append(inWord ? Character.toLowerCase(c) : Character.toUpperCase(c));
+                inWord = true;
+            } else {
+                out.append(c);
+                inWord = false;
+            }
+        }
+        return out.toString();
+    }
+
+    private static void caseWord(Ctx ctx, CaseOp op) {
+        if (blockedReadOnly(ctx)) return;
+        int n = ctx.st().takeCount(1);
+        if (n == 0) return;
+        boolean hadSelection = Selections.hasSelection(Selections.primary(ctx));
+        String text = ctx.port().getText();
+        Text.CharPredicate pred = Text.charPred(false);
+        editCarets(
+                ctx,
+                (sel, lo, hi) -> {
+                    int from = sel.active();
+                    int[] r = wordKillRange(text, from, n, pred);
+                    if (r[0] == r[1]) return new Computed(null, sel);
+                    int caret = n > 0 ? r[1] : from;
+                    return new Computed(
+                            new TextEdit(r[0], r[1], casified(text.substring(r[0], r[1]), op)),
+                            new SelRange(caret, caret));
+                });
+        if (hadSelection) Selections.collapse(ctx);
+    }
+
+    private static int[] wordKillRange(String text, int from, int n, Text.CharPredicate pred) {
+        int target =
+                n > 0
+                        ? Text.Words.nextEnd(text, from, n, pred)
+                        : Text.Words.prevStart(text, from, -n, pred);
+        return new int[] {Math.min(from, target), Math.max(from, target)};
+    }
+
+    private static void killWord(Ctx ctx) {
+        if (blockedReadOnly(ctx)) return;
+        int n = ctx.st().takeCount(1);
+        if (n == 0) return;
+        String text = ctx.port().getText();
+        Text.CharPredicate pred = Text.charPred(false);
+        List<int[]> killed = new ArrayList<>();
+        for (SelRange sel : ctx.port().getSelections()) {
+            int[] r = wordKillRange(text, sel.active(), n, pred);
+            if (r[0] != r[1]) killed.add(r);
+        }
+        if (killed.isEmpty()) return;
+        killed.sort(Comparator.comparingInt(r -> r[0]));
+        StringBuilder joined = new StringBuilder();
+        for (int i = 0; i < killed.size(); i++) {
+            if (i > 0) joined.append('\n');
+            int[] r = killed.get(i);
+            joined.append(text, r[0], r[1]);
+        }
+        ctx.clipboard().write(joined.toString());
+        editCarets(
+                ctx,
+                (sel, lo, hi) -> {
+                    int[] r = wordKillRange(text, sel.active(), n, pred);
+                    if (r[0] == r[1]) {
+                        return new Computed(null, new SelRange(sel.active(), sel.active()));
+                    }
+                    return new Computed(new TextEdit(r[0], r[1], ""), new SelRange(r[0], r[0]));
+                });
+        ctx.st().selType = SelType.NONE;
+        ctx.st().selExpand = false;
     }
 
     private static void undo(Ctx ctx) {

@@ -352,4 +352,101 @@ class EditingSpec extends SpecDsl {
         whenKeys("'");
         thenSelection("b'");
     }
+
+    @Test
+    @DisplayName(
+            "given a caret mid-word when upcase-word then the rest upcases and the caret moves to"
+                    + " word end")
+    void upcaseWordMidWord() {
+        given("mixed-case word", "he<caret>LLo world");
+        whenCommand("upcase-word");
+        thenText("heLLO world");
+        thenCaretAt(5);
+    }
+
+    @Test
+    @DisplayName("given a count when upcase-word then that many words upcase")
+    void upcaseWordCount() {
+        given("three words", "<caret>hello world foo");
+        whenKeys("2");
+        whenCommand("upcase-word");
+        thenText("HELLO WORLD foo");
+        thenCaretAt(11);
+    }
+
+    @Test
+    @DisplayName(
+            "given a negative count when upcase-word then the previous word upcases and the caret"
+                    + " stays")
+    void upcaseWordNegativeCount() {
+        given("two words", "hello <caret>world");
+        whenKeys("-");
+        whenCommand("upcase-word");
+        thenText("HELLO world");
+        thenCaretAt(6);
+    }
+
+    @Test
+    @DisplayName("given a caret when downcase-word then the word downcases")
+    void downcaseWord() {
+        given("upper words", "<caret>HELLO WORLD");
+        whenCommand("downcase-word");
+        thenText("hello WORLD");
+        thenCaretAt(5);
+    }
+
+    @Test
+    @DisplayName(
+            "given a caret mid-word when capitalize-word then the slice capitalizes as a fresh"
+                    + " word")
+    void capitalizeWordMidWord() {
+        given("mixed-case word", "he<caret>LLo world");
+        whenCommand("capitalize-word");
+        thenText("heLlo world");
+        thenCaretAt(5);
+    }
+
+    @Test
+    @DisplayName("given a count when capitalize-word then each word capitalizes")
+    void capitalizeWordCount() {
+        given("mixed words", "<caret>heLLO WOrld");
+        whenKeys("2");
+        whenCommand("capitalize-word");
+        thenText("Hello World");
+        thenCaretAt(11);
+    }
+
+    @Test
+    @DisplayName(
+            "given a selection when upcase-word then it upcases from the caret and deactivates it")
+    void upcaseWordWithSelection() {
+        given("two words", "<caret>hello world");
+        whenKeys("w");
+        thenSelection("hello");
+        whenCommand("upcase-word");
+        thenText("hello WORLD");
+        thenNoSelection();
+        thenCaretAt(11);
+    }
+
+    @Test
+    @DisplayName("given a caret when kill-word then the word kills to the clipboard")
+    void killWordToClipboard() {
+        given("two words", "<caret>hello world");
+        whenCommand("kill-word");
+        thenText(" world");
+        thenCaretAt(0);
+        thenClipboard("hello");
+    }
+
+    @Test
+    @DisplayName("given a negative count when kill-word then the previous word kills backward")
+    void killWordNegativeCount() {
+        given("two words", "hello world<caret>");
+        whenKeys("-");
+        whenCommand("kill-word");
+        thenText("hello ");
+        thenCaretAt(6);
+        thenClipboard("world");
+    }
 }

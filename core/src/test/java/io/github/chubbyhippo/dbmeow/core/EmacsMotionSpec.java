@@ -253,4 +253,72 @@ class EmacsMotionSpec extends SpecDsl {
         java.util.Collections.sort(actives);
         assertEquals(List.of(4, 9, 14), actives);
     }
+
+    @Test
+    @DisplayName("given no selection when beginning-of-buffer then the caret goes to point-min")
+    void beginningOfBufferGoesToPointMin() {
+        given("two lines", "one\nt<caret>wo");
+        whenCommand("beginning-of-buffer");
+        thenCaretAt(0);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName("given no selection when end-of-buffer then the caret goes to point-max")
+    void endOfBufferGoesToPointMax() {
+        given("two lines", "on<caret>e\ntwo");
+        whenCommand("end-of-buffer");
+        thenCaretAt(7);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName("given w then end-of-buffer extends the selection to point-max")
+    void endOfBufferExtendsSelection() {
+        given("two words", "<caret>hello world");
+        whenKeys("w");
+        thenSelection("hello");
+        whenCommand("end-of-buffer");
+        thenSelection("hello world");
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
+    @DisplayName("given w then beginning-of-buffer extends the selection back to point-min")
+    void beginningOfBufferExtendsSelectionBack() {
+        given("prefixed word", "ab <caret>hello");
+        whenKeys("w");
+        thenSelection("hello");
+        whenCommand("beginning-of-buffer");
+        thenSelection("ab ");
+        thenCaretAtSelectionStart();
+    }
+
+    @Test
+    @DisplayName(
+            "given a count when beginning-of-buffer then the caret lands at the next line start"
+                    + " past that tenth")
+    void countedBeginningOfBufferLandsTenthIn() {
+        given(
+                "five ten-char lines",
+                "<caret>0123456789\n0123456789\n0123456789\n0123456789\n0123456789");
+        whenKeys("3");
+        whenCommand("beginning-of-buffer");
+        thenCaretAt(22);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given a count when end-of-buffer then the caret lands a tenth back at the next line"
+                    + " start")
+    void countedEndOfBufferLandsTenthBack() {
+        given(
+                "five ten-char lines",
+                "<caret>0123456789\n0123456789\n0123456789\n0123456789\n0123456789");
+        whenKeys("3");
+        whenCommand("end-of-buffer");
+        thenCaretAt(44);
+        thenNoSelection();
+    }
 }
