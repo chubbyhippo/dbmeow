@@ -97,6 +97,15 @@ class RepeatSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given the bundled rc then the tab repeat group cycles editor tabs")
+    void bundledRcTabGroupCyclesTabs() {
+        Map<Character, Rc.Binding> g = Rc.defaults().repeat.get("tab");
+        assertEquals("org.eclipse.ui.window.nextEditor", g.get('n').action());
+        assertEquals("org.eclipse.ui.window.previousEditor", g.get('p').action());
+        assertEquals(Set.of('n', 'p'), g.keySet());
+    }
+
+    @Test
     @DisplayName("given a repeat line edit then the reload button sees a change")
     void repeatLineEditLightsReload() {
         Rc.setUserLines(List.of("nmap Z ,b"));
