@@ -102,7 +102,9 @@ class RepeatSpec extends SpecDsl {
         Map<Character, Rc.Binding> g = Rc.defaults().repeat.get("tab");
         assertEquals("org.eclipse.ui.window.nextEditor", g.get('n').action());
         assertEquals("org.eclipse.ui.window.previousEditor", g.get('p').action());
-        assertEquals(Set.of('n', 'p'), g.keySet());
+        assertEquals("org.eclipse.ui.window.nextEditor", g.get('.').action());
+        assertEquals("org.eclipse.ui.window.previousEditor", g.get(',').action());
+        assertEquals(Set.of('n', 'p', '.', ','), g.keySet());
     }
 
     @Test
@@ -146,10 +148,10 @@ class RepeatSpec extends SpecDsl {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
-        assertNotNull(st.repeatMap);
+        assertNotNull(Engine.repeatMap);
         whenKeys("w");
         thenSelection("two");
-        assertNull(st.repeatMap);
+        assertNull(Engine.repeatMap);
     }
 
     @Test
@@ -171,9 +173,9 @@ class RepeatSpec extends SpecDsl {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
-        assertNotNull(st.repeatMap);
+        assertNotNull(Engine.repeatMap);
         pressEsc();
-        assertNull(st.repeatMap);
+        assertNull(Engine.repeatMap);
         whenKeys(".");
         assertEquals(Pending.BOUNDS, st.pending);
         thenCaretLine(1);
@@ -202,14 +204,26 @@ class RepeatSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given a run then a member tap continues after an editor switch")
+    void memberTapContinuesAfterEditorSwitch() {
+        given("four lines", "<caret>one\ntwo\nthree\nfour");
+        givenRc(NAV_RC);
+        whenKeys(" tn");
+        thenCaretLine(1);
+        st = new MeowState();
+        whenKeys(".");
+        thenCaretLine(2);
+    }
+
+    @Test
     @DisplayName("given a run then the armed keys are the group members")
     void armedKeysAreGroupMembers() {
         given("four lines", "<caret>one\ntwo\nthree\nfour");
         givenRc(NAV_RC);
         whenKeys(" tn");
-        assertNotNull(st.repeatMap);
-        assertEquals(Set.of('.', ','), st.repeatMap.keySet());
+        assertNotNull(Engine.repeatMap);
+        assertEquals(Set.of('.', ','), Engine.repeatMap.keySet());
         whenKeys("w");
-        assertNull(st.repeatMap);
+        assertNull(Engine.repeatMap);
     }
 }

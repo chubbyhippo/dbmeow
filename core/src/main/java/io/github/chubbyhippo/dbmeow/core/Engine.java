@@ -29,6 +29,8 @@ public final class Engine {
 
     private static final int MAX_REPLAY_DEPTH = 8;
 
+    static Map<Character, Rc.Binding> repeatMap = null;
+
     public static void enterKeypad(Ctx ctx) {
         MeowState st = ctx.st();
         if (st.mode == MeowMode.KEYPAD) return;
@@ -63,9 +65,8 @@ public final class Engine {
         ctx.ui().clearExpandHints();
 
         Pending pend = st.pending;
-        Rc.Binding repeatBinding =
-                pend == null && st.repeatMap != null ? st.repeatMap.get(c) : null;
-        if (pend == null && repeatBinding == null) st.repeatMap = null;
+        Rc.Binding repeatBinding = pend == null && repeatMap != null ? repeatMap.get(c) : null;
+        if (pend == null && repeatBinding == null) repeatMap = null;
         boolean motionish = st.mode == MeowMode.MOTION;
         Rc.Binding binding =
                 pend == null
@@ -140,8 +141,7 @@ public final class Engine {
         dispatch(ctx, b);
         Map<Character, Rc.Binding> map = Rc.repeatMapFor(b);
         if (map == null) return;
-        MeowState st = ctx.st();
-        if (st.repeatMap == null) {
+        if (repeatMap == null) {
             StringBuilder keys = new StringBuilder();
             for (char k : map.keySet()) {
                 if (!keys.isEmpty()) keys.append(", ");
@@ -149,7 +149,7 @@ public final class Engine {
             }
             ctx.ui().hint("Repeat with " + keys);
         }
-        st.repeatMap = map;
+        repeatMap = map;
     }
 
     private static void dispatch(Ctx ctx, Rc.Binding b) {
@@ -194,7 +194,7 @@ public final class Engine {
             return true;
         }
         st.pending = null;
-        st.repeatMap = null;
+        repeatMap = null;
         ctx.ui().hideWhichKey();
         ctx.ui().clearExpandHints();
         if (st.mode == MeowMode.INSERT) {

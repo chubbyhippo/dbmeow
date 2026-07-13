@@ -36,6 +36,7 @@ public abstract class SpecDsl {
         ui = new FakeUi();
         st = new MeowState();
         Rc.setForTest(new Rc.Config());
+        Engine.repeatMap = null;
     }
 
     protected Ctx ctx() {

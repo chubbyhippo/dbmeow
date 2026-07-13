@@ -20,7 +20,6 @@ package io.github.chubbyhippo.dbmeow.core;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class MeowState {
     public MeowMode mode = MeowMode.NORMAL;
@@ -46,8 +45,6 @@ public class MeowState {
     public EditorPort.OffsetRange grab = null;
 
     public Avy.AvySession avy = null;
-
-    public Map<Character, Rc.Binding> repeatMap = null;
 
     public final StringBuilder keypad = new StringBuilder();
 
