@@ -32,8 +32,8 @@ done
 
 info() { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
 
-# mise pins java 21 + maven; fall back to it when a PATH mvn is missing or older.
-if command -v mvn >/dev/null 2>&1; then MVN="mvn"; else MVN="mise exec -- mvn"; fi
+# mise pins java 21 + maven; prefer the pins, fall back to a PATH mvn without mise.
+if command -v mise >/dev/null 2>&1; then MVN="mise exec -- mvn"; else MVN="mvn"; fi
 
 # Behind a TLS-inspecting proxy, Maven needs the system trust store (the p2
 # target-platform download in particular). Respect a caller's MAVEN_OPTS.
@@ -55,6 +55,6 @@ cp core/target/dbmeow-core-*.jar plugin/lib/dbmeow-core.jar
 info "building the Eclipse bundle (downloads the target platform on first run)"
 ( cd plugin && $MVN package )
 
-jar=$(ls plugin/target/dbmeow-plugin-*.jar 2>/dev/null | head -1 || true)
+jar=$(ls plugin/target/io.github.chubbyhippo.dbmeow-*.jar 2>/dev/null | head -1 || true)
 info "done — drop this bundle into DBeaver's dropins/ and restart:"
-printf '    %s\n' "${jar:-plugin/target/dbmeow-plugin-<version>.jar}"
+printf '    %s\n' "${jar:-plugin/target/io.github.chubbyhippo.dbmeow-<version>.jar}"
