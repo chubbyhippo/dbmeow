@@ -19,6 +19,7 @@ package io.github.chubbyhippo.dbmeow.eclipse;
 
 import io.github.chubbyhippo.dbmeow.core.EditorPort;
 import io.github.chubbyhippo.dbmeow.core.UiPort;
+import io.github.chubbyhippo.dbmeow.core.WhichKey;
 
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -31,6 +32,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 
 import java.util.List;
 
@@ -47,6 +49,8 @@ final class OverlayPainter implements PaintListener {
     private List<UiPort.AvyLabel> avyLabels = List.of();
     private List<EditorPort.OffsetRange> avyMatches = List.of();
     private List<Integer> expandHints = List.of();
+    private String whichKeyTitle;
+    private List<WhichKey.Row> whichKeyRows;
     private Font boldFont;
     private FontData boldBase;
 
@@ -82,6 +86,19 @@ final class OverlayPainter implements PaintListener {
         redraw();
     }
 
+    void showWhichKey(String title, List<WhichKey.Row> rows) {
+        whichKeyTitle = title;
+        whichKeyRows = rows;
+        redraw();
+    }
+
+    void hideWhichKeyPanel() {
+        if (whichKeyRows == null) return;
+        whichKeyTitle = null;
+        whichKeyRows = null;
+        redraw();
+    }
+
     void dispose() {
         if (!text.isDisposed()) text.removePaintListener(this);
         if (boldFont != null) {
@@ -96,7 +113,12 @@ final class OverlayPainter implements PaintListener {
 
     @Override
     public void paintControl(PaintEvent e) {
-        if (avyLabels.isEmpty() && avyMatches.isEmpty() && expandHints.isEmpty()) return;
+        if (avyLabels.isEmpty()
+                && avyMatches.isEmpty()
+                && expandHints.isEmpty()
+                && whichKeyRows == null) {
+            return;
+        }
         GC gc = e.gc;
         gc.setTextAntialias(SWT.ON);
         paintMatches(gc);
@@ -106,6 +128,50 @@ final class OverlayPainter implements PaintListener {
         }
         for (int i = 0; i < expandHints.size(); i++) {
             paintBox(gc, expandHints.get(i), String.valueOf((i + 1) % 10), EXPAND_HINT_BG);
+        }
+        paintWhichKey(gc);
+    }
+
+    private void paintWhichKey(GC gc) {
+        List<WhichKey.Row> rows = whichKeyRows;
+        if (rows == null || rows.isEmpty()) return;
+        int rowsPerColumn = 12;
+        gc.setFont(text.getFont());
+        int lineHeight = gc.getFontMetrics().getHeight() + 2;
+        Rectangle area = text.getClientArea();
+        int visibleRows = Math.min(rowsPerColumn, rows.size());
+        int panelHeight = (visibleRows + 1) * lineHeight + 10;
+        int top = area.height - panelHeight;
+        gc.setBackground(text.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+        gc.fillRectangle(0, top, area.width, panelHeight);
+        Color fg = text.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND);
+        gc.setForeground(fg);
+        gc.setFont(boldEditorFont());
+        gc.drawString(whichKeyTitle == null ? "" : whichKeyTitle, 8, top + 5, true);
+        gc.setFont(text.getFont());
+        int x = 8;
+        for (int column = 0; column * rowsPerColumn < rows.size(); column++) {
+            List<WhichKey.Row> slice =
+                    rows.subList(
+                            column * rowsPerColumn,
+                            Math.min((column + 1) * rowsPerColumn, rows.size()));
+            int keyWidth = 0;
+            int labelWidth = 0;
+            for (WhichKey.Row row : slice) {
+                keyWidth = Math.max(keyWidth, gc.stringExtent(row.key()).x);
+                labelWidth = Math.max(labelWidth, gc.stringExtent(row.label()).x);
+            }
+            int columnWidth = keyWidth + 12 + labelWidth + 28;
+            if (column > 0 && x + columnWidth > area.width) break;
+            for (int i = 0; i < slice.size(); i++) {
+                WhichKey.Row row = slice.get(i);
+                int y = top + 5 + (i + 1) * lineHeight;
+                gc.setForeground(EXPAND_HINT_BG);
+                gc.drawString(row.key(), x, y, true);
+                gc.setForeground(fg);
+                gc.drawString(row.label(), x + keyWidth + 12, y, true);
+            }
+            x += columnWidth;
         }
     }
 

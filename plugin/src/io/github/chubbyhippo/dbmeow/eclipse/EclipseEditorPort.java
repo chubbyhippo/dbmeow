@@ -73,10 +73,23 @@ final class EclipseEditorPort implements EditorPort {
         if (sels.isEmpty()) return;
         SelRange p = sels.get(0);
         StyledText w = viewer.getTextWidget();
-        int anchorW = modelToWidget(p.anchor());
-        int activeW = modelToWidget(p.active());
+        int anchorW = widgetSafe(w, modelToWidget(p.anchor()));
+        int activeW = widgetSafe(w, modelToWidget(p.active()));
+        if (anchorW < 0 || activeW < 0) return;
         w.setSelectionRange(anchorW, activeW - anchorW);
         w.showSelection();
+    }
+
+    private static int widgetSafe(StyledText w, int offset) {
+        if (offset < 0) return -1;
+        int max = w.getCharCount();
+        int clamped = Math.min(offset, max);
+        if (clamped > 0
+                && clamped < max
+                && w.getTextRange(clamped - 1, 2).equals("\r\n")) {
+            return clamped - 1;
+        }
+        return clamped;
     }
 
     @Override

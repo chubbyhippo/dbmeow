@@ -38,8 +38,14 @@ public final class InterceptorManager implements IPartListener2 {
 
     private InterceptorManager() {}
 
-    private final Map<AbstractTextEditor, DbmeowInterceptor> attached = new WeakHashMap<>();
-    private final Map<AbstractTextEditor, OverlayPainter> painters = new WeakHashMap<>();
+    private record Hook(
+            ISourceViewer viewer,
+            DbmeowInterceptor interceptor,
+            OverlayPainter painter,
+            EclipseUi ui,
+            MeowState st) {}
+
+    private final Map<AbstractTextEditor, Hook> hooks = new WeakHashMap<>();
 
     @Override
     public void partOpened(IWorkbenchPartReference ref) {
@@ -55,14 +61,8 @@ public final class InterceptorManager implements IPartListener2 {
     public void partClosed(IWorkbenchPartReference ref) {
         IWorkbenchPart part = ref.getPart(false);
         if (!(part instanceof AbstractTextEditor editor)) return;
-        DbmeowInterceptor interceptor = attached.remove(editor);
-        if (interceptor == null) return;
-        ISourceViewer viewer = sourceViewerOf(editor);
-        if (viewer instanceof ITextViewerExtension ext) {
-            ext.removeVerifyKeyListener(interceptor);
-        }
-        OverlayPainter painter = painters.remove(editor);
-        if (painter != null) painter.dispose();
+        Hook hook = hooks.remove(editor);
+        if (hook != null) release(hook);
     }
 
     @Override
@@ -83,9 +83,14 @@ public final class InterceptorManager implements IPartListener2 {
     void attach(IWorkbenchPartReference ref) {
         IWorkbenchPart part = ref.getPart(false);
         if (!(part instanceof AbstractTextEditor editor)) return;
-        if (attached.containsKey(editor)) return;
         ISourceViewer viewer = sourceViewerOf(editor);
         if (!(viewer instanceof ITextViewerExtension ext)) return;
+        Hook existing = hooks.get(editor);
+        if (existing != null && existing.viewer() == viewer) {
+            existing.ui().refresh(existing.st());
+            return;
+        }
+        if (existing != null) release(existing);
 
         MeowState st = new MeowState();
         st.mode = MeowMode.NORMAL;
@@ -96,9 +101,15 @@ public final class InterceptorManager implements IPartListener2 {
         DbmeowInterceptor interceptor = new DbmeowInterceptor(ctx);
 
         ext.prependVerifyKeyListener(interceptor);
-        attached.put(editor, interceptor);
-        painters.put(editor, painter);
+        hooks.put(editor, new Hook(viewer, interceptor, painter, ui, st));
         ui.refresh(st);
+    }
+
+    private static void release(Hook hook) {
+        if (hook.viewer() instanceof ITextViewerExtension ext) {
+            ext.removeVerifyKeyListener(hook.interceptor());
+        }
+        hook.painter().dispose();
     }
 
     private static ISourceViewer sourceViewerOf(AbstractTextEditor editor) {

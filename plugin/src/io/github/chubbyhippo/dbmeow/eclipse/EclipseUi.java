@@ -19,7 +19,9 @@ package io.github.chubbyhippo.dbmeow.eclipse;
 
 import io.github.chubbyhippo.dbmeow.core.MeowMode;
 import io.github.chubbyhippo.dbmeow.core.MeowState;
+import io.github.chubbyhippo.dbmeow.core.Rc;
 import io.github.chubbyhippo.dbmeow.core.UiPort;
+import io.github.chubbyhippo.dbmeow.core.WhichKey;
 
 import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.jface.dialogs.InputDialog;
@@ -43,6 +45,9 @@ final class EclipseUi implements UiPort {
     private final StyledText text;
     private final OverlayPainter painter;
     private final int insertCaretWidth;
+    private final Runnable showWhichKey;
+    private String whichKeyKind;
+    private String whichKeyBuffer;
 
     EclipseUi(AbstractTextEditor editor, MeowState st, StyledText text, OverlayPainter painter) {
         this.editor = editor;
@@ -51,6 +56,7 @@ final class EclipseUi implements UiPort {
         this.painter = painter;
         Caret caret = text.getCaret();
         this.insertCaretWidth = caret == null ? 1 : Math.max(1, caret.getSize().x);
+        this.showWhichKey = this::showWhichKeyNow;
     }
 
     @Override
@@ -100,10 +106,34 @@ final class EclipseUi implements UiPort {
     }
 
     @Override
-    public void scheduleWhichKey(String kind, String buffer) {}
+    public void scheduleWhichKey(String kind, String buffer) {
+        if (!Rc.whichKeyEnabled() || text.isDisposed()) return;
+        whichKeyKind = kind;
+        whichKeyBuffer = buffer == null ? "" : buffer;
+        text.getDisplay().timerExec(-1, showWhichKey);
+        text.getDisplay().timerExec(Rc.whichKeyDelayMs(), showWhichKey);
+    }
 
     @Override
-    public void hideWhichKey() {}
+    public void hideWhichKey() {
+        whichKeyKind = null;
+        if (!text.isDisposed()) text.getDisplay().timerExec(-1, showWhichKey);
+        painter.hideWhichKeyPanel();
+    }
+
+    private void showWhichKeyNow() {
+        String kind = whichKeyKind;
+        if (kind == null || text.isDisposed()) return;
+        List<WhichKey.Row> rows =
+                "things".equals(kind) ? WhichKey.THINGS : WhichKey.keypadRows(whichKeyBuffer);
+        String title =
+                "things".equals(kind)
+                        ? "thing:"
+                        : whichKeyBuffer.isEmpty()
+                                ? "SPC"
+                                : "SPC " + String.join(" ", whichKeyBuffer.split(""));
+        painter.showWhichKey(title, rows);
+    }
 
     @Override
     public void showExpandHints(List<Integer> positions) {

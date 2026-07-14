@@ -25,6 +25,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 
+import java.util.function.BooleanSupplier;
+
 public final class DbmeowInterceptor implements VerifyKeyListener {
 
     private static final int AVY_TIMEOUT_MS = 250;
@@ -45,7 +47,7 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
         if (!event.doit) return;
 
         if (event.keyCode == SWT.ESC) {
-            if (Engine.escapeKey(ctx)) {
+            if (guarded(() -> Engine.escapeKey(ctx))) {
                 event.doit = false;
                 event.display.timerExec(-1, finishAvyInput);
             }
@@ -58,13 +60,23 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
         char c = event.character;
         if (c == 0 || c < 0x20 || c == SWT.DEL) return;
 
-        boolean handled = Engine.handleChar(ctx, c);
+        boolean handled = guarded(() -> Engine.handleChar(ctx, c));
         event.doit = !handled;
         if (handled) {
             event.display.timerExec(-1, finishAvyInput);
             if (Avy.awaitingTimeout(ctx.st())) {
                 event.display.timerExec(AVY_TIMEOUT_MS, finishAvyInput);
             }
+        }
+    }
+
+    private boolean guarded(BooleanSupplier engineCall) {
+        try {
+            return engineCall.getAsBoolean();
+        } catch (RuntimeException e) {
+            String reason = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            ctx.ui().hint("error — " + reason);
+            return true;
         }
     }
 }
