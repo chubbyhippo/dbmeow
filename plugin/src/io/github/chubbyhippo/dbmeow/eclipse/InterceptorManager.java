@@ -39,6 +39,7 @@ public final class InterceptorManager implements IPartListener2 {
     private InterceptorManager() {}
 
     private final Map<AbstractTextEditor, DbmeowInterceptor> attached = new WeakHashMap<>();
+    private final Map<AbstractTextEditor, OverlayPainter> painters = new WeakHashMap<>();
 
     @Override
     public void partOpened(IWorkbenchPartReference ref) {
@@ -60,6 +61,8 @@ public final class InterceptorManager implements IPartListener2 {
         if (viewer instanceof ITextViewerExtension ext) {
             ext.removeVerifyKeyListener(interceptor);
         }
+        OverlayPainter painter = painters.remove(editor);
+        if (painter != null) painter.dispose();
     }
 
     @Override
@@ -86,13 +89,15 @@ public final class InterceptorManager implements IPartListener2 {
 
         MeowState st = new MeowState();
         st.mode = MeowMode.NORMAL;
-        EclipseUi ui = new EclipseUi(editor, st);
+        OverlayPainter painter = new OverlayPainter(viewer);
+        EclipseUi ui = new EclipseUi(editor, st, viewer.getTextWidget(), painter);
         Ctx ctx = new Ctx(
                 new EclipseEditorPort(viewer, editor), new EclipseClipboard(viewer), ui, st);
         DbmeowInterceptor interceptor = new DbmeowInterceptor(ctx);
 
         ext.prependVerifyKeyListener(interceptor);
         attached.put(editor, interceptor);
+        painters.put(editor, painter);
         ui.refresh(st);
     }
 

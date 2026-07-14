@@ -147,6 +147,12 @@ public final class Avy {
         ctx.ui().showAvyMatches(ranges);
     }
 
+    public static boolean awaitingTimeout(MeowState st) {
+        return st.avy != null
+                && st.avy.phase == AvySession.Phase.COLLECTING
+                && st.avy.input.length() > 0;
+    }
+
     public static void finishInput(Ctx ctx) {
         AvySession session = ctx.st().avy;
         if (session == null || session.phase != AvySession.Phase.COLLECTING) return;

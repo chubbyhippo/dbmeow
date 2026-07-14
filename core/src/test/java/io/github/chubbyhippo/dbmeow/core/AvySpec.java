@@ -18,6 +18,7 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -127,6 +128,21 @@ class AvySpec extends SpecDsl {
         assertTrue(pressEsc());
         assertNull(st.avy);
         thenCaretAt(0);
+    }
+
+    @Test
+    @DisplayName(
+            "given S then the input timeout is awaited only once a char is typed"
+                    + " (avy-timeout-seconds)")
+    void timeoutAwaitedOnlyAfterFirstChar() {
+        given("words", "<caret>foo foo foo");
+        whenKeys("S");
+        assertFalse(Avy.awaitingTimeout(st));
+        whenKeys("f");
+        assertTrue(Avy.awaitingTimeout(st));
+        timeout();
+        assertFalse(Avy.awaitingTimeout(st));
+        assertNotNull(st.avy);
     }
 
     @Test

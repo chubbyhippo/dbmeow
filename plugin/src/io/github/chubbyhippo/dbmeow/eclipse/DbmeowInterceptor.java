@@ -17,6 +17,7 @@
 
 package io.github.chubbyhippo.dbmeow.eclipse;
 
+import io.github.chubbyhippo.dbmeow.core.Avy;
 import io.github.chubbyhippo.dbmeow.core.Ctx;
 import io.github.chubbyhippo.dbmeow.core.Engine;
 
@@ -26,10 +27,17 @@ import org.eclipse.swt.events.VerifyEvent;
 
 public final class DbmeowInterceptor implements VerifyKeyListener {
 
+    private static final int AVY_TIMEOUT_MS = 250;
+
     private final Ctx ctx;
+    private final Runnable finishAvyInput;
 
     DbmeowInterceptor(Ctx ctx) {
         this.ctx = ctx;
+        this.finishAvyInput =
+                () -> {
+                    if (Avy.awaitingTimeout(ctx.st())) Avy.finishInput(ctx);
+                };
     }
 
     @Override
@@ -37,7 +45,10 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
         if (!event.doit) return;
 
         if (event.keyCode == SWT.ESC) {
-            if (Engine.escapeKey(ctx)) event.doit = false;
+            if (Engine.escapeKey(ctx)) {
+                event.doit = false;
+                event.display.timerExec(-1, finishAvyInput);
+            }
             return;
         }
 
@@ -49,5 +60,11 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
 
         boolean handled = Engine.handleChar(ctx, c);
         event.doit = !handled;
+        if (handled) {
+            event.display.timerExec(-1, finishAvyInput);
+            if (Avy.awaitingTimeout(ctx.st())) {
+                event.display.timerExec(AVY_TIMEOUT_MS, finishAvyInput);
+            }
+        }
     }
 }

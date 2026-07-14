@@ -17,12 +17,17 @@
 
 package io.github.chubbyhippo.dbmeow.eclipse;
 
+import io.github.chubbyhippo.dbmeow.core.MeowMode;
 import io.github.chubbyhippo.dbmeow.core.MeowState;
 import io.github.chubbyhippo.dbmeow.core.UiPort;
 
 import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Caret;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.handlers.IHandlerService;
@@ -35,10 +40,17 @@ final class EclipseUi implements UiPort {
 
     private final AbstractTextEditor editor;
     private final MeowState st;
+    private final StyledText text;
+    private final OverlayPainter painter;
+    private final int insertCaretWidth;
 
-    EclipseUi(AbstractTextEditor editor, MeowState st) {
+    EclipseUi(AbstractTextEditor editor, MeowState st, StyledText text, OverlayPainter painter) {
         this.editor = editor;
         this.st = st;
+        this.text = text;
+        this.painter = painter;
+        Caret caret = text.getCaret();
+        this.insertCaretWidth = caret == null ? 1 : Math.max(1, caret.getSize().x);
     }
 
     @Override
@@ -94,20 +106,30 @@ final class EclipseUi implements UiPort {
     public void hideWhichKey() {}
 
     @Override
-    public void showExpandHints(List<Integer> positions) {}
+    public void showExpandHints(List<Integer> positions) {
+        painter.showExpandHints(positions);
+    }
 
     @Override
-    public void clearExpandHints() {}
+    public void clearExpandHints() {
+        painter.clearExpandHints();
+    }
 
     @Override
     public void showAvyMatches(
-            List<io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange> matches) {}
+            List<io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange> matches) {
+        painter.showAvyMatches(matches);
+    }
 
     @Override
-    public void showAvyLabels(List<UiPort.AvyLabel> labels) {}
+    public void showAvyLabels(List<UiPort.AvyLabel> labels) {
+        painter.showAvyLabels(labels);
+    }
 
     @Override
-    public void clearAvy() {}
+    public void clearAvy() {
+        painter.clearAvy();
+    }
 
     @Override
     public void modeChanged(MeowState state) {
@@ -117,6 +139,25 @@ final class EclipseUi implements UiPort {
     @Override
     public void refresh(MeowState state) {
         status("-- " + state.mode + " --");
+        applyCaret(state);
+    }
+
+    private void applyCaret(MeowState state) {
+        if (text.isDisposed()) return;
+        Caret caret = text.getCaret();
+        if (caret == null || caret.isDisposed()) return;
+        Point size = caret.getSize();
+        int width = state.mode == MeowMode.INSERT ? insertCaretWidth : blockCaretWidth();
+        if (size.x != width) caret.setSize(width, size.y);
+    }
+
+    private int blockCaretWidth() {
+        GC gc = new GC(text);
+        try {
+            return Math.max(2, (int) gc.getFontMetrics().getAverageCharacterWidth());
+        } finally {
+            gc.dispose();
+        }
     }
 
     private void status(String message) {
