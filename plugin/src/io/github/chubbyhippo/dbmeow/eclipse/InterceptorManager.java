@@ -77,7 +77,7 @@ public final class InterceptorManager implements IPartListener2 {
     @Override
     public void partInputChanged(IWorkbenchPartReference ref) {}
 
-    private void attach(IWorkbenchPartReference ref) {
+    void attach(IWorkbenchPartReference ref) {
         IWorkbenchPart part = ref.getPart(false);
         if (!(part instanceof AbstractTextEditor editor)) return;
         if (attached.containsKey(editor)) return;

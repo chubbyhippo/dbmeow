@@ -17,7 +17,9 @@
 
 package io.github.chubbyhippo.dbmeow.eclipse;
 
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.PlatformUI;
@@ -34,6 +36,11 @@ public final class DbmeowStartup implements IStartup {
         InterceptorManager manager = InterceptorManager.INSTANCE;
         for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
             window.getPartService().addPartListener(manager);
+            for (IWorkbenchPage page : window.getPages()) {
+                for (IEditorReference ref : page.getEditorReferences()) {
+                    manager.attach(ref);
+                }
+            }
         }
         PlatformUI.getWorkbench().addWindowListener(new IWindowListener() {
             @Override
