@@ -32,6 +32,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Caret;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.contexts.IContextActivation;
+import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -46,6 +48,9 @@ final class EclipseUi implements UiPort {
     private final OverlayPainter painter;
     private final int insertCaretWidth;
     private final Runnable showWhichKey;
+    private final IContextService contexts;
+    private final IContextActivation activeContext;
+    private IContextActivation normalContext;
     private String whichKeyKind;
     private String whichKeyBuffer;
 
@@ -57,6 +62,20 @@ final class EclipseUi implements UiPort {
         Caret caret = text.getCaret();
         this.insertCaretWidth = caret == null ? 1 : Math.max(1, caret.getSize().x);
         this.showWhichKey = this::showWhichKeyNow;
+        this.contexts = editor.getSite().getService(IContextService.class);
+        this.activeContext =
+                contexts == null
+                        ? null
+                        : contexts.activateContext("io.github.chubbyhippo.dbmeow.active");
+    }
+
+    void dispose() {
+        if (contexts == null) return;
+        if (normalContext != null) {
+            contexts.deactivateContext(normalContext);
+            normalContext = null;
+        }
+        if (activeContext != null) contexts.deactivateContext(activeContext);
     }
 
     @Override
@@ -170,6 +189,19 @@ final class EclipseUi implements UiPort {
     public void refresh(MeowState state) {
         status("-- " + state.mode + " --");
         applyCaret(state);
+        applyChordContext(state);
+    }
+
+    private void applyChordContext(MeowState state) {
+        if (contexts == null) return;
+        if (state.mode == MeowMode.INSERT) {
+            if (normalContext != null) {
+                contexts.deactivateContext(normalContext);
+                normalContext = null;
+            }
+        } else if (normalContext == null) {
+            normalContext = contexts.activateContext("io.github.chubbyhippo.dbmeow.normal");
+        }
     }
 
     private void applyCaret(MeowState state) {

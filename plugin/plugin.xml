@@ -4,4 +4,65 @@
    <extension point="org.eclipse.ui.startup">
       <startup class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowStartup"/>
    </extension>
+   <extension point="org.eclipse.ui.contexts">
+      <context id="io.github.chubbyhippo.dbmeow.active" name="dbmeow" parentId="org.eclipse.ui.textEditorScope"/>
+      <context id="io.github.chubbyhippo.dbmeow.normal" name="dbmeow NORMAL" parentId="io.github.chubbyhippo.dbmeow.active"/>
+   </extension>
+   <extension point="org.eclipse.ui.commands">
+      <command id="io.github.chubbyhippo.dbmeow.keypad" name="Meow Keypad"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.forward-char" name="Meow Forward Char"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.backward-char" name="Meow Backward Char"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.next-line" name="Meow Next Line"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.previous-line" name="Meow Previous Line"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.move-beginning-of-line" name="Meow Beginning Of Line"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.move-end-of-line" name="Meow End Of Line"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.forward-word" name="Meow Forward Word"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.backward-word" name="Meow Backward Word"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.backward-sentence" name="Meow Backward Sentence"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.forward-sentence" name="Meow Forward Sentence"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.upcase-word" name="Meow Upcase Word"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.downcase-word" name="Meow Downcase Word"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.capitalize-word" name="Meow Capitalize Word"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.kill-word" name="Meow Kill Word"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.beginning-of-buffer" name="Meow Beginning Of Buffer"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.end-of-buffer" name="Meow End Of Buffer"/>
+   </extension>
+   <extension point="org.eclipse.ui.handlers">
+      <handler commandId="io.github.chubbyhippo.dbmeow.keypad" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.forward-char" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.backward-char" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.next-line" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.previous-line" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.move-beginning-of-line" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.move-end-of-line" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.forward-word" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.backward-word" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.backward-sentence" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.forward-sentence" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.upcase-word" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.downcase-word" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.capitalize-word" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.kill-word" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.beginning-of-buffer" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.end-of-buffer" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+   </extension>
+   <extension point="org.eclipse.ui.bindings">
+      <key sequence="ALT+;" commandId="io.github.chubbyhippo.dbmeow.keypad" contextId="io.github.chubbyhippo.dbmeow.active" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="CTRL+F" commandId="io.github.chubbyhippo.dbmeow.emacs.forward-char" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="CTRL+B" commandId="io.github.chubbyhippo.dbmeow.emacs.backward-char" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="CTRL+N" commandId="io.github.chubbyhippo.dbmeow.emacs.next-line" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="CTRL+P" commandId="io.github.chubbyhippo.dbmeow.emacs.previous-line" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="CTRL+A" commandId="io.github.chubbyhippo.dbmeow.emacs.move-beginning-of-line" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="CTRL+E" commandId="io.github.chubbyhippo.dbmeow.emacs.move-end-of-line" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+F" commandId="io.github.chubbyhippo.dbmeow.emacs.forward-word" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+B" commandId="io.github.chubbyhippo.dbmeow.emacs.backward-word" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+A" commandId="io.github.chubbyhippo.dbmeow.emacs.backward-sentence" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+E" commandId="io.github.chubbyhippo.dbmeow.emacs.forward-sentence" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+U" commandId="io.github.chubbyhippo.dbmeow.emacs.upcase-word" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+L" commandId="io.github.chubbyhippo.dbmeow.emacs.downcase-word" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+C" commandId="io.github.chubbyhippo.dbmeow.emacs.capitalize-word" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+D" commandId="io.github.chubbyhippo.dbmeow.emacs.kill-word" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+SHIFT+," commandId="io.github.chubbyhippo.dbmeow.emacs.beginning-of-buffer" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+SHIFT+." commandId="io.github.chubbyhippo.dbmeow.emacs.end-of-buffer" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+   </extension>
 </plugin>

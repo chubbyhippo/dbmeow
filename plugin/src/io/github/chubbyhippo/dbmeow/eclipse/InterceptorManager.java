@@ -43,7 +43,8 @@ public final class InterceptorManager implements IPartListener2 {
             DbmeowInterceptor interceptor,
             OverlayPainter painter,
             EclipseUi ui,
-            MeowState st) {}
+            MeowState st,
+            Ctx ctx) {}
 
     private final Map<AbstractTextEditor, Hook> hooks = new WeakHashMap<>();
 
@@ -101,8 +102,13 @@ public final class InterceptorManager implements IPartListener2 {
         DbmeowInterceptor interceptor = new DbmeowInterceptor(ctx);
 
         ext.prependVerifyKeyListener(interceptor);
-        hooks.put(editor, new Hook(viewer, interceptor, painter, ui, st));
+        hooks.put(editor, new Hook(viewer, interceptor, painter, ui, st, ctx));
         ui.refresh(st);
+    }
+
+    Ctx ctxOf(AbstractTextEditor editor) {
+        Hook hook = hooks.get(editor);
+        return hook == null ? null : hook.ctx();
     }
 
     private static void release(Hook hook) {
@@ -110,6 +116,7 @@ public final class InterceptorManager implements IPartListener2 {
             ext.removeVerifyKeyListener(hook.interceptor());
         }
         hook.painter().dispose();
+        hook.ui().dispose();
     }
 
     private static ISourceViewer sourceViewerOf(AbstractTextEditor editor) {

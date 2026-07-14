@@ -98,16 +98,29 @@ mmap q <action>(dbmeow.hideView)
 map <leader><Space> <action>(org.eclipse.ui.window.previousEditor)
 desc <leader><Space> last editor
 
-desc <leader>x files
+desc <leader>x C-x · files / buffers / splits
 " f = goto-file: Eclipse's Open Resource dialog
 map <leader>xf <action>(org.eclipse.ui.navigate.openResource)
+map <leader>xb <action>(org.eclipse.ui.window.openEditorDropDown)
+map <leader>xd <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.databaseNavigator))
 map <leader>xs <action>(org.eclipse.ui.file.save)
 map <leader>xS <action>(org.eclipse.ui.file.saveAll)
 map <leader>xk <action>(org.eclipse.ui.file.close)
 map <leader>xK <action>(org.eclipse.ui.file.closeAll)
 map <leader>xr <action>(org.eclipse.ui.file.refresh)
+map <leader>xu <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.team.ui.GenericHistoryView))
+map <leader>x2 <action>(org.eclipse.ui.window.splitEditor(Splitter.isHorizontal=true))
+map <leader>x3 <action>(org.eclipse.ui.window.splitEditor(Splitter.isHorizontal=false))
 
-desc <leader>w windows
+desc <leader>xp C-x p · project
+map <leader>xpf <action>(org.eclipse.ui.navigate.openResource)
+map <leader>xpb <action>(org.eclipse.ui.window.openEditorDropDown)
+map <leader>xpg <action>(org.eclipse.search.ui.openFileSearchPage)
+
+desc <leader>xr C-x r · bookmarks
+map <leader>xrb <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView))
+
+desc <leader>w window / splits / zoom
 map <leader>wn <action>(org.eclipse.ui.window.nextEditor)
 map <leader>wp <action>(org.eclipse.ui.window.previousEditor)
 map <leader>w. <action>(org.eclipse.ui.window.nextEditor)
@@ -116,47 +129,163 @@ map <leader>wh <action>(dbmeow.windmoveLeft)
 map <leader>wj <action>(dbmeow.windmoveDown)
 map <leader>wk <action>(dbmeow.windmoveUp)
 map <leader>wl <action>(dbmeow.windmoveRight)
+" v/s: split the editor side-by-side / stacked (run again to unsplit)
+map <leader>wv <action>(org.eclipse.ui.window.splitEditor(Splitter.isHorizontal=false))
+map <leader>ws <action>(org.eclipse.ui.window.splitEditor(Splitter.isHorizontal=true))
 " zoom on SPC w i/o (no reset — Eclipse defines only zoomIn/zoomOut)
 map <leader>wi <action>(org.eclipse.ui.edit.text.zoomIn)
 map <leader>w= <action>(org.eclipse.ui.edit.text.zoomIn)
 map <leader>wo <action>(org.eclipse.ui.edit.text.zoomOut)
 map <leader>w- <action>(org.eclipse.ui.edit.text.zoomOut)
 
-desc <leader>e edit
+desc <leader>e edit / folding
 map <leader>eu <action>(org.eclipse.ui.edit.undo)
 map <leader>er <action>(org.eclipse.ui.edit.redo)
 map <leader>ef <action>(org.eclipse.ui.edit.findReplace)
+map <leader>ea <action>(org.eclipse.ui.edit.text.folding.expand_all)
+map <leader>et <action>(org.eclipse.ui.edit.text.folding.toggle)
+
+desc <leader>f find / format / new
+map <leader>fe <action>(org.eclipse.ui.navigate.showInQuickMenu)
+map <leader>ff <action>(org.eclipse.search.ui.openFileSearchPage)
+map <leader>fi <action>(org.eclipse.ui.edit.findReplace)
+map <leader>fm <action>(org.jkiss.dbeaver.ui.editors.text.content.format)
+map <leader>fn <action>(org.eclipse.ui.file.newQuickMenu)
+map <leader>fo <action>(org.jkiss.dbeaver.ui.editors.text.content.format)
+map <leader>fr <action>(org.eclipse.ui.window.openEditorDropDown)
+
+desc <leader>g goto / history
+map <leader>gd <action>(org.jkiss.dbeaver.ui.editors.sql.navigate.object)
+map <leader>gh <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.team.ui.GenericHistoryView))
+
+desc <leader>h maximize editor (hide views)
+map <leader>h <action>(org.eclipse.ui.window.maximizePart)
 
 desc <leader>j jump
 map <leader>jo <action>(org.eclipse.ui.navigate.backwardHistory)
 map <leader>ji <action>(org.eclipse.ui.navigate.forwardHistory)
+map <leader>jl <action>(org.eclipse.ui.edit.text.goto.line)
+map <leader>jb <action>(org.jkiss.dbeaver.ui.editors.sql.gotoMatchingBracket)
+
+desc <leader>k key bindings
+map <leader>k <action>(org.eclipse.ui.window.showKeyAssist)
+
+desc <leader>l local history
+map <leader>lh <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.team.ui.GenericHistoryView))
 
 " SPC c m / M — edit and reload ~/.dbmeowrc; reload saves a dirty rc editor
 " first
-desc <leader>c config
+desc <leader>c C-c · commands / config
+map <leader>cf <action>(org.eclipse.ui.navigate.openResource)
+map <leader>cs <action>(org.eclipse.ui.file.saveAll)
+map <leader>ck <action>(org.eclipse.ui.file.close)
+map <leader>cr <action>(org.eclipse.search.ui.openFileSearchPage)
+map <leader>ca <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.TaskList))
+map <leader>cc <action>(org.jkiss.dbeaver.core.sql.editor.create)
 map <leader>cm <action>(dbmeow.editRc)
 map <leader>cM <action>(dbmeow.reloadRc)
 
+desc <leader>cj C-c j · avy jump
+map <leader>cjw avy-goto-char-timer
+map <leader>cjc avy-goto-char-timer
+map <leader>cjl avy-goto-line
+
 " SPC m = M-: meta — m x Quick Access (Eclipse's M-x), m , = M-, go back,
-" m o / m g = the avy jumps on this prefix
-desc <leader>m meta
+" m . = M-. goto declaration, m o / m g = the avy jumps on this prefix
+desc <leader>m M- · meta
 map <leader>mx <action>(org.eclipse.ui.window.quickAccess)
 map <leader>mo avy-goto-char-timer
 map <leader>m, <action>(org.eclipse.ui.navigate.backwardHistory)
+map <leader>m. <action>(org.jkiss.dbeaver.ui.editors.sql.navigate.object)
 map <leader>mg avy-goto-line
+
+desc <leader>ms M-s · search
+map <leader>msr <action>(org.eclipse.search.ui.openFileSearchPage)
+map <leader>msl <action>(org.eclipse.ui.edit.findReplace)
+map <leader>mss <action>(org.eclipse.ui.edit.findReplace)
+map <leader>msL <action>(org.eclipse.search.ui.openFileSearchPage)
+map <leader>mso <action>(org.jkiss.dbeaver.ui.editors.sql.show.outline)
+
+desc <leader>n new
+map <leader>nc <action>(org.jkiss.dbeaver.core.new.connection)
+map <leader>nd <action>(org.jkiss.dbeaver.core.new.folder)
+map <leader>nf <action>(org.eclipse.ui.file.newQuickMenu)
+map <leader>ns <action>(org.jkiss.dbeaver.core.sql.editor.create)
+
+desc <leader>o open
+map <leader>oe <action>(org.eclipse.ui.navigate.showInQuickMenu)
+map <leader>of <action>(org.jkiss.dbeaver.ui.editors.sql.open.file)
+
+desc <leader>p popup / pin
+map <leader>pf <action>(org.eclipse.ui.navigate.openResource)
+map <leader>pm <action>(org.eclipse.ui.window.showContextMenu)
+map <leader>pp <action>(org.eclipse.ui.edit.text.contentAssist.contextInformation)
+map <leader>pt <action>(org.eclipse.ui.window.pinEditor)
+
+desc <leader>q close editor tab
+map <leader>q <action>(org.eclipse.ui.file.close)
+
+desc <leader>r run SQL (r statement / s script / e explain / x cancel)
+map <leader>rr <action>(org.jkiss.dbeaver.ui.editors.sql.run.statement)
+map <leader>rn <action>(org.jkiss.dbeaver.ui.editors.sql.run.statementNew)
+map <leader>rs <action>(org.jkiss.dbeaver.ui.editors.sql.run.script)
+map <leader>re <action>(org.jkiss.dbeaver.ui.editors.sql.run.explain)
+map <leader>rc <action>(org.jkiss.dbeaver.ui.editors.sql.run.count)
+map <leader>rx <action>(org.jkiss.dbeaver.ui.editors.sql.cancel.query)
+
+desc <leader>s search / show
+map <leader>sa <action>(org.eclipse.ui.window.quickAccess)
+map <leader>sf <action>(org.eclipse.ui.navigate.openResource)
+map <leader>sp <action>(org.eclipse.search.ui.performTextSearchWorkspace)
+map <leader>sr <action>(org.eclipse.search.ui.openSearchDialog)
+map <leader>ss <action>(org.eclipse.ui.edit.findReplace)
+map <leader>sS <action>(org.jkiss.dbeaver.ui.editors.sql.show.outline)
+map <leader>sv <action>(dbmeow.reloadRc)
+
+desc <leader>t toggle (result panel / wrap / whitespace)
+map <leader>tf <action>(org.eclipse.ui.window.fullscreenmode)
+map <leader>tl <action>(org.eclipse.ui.editors.lineNumberToggle)
+map <leader>tm <action>(org.jkiss.dbeaver.ui.editors.sql.maximize.result.panel)
+map <leader>tp <action>(org.jkiss.dbeaver.ui.editors.sql.toggle.result.panel)
+map <leader>ts <action>(org.eclipse.ui.edit.text.toggleShowWhitespaceCharacters)
+map <leader>tw <action>(org.jkiss.dbeaver.ui.editors.sql.word.wrap)
+
+desc <leader>; settings / UI
+map <leader>;f <action>(org.eclipse.ui.window.fullscreenmode)
+map <leader>;k <action>(org.eclipse.ui.window.showKeyAssist)
+map <leader>;l <action>(org.eclipse.ui.editors.lineNumberToggle)
+map <leader>;R <action>(org.eclipse.ui.file.restartWorkbench)
+map <leader>;s <action>(org.eclipse.ui.window.preferences)
+
+desc <leader>a activate view
+map <leader>ab <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView))
+map <leader>ac <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.console.ConsoleView))
+map <leader>ad <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.databaseNavigator))
+map <leader>ae <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.pde.runtime.LogView))
+map <leader>ag <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.ProgressView))
+map <leader>ah <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.team.ui.GenericHistoryView))
+map <leader>ao <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.databaseOutput))
+map <leader>ap <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.projectExplorer))
+map <leader>aP <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.ProblemView))
+map <leader>aq <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.queryManager))
+map <leader>as <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.search.ui.views.SearchView))
+map <leader>av <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.ui.dashboardView))
 
 " SPC b — bookmarks: m sets a line bookmark, j opens the Bookmarks view
 desc <leader>b bookmark (m set / j jump)
 map <leader>bm <action>(org.eclipse.ui.edit.addBookmark)
 map <leader>bj <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.BookmarkView))
+map <leader>bb <action>(org.eclipse.ui.window.openEditorDropDown)
 
-" SPC . / SPC , — next / prev annotation (walks the SQL editor's markers)
-desc <leader>. next (annotation / error / tab)
+" SPC . / SPC , — next / prev annotation, tab, executed query
+desc <leader>. next (annotation / tab / query)
 map <leader>.e <action>(org.eclipse.ui.navigate.next)
 map <leader>.t <action>(org.eclipse.ui.window.nextEditor)
-desc <leader>, previous (annotation / error / tab)
+map <leader>.q <action>(org.jkiss.dbeaver.ui.editors.sql.query.next)
+desc <leader>, previous (annotation / tab / query)
 map <leader>,e <action>(org.eclipse.ui.navigate.previous)
 map <leader>,t <action>(org.eclipse.ui.window.previousEditor)
+map <leader>,q <action>(org.jkiss.dbeaver.ui.editors.sql.query.prev)
 
 " ============================================================================
 " Repeat groups — tap-to-continue transient maps
