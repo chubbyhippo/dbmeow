@@ -25,9 +25,13 @@ MAVEN_OPTS="-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts" \
 
 The bundle lands at
 `plugin/target/io.github.chubbyhippo.dbmeow-0.1.0-SNAPSHOT.jar` (the
-artifactId must equal the Bundle-SymbolicName — Tycho's validate-id). Drop it
-into DBeaver's `dropins/` (or any Eclipse `dropins/`) and restart; open a SQL
-editor and you are in NORMAL mode.
+artifactId must equal the Bundle-SymbolicName — Tycho's validate-id).
+`../setup.sh` installs it: DBeaver never reconciles `dropins/`, so the
+script copies the jar into
+`plugins/io.github.chubbyhippo.dbmeow_<Bundle-Version>.jar` and registers
+it in `configuration/org.eclipse.equinox.simpleconfigurator/bundles.info`
+(a plain Eclipse IDE still accepts the jar via `dropins/`). Restart
+DBeaver, open a SQL editor, and you are in NORMAL mode.
 
 ## Notes / status
 
