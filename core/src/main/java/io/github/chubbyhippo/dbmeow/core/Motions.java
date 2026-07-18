@@ -49,8 +49,18 @@ public final class Motions {
         commands.put("meow-till", ctx -> ctx.st().pending = Pending.TILL);
         commands.put("forward-char", ctx -> charOrExpand(ctx, ctx.st().takeCount(1)));
         commands.put("backward-char", ctx -> charOrExpand(ctx, -ctx.st().takeCount(1)));
-        commands.put("next-line", ctx -> lineOrExpand(ctx, ctx.st().takeCount(1)));
-        commands.put("previous-line", ctx -> lineOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put(
+                "next-line",
+                ctx -> {
+                    lineOrExpand(ctx, ctx.st().takeCount(1));
+                    ctx.st().lastCommand = "next-line";
+                });
+        commands.put(
+                "previous-line",
+                ctx -> {
+                    lineOrExpand(ctx, -ctx.st().takeCount(1));
+                    ctx.st().lastCommand = "previous-line";
+                });
         commands.put(
                 "move-beginning-of-line",
                 ctx -> moveToOrExpand(ctx, SelType.CHAR, Motions::lineStartTarget));
@@ -136,7 +146,7 @@ public final class Motions {
                     int len = text.length();
                     if (!counted) return top ? 0 : len;
                     int tenth = len * n / 10;
-                    int raw = Text.clamp(top ? 1 + tenth : len - tenth, 0, len);
+                    int raw = Text.clamp(top ? tenth : len - tenth, 0, len);
                     return nextLineStart(text, raw);
                 });
     }
@@ -152,7 +162,13 @@ public final class Motions {
     }
 
     private static final Set<String> VERTICAL =
-            Set.of("meow-next", "meow-prev", "meow-next-expand", "meow-prev-expand");
+            Set.of(
+                    "meow-next",
+                    "meow-prev",
+                    "meow-next-expand",
+                    "meow-prev-expand",
+                    "next-line",
+                    "previous-line");
 
     private static boolean charSelActive(Ctx ctx) {
         return ctx.st().selType == SelType.CHAR && Selections.hasSelection(Selections.primary(ctx));

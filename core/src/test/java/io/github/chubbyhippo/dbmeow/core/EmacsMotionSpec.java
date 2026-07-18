@@ -321,4 +321,28 @@ class EmacsMotionSpec extends SpecDsl {
         thenCaretAt(44);
         thenNoSelection();
     }
+
+    @Test
+    @DisplayName(
+            "given a count landing on a line boundary when beginning-of-buffer then the caret"
+                    + " lands one line past that tenth")
+    void countedBeginningOfBufferLandsPastLineBoundary() {
+        given("three two-char lines", "<caret>aa\naa\naa\n");
+        whenKeys("3");
+        whenCommand("beginning-of-buffer");
+        thenCaretAt(3);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given a long-short-long buffer then repeated next-line keeps the goal column across the"
+                    + " short line")
+    void repeatedNextLineKeepsGoalColumnAcrossShortLine() {
+        given("long short long", "01234567<caret>89\nab\n0123456789");
+        whenCommand("next-line");
+        whenCommand("next-line");
+        thenCaretAt(22);
+        thenNoSelection();
+    }
 }
