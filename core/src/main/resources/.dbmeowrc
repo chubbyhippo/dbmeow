@@ -101,6 +101,8 @@ desc <leader><Space> last editor
 desc <leader>x C-x · files / buffers / splits
 " f = goto-file: Eclipse's Open Resource dialog
 map <leader>xf <action>(org.eclipse.ui.navigate.openResource)
+" SPC x z = C-x z: repeat the last command (then bare z keeps repeating)
+map <leader>xz repeat
 map <leader>xb <action>(org.eclipse.ui.window.openEditorDropDown)
 map <leader>xd <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.databaseNavigator))
 map <leader>xs <action>(org.eclipse.ui.file.save)
@@ -310,3 +312,6 @@ repeat tab n <action>(org.eclipse.ui.window.nextEditor)
 repeat tab p <action>(org.eclipse.ui.window.previousEditor)
 repeat tab . <action>(org.eclipse.ui.window.nextEditor)
 repeat tab , <action>(org.eclipse.ui.window.previousEditor)
+
+" Emacs C-x z: after repeat (SPC x z or '), bare z keeps repeating
+repeat replay z repeat

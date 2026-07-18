@@ -226,4 +226,21 @@ class RepeatSpec extends SpecDsl {
         whenKeys("w");
         assertNull(Engine.repeatMap);
     }
+
+    @Test
+    @DisplayName(
+            "given the bundled rc then SPC x z repeats the last command and bare z keeps repeating"
+                    + " like Emacs C-x z")
+    void spcXzRepeatsAndBareZContinues() {
+        given("delete run", "<caret>aaaaa");
+        whenKeys("d");
+        thenText("aaaa");
+        whenKeys(" xz");
+        thenText("aaa");
+        whenKeys("z");
+        thenText("aa");
+        whenKeys("z");
+        thenText("a");
+        thenMode(MeowMode.NORMAL);
+    }
 }
