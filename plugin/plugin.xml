@@ -26,6 +26,8 @@
       <command id="io.github.chubbyhippo.dbmeow.emacs.kill-word" name="Meow Kill Word"/>
       <command id="io.github.chubbyhippo.dbmeow.emacs.beginning-of-buffer" name="Meow Beginning Of Buffer"/>
       <command id="io.github.chubbyhippo.dbmeow.emacs.end-of-buffer" name="Meow End Of Buffer"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.backward-paragraph" name="Meow Backward Paragraph"/>
+      <command id="io.github.chubbyhippo.dbmeow.emacs.forward-paragraph" name="Meow Forward Paragraph"/>
    </extension>
    <extension point="org.eclipse.ui.handlers">
       <handler commandId="io.github.chubbyhippo.dbmeow.keypad" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
@@ -45,6 +47,8 @@
       <handler commandId="io.github.chubbyhippo.dbmeow.emacs.kill-word" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
       <handler commandId="io.github.chubbyhippo.dbmeow.emacs.beginning-of-buffer" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
       <handler commandId="io.github.chubbyhippo.dbmeow.emacs.end-of-buffer" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.backward-paragraph" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
+      <handler commandId="io.github.chubbyhippo.dbmeow.emacs.forward-paragraph" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowChordHandler"/>
    </extension>
    <extension point="org.eclipse.ui.bindings">
       <key sequence="ALT+;" commandId="io.github.chubbyhippo.dbmeow.keypad" contextId="io.github.chubbyhippo.dbmeow.active" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
@@ -64,5 +68,7 @@
       <key sequence="ALT+D" commandId="io.github.chubbyhippo.dbmeow.emacs.kill-word" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key sequence="ALT+SHIFT+," commandId="io.github.chubbyhippo.dbmeow.emacs.beginning-of-buffer" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key sequence="ALT+SHIFT+." commandId="io.github.chubbyhippo.dbmeow.emacs.end-of-buffer" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+SHIFT+[" commandId="io.github.chubbyhippo.dbmeow.emacs.backward-paragraph" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+SHIFT+]" commandId="io.github.chubbyhippo.dbmeow.emacs.forward-paragraph" contextId="io.github.chubbyhippo.dbmeow.normal" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
 </plugin>

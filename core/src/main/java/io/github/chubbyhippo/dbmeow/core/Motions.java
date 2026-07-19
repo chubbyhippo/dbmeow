@@ -73,6 +73,8 @@ public final class Motions {
         commands.put("backward-sentence", ctx -> sentenceOrExpand(ctx, -ctx.st().takeCount(1)));
         commands.put("beginning-of-buffer", ctx -> bufferBoundary(ctx, true));
         commands.put("end-of-buffer", ctx -> bufferBoundary(ctx, false));
+        commands.put("forward-paragraph", ctx -> paragraphOrExpand(ctx, ctx.st().takeCount(1)));
+        commands.put("backward-paragraph", ctx -> paragraphOrExpand(ctx, -ctx.st().takeCount(1)));
     }
 
     private interface OffsetTarget {
@@ -134,6 +136,16 @@ public final class Motions {
                         n >= 0
                                 ? Text.nextSentenceEnd(text, off, n)
                                 : Text.prevSentenceStart(text, off, -n));
+    }
+
+    private static void paragraphOrExpand(Ctx ctx, int n) {
+        moveToOrExpand(
+                ctx,
+                SelType.CHAR,
+                (text, off) ->
+                        n >= 0
+                                ? Text.nextParagraphEnd(text, off, n)
+                                : Text.prevParagraphStart(text, off, -n));
     }
 
     private static void bufferBoundary(Ctx ctx, boolean top) {

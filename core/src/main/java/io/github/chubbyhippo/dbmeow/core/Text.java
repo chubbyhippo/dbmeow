@@ -130,6 +130,58 @@ public final class Text {
         return i;
     }
 
+    private static int lineStartAt(String text, int offset) {
+        int i = offset;
+        while (i > 0 && text.charAt(i - 1) != '\n') i--;
+        return i;
+    }
+
+    private static int followingLineStart(String text, int bol) {
+        int i = bol;
+        while (i < text.length() && text.charAt(i) != '\n') i++;
+        return i < text.length() ? i + 1 : i;
+    }
+
+    private static boolean blankLineAt(String text, int bol) {
+        int i = bol;
+        while (i < text.length() && text.charAt(i) != '\n') {
+            if (!Character.isWhitespace(text.charAt(i))) return false;
+            i++;
+        }
+        return true;
+    }
+
+    public static int nextParagraphEnd(String text, int from, int n) {
+        int pos = clamp(from, 0, text.length());
+        for (int k = 0; k < n; k++) {
+            int i = lineStartAt(text, pos);
+            while (i < text.length() && blankLineAt(text, i)) i = followingLineStart(text, i);
+            while (i < text.length() && !blankLineAt(text, i)) i = followingLineStart(text, i);
+            pos = i;
+        }
+        return pos;
+    }
+
+    public static int prevParagraphStart(String text, int from, int n) {
+        int pos = clamp(from, 0, text.length());
+        for (int k = 0; k < n; k++) {
+            if (pos > 0) {
+                int start = paragraphStartBefore(text, pos);
+                pos = start < pos ? start : paragraphStartBefore(text, start - 1);
+            }
+        }
+        return pos;
+    }
+
+    private static int paragraphStartBefore(String text, int offset) {
+        int i = lineStartAt(text, offset);
+        while (i > 0 && blankLineAt(text, i)) i = lineStartAt(text, i - 1);
+        while (i > 0 && !blankLineAt(text, lineStartAt(text, i - 1))) i = lineStartAt(text, i - 1);
+        boolean prevLineEmpty =
+                i > 0 && text.charAt(i - 1) == '\n' && (i == 1 || text.charAt(i - 2) == '\n');
+        return prevLineEmpty ? i - 1 : i;
+    }
+
     public static final class Words {
         private Words() {}
 

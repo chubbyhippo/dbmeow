@@ -345,4 +345,114 @@ class EmacsMotionSpec extends SpecDsl {
         thenCaretAt(22);
         thenNoSelection();
     }
+
+    @Test
+    @DisplayName(
+            "given no selection when forward-paragraph then the caret lands on the separator blank"
+                    + " line")
+    void forwardParagraphLandsOnSeparatorBlankLine() {
+        given("two paragraphs", "a<caret>aa\nbbb\n\nccc");
+        whenCommand("forward-paragraph");
+        thenCaretAt(8);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given no selection when backward-paragraph then the caret lands on the empty line"
+                    + " joining the paragraph start")
+    void backwardParagraphLandsOnEmptyLineJoiningStart() {
+        given("two paragraphs", "aaa\n\nbb<caret>b");
+        whenCommand("backward-paragraph");
+        thenCaretAt(4);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given a caret on a blank line when forward-paragraph then it crosses to the next"
+                    + " paragraph end")
+    void forwardParagraphFromBlankLineCrossesToNextEnd() {
+        given("blank line between paragraphs", "aaa\n<caret>\nbbb\n\nccc");
+        whenCommand("forward-paragraph");
+        thenCaretAt(9);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given a caret on a blank line when backward-paragraph then it lands at the previous"
+                    + " paragraph start")
+    void backwardParagraphFromBlankLineLandsAtPreviousStart() {
+        given("blank line after two-line paragraph", "aaa\nbbb\n<caret>\nccc");
+        whenCommand("backward-paragraph");
+        thenCaretAt(0);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given a whitespace-only separator when backward-paragraph then the caret stops at the"
+                    + " paragraph text start")
+    void backwardParagraphStopsAtTextStartAfterWhitespaceSeparator() {
+        given("space-only separator line", "aaa\n \nbb<caret>b");
+        whenCommand("backward-paragraph");
+        thenCaretAt(6);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given consecutive empty lines when backward-paragraph then only the adjacent one joins"
+                    + " the paragraph start")
+    void backwardParagraphJoinsOnlyAdjacentEmptyLine() {
+        given("two empty separator lines", "aaa\n\n\nbb<caret>b");
+        whenCommand("backward-paragraph");
+        thenCaretAt(5);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given a count when forward-paragraph then the caret walks that many paragraph ends")
+    void countedForwardParagraphWalksParagraphEnds() {
+        given("three paragraphs", "a<caret>aa\n\nbbb\n\nccc");
+        whenKeys("2");
+        whenCommand("forward-paragraph");
+        thenCaretAt(9);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName("given the last paragraph when forward-paragraph then the caret goes to point-max")
+    void forwardParagraphAtLastParagraphGoesToPointMax() {
+        given("two paragraphs", "aaa\n\nbb<caret>b");
+        whenCommand("forward-paragraph");
+        thenCaretAt(8);
+        thenNoSelection();
+    }
+
+    @Test
+    @DisplayName("given w then forward-paragraph extends the selection through the paragraph end")
+    void forwardParagraphExtendsSelectionThroughEnd() {
+        given("paragraph then another", "<caret>hello world\n\nnext");
+        whenKeys("w");
+        thenSelection("hello");
+        whenCommand("forward-paragraph");
+        thenSelection("hello world\n");
+        thenSelType(SelType.CHAR);
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
+    @DisplayName(
+            "given w then backward-paragraph extends the selection back past the paragraph start")
+    void backwardParagraphExtendsSelectionBackPastStart() {
+        given("paragraph after a blank line", "aaa\n\nhello wo<caret>rld");
+        whenKeys("w");
+        thenSelection("world");
+        whenCommand("backward-paragraph");
+        thenSelection("\nhello ");
+        thenCaretAtSelectionStart();
+    }
 }
