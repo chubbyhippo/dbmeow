@@ -165,4 +165,14 @@ class MovementSpec extends SpecDsl {
         whenKeys("k");
         thenCaretAt(0);
     }
+
+    @Test
+    @DisplayName("given a CRLF document then the goal column clamps before the carriage return")
+    void crlfGoalColumnClampsBeforeCarriageReturn() {
+        given("crlf long short long", "abc<caret>d\r\nx\r\nefgh");
+        whenKeys("j");
+        thenCaretAt(7);
+        whenKeys("j");
+        thenCaretAt(12);
+    }
 }

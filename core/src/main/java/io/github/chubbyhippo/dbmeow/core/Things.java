@@ -172,7 +172,7 @@ public final class Things {
         int end = Text.lineEnd(text, ln);
         return inner
                 ? new OffsetRange(Text.lineStart(text, ln), end)
-                : new OffsetRange(Text.lineStart(text, ln), Math.min(end + 1, text.length()));
+                : new OffsetRange(Text.lineStart(text, ln), Text.lineStart(text, ln + 1));
     }
 
     private static OffsetRange defun(Ctx ctx, String text, int offset) {

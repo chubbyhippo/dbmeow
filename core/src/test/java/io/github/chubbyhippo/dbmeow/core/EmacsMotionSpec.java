@@ -455,4 +455,15 @@ class EmacsMotionSpec extends SpecDsl {
         thenSelection("\nhello ");
         thenCaretAtSelectionStart();
     }
+
+    @Test
+    @DisplayName(
+            "given a CRLF document when move-end-of-line then the caret stops before the carriage"
+                    + " return")
+    void crlfMoveEndOfLineStopsBeforeCarriageReturn() {
+        given("two crlf lines", "a<caret>b\r\ncd");
+        whenCommand("move-end-of-line");
+        thenCaretAt(2);
+        thenNoSelection();
+    }
 }

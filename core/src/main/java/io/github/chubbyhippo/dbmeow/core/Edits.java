@@ -200,11 +200,14 @@ public final class Edits {
         ctx.st().selType = SelType.NONE;
     }
 
-    private static int[] killRange(Ctx ctx, SelRange sel, int textLen) {
+    private static int[] killRange(Ctx ctx, SelRange sel, String text) {
         int lo = Math.min(sel.anchor(), sel.active());
         int hi = Math.max(sel.anchor(), sel.active());
-        if (ctx.st().selType == SelType.LINE && sel.active() >= sel.anchor() && hi < textLen) {
-            hi++;
+        if (ctx.st().selType == SelType.LINE
+                && sel.active() >= sel.anchor()
+                && hi < text.length()) {
+            if (text.charAt(hi) == '\r') hi++;
+            if (hi < text.length() && text.charAt(hi) == '\n') hi++;
         }
         return new int[] {lo, hi};
     }
@@ -221,7 +224,7 @@ public final class Edits {
     private static String joinedKillText(Ctx ctx, String text, List<SelRange> regions) {
         StringBuilder joined = new StringBuilder();
         for (int i = 0; i < regions.size(); i++) {
-            int[] r = killRange(ctx, regions.get(i), text.length());
+            int[] r = killRange(ctx, regions.get(i), text);
             if (i > 0) joined.append('\n');
             joined.append(text, r[0], r[1]);
         }
@@ -244,7 +247,7 @@ public final class Edits {
                     ctx,
                     (sel, lo, hi) -> {
                         if (lo == hi) return new Computed(null, sel);
-                        int[] r = killRange(ctx, sel, text.length());
+                        int[] r = killRange(ctx, sel, text);
                         return new Computed(new TextEdit(r[0], r[1], ""), new SelRange(r[0], r[0]));
                     });
             st.selType = SelType.NONE;
@@ -252,8 +255,9 @@ public final class Edits {
         }
         if (text.isEmpty()) return;
         int caret = prim.active();
-        int eol = Text.lineEnd(text, Text.lineOfOffset(text, caret));
-        int end = caret == eol ? Math.min(eol + 1, text.length()) : eol;
+        int ln = Text.lineOfOffset(text, caret);
+        int eol = Text.lineEnd(text, ln);
+        int end = caret == eol ? Text.lineStart(text, ln + 1) : eol;
         if (end > caret) {
             ctx.clipboard().write(text.substring(caret, end));
             ctx.port().edit(List.of(new TextEdit(caret, end, "")));
@@ -293,7 +297,7 @@ public final class Edits {
                 collapsed.add(s);
                 continue;
             }
-            int[] r = killRange(ctx, s, text.length());
+            int[] r = killRange(ctx, s, text);
             int caret = s.active() >= s.anchor() ? r[1] : r[0];
             collapsed.add(new SelRange(caret, caret));
         }

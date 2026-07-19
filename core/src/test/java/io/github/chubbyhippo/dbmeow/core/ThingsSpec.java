@@ -313,4 +313,12 @@ class ThingsSpec extends SpecDsl {
         thenSelType(SelType.JOIN);
         thenSelection("\n  ");
     }
+
+    @Test
+    @DisplayName("given a CRLF document then the line thing bounds include the whole delimiter")
+    void crlfLineThingBoundsIncludeWholeDelimiter() {
+        given("two crlf lines", "a<caret>b\r\ncd");
+        whenKeys(".l");
+        thenSelection("ab\r\n");
+    }
 }

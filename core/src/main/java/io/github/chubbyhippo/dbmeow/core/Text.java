@@ -62,7 +62,8 @@ public final class Text {
     public static int lineEnd(String text, int line) {
         int s = lineStart(text, line);
         int nl = text.indexOf('\n', s);
-        return nl < 0 ? text.length() : nl;
+        if (nl < 0) return text.length();
+        return nl > s && text.charAt(nl - 1) == '\r' ? nl - 1 : nl;
     }
 
     public static boolean isWordChar(char c) {

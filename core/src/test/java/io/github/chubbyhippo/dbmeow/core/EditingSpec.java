@@ -449,4 +449,22 @@ class EditingSpec extends SpecDsl {
         thenCaretAt(6);
         thenClipboard("world");
     }
+
+    @Test
+    @DisplayName("given a CRLF document then killing a line selection takes the whole delimiter")
+    void crlfKillLineSelectionTakesWholeDelimiter() {
+        given("two crlf lines", "a<caret>b\r\ncd");
+        whenKeys("xs");
+        thenText("cd");
+        thenClipboard("ab\r\n");
+    }
+
+    @Test
+    @DisplayName(
+            "given a CRLF document then kill-line at the content end removes the whole delimiter")
+    void crlfKillLineAtContentEndRemovesWholeDelimiter() {
+        given("two crlf lines", "ab<caret>\r\ncd");
+        whenKeys("s");
+        thenText("abcd");
+    }
 }

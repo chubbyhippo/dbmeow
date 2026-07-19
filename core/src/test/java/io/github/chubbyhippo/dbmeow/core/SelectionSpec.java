@@ -371,4 +371,12 @@ class SelectionSpec extends SpecDsl {
         whenKeys("g");
         thenNoSelection();
     }
+
+    @Test
+    @DisplayName("given a CRLF document then x selects the line content without the delimiter")
+    void crlfLineSelectsContentWithoutDelimiter() {
+        given("two crlf lines", "a<caret>b\r\ncd");
+        whenKeys("x");
+        thenSelection("ab");
+    }
 }
