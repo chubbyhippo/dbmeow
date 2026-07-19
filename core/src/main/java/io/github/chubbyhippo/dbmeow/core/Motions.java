@@ -295,7 +295,9 @@ public final class Motions {
         int e = b[1];
         if (neg) Selections.select(ctx, wordType(symbol), e, s, true);
         else Selections.select(ctx, wordType(symbol), s, e, true);
-        Search.push(ctx.st(), "\\b" + Text.escapeRegExp(text.substring(s, e)) + "\\b");
+        String quoted = Text.escapeRegExp(text.substring(s, e));
+        String pattern = symbol ? "(?<![\\w$])" + quoted + "(?![\\w$])" : "\\b" + quoted + "\\b";
+        Search.push(ctx.st(), pattern);
     }
 
     private static void line(Ctx ctx) {

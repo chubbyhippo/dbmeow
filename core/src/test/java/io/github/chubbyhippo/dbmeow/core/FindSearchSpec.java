@@ -175,4 +175,15 @@ class FindSearchSpec extends SpecDsl {
         whenKeys("vn");
         assertEquals(17, selMin());
     }
+
+    @Test
+    @DisplayName("given W on a dollar symbol then n finds the next symbol occurrence")
+    void dollarSymbolMarkThenNFindsNext() {
+        given("dollar symbols", "$<caret>foo bar $foo");
+        whenKeys("W");
+        thenSelection("$foo");
+        whenKeys("n");
+        thenSelection("$foo");
+        thenCaretAt(13);
+    }
 }

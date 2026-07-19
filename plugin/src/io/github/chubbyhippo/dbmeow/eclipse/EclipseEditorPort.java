@@ -151,8 +151,7 @@ final class EclipseEditorPort implements EditorPort {
 
     private int modelToWidget(int modelOffset) {
         if (viewer instanceof ITextViewerExtension5 ext) {
-            int w = ext.modelOffset2WidgetOffset(modelOffset);
-            return w < 0 ? 0 : w;
+            return ext.modelOffset2WidgetOffset(modelOffset);
         }
         return modelOffset;
     }
