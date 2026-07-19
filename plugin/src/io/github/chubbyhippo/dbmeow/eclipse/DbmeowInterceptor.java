@@ -46,6 +46,8 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
     public void verifyKey(VerifyEvent event) {
         if (!event.doit) return;
 
+        if (AceWindowSwt.handleKey(event, ctx.ui())) return;
+
         if (event.keyCode == SWT.ESC) {
             if (guarded(() -> Engine.escapeKey(ctx))) {
                 event.doit = false;

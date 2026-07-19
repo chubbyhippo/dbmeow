@@ -19,8 +19,13 @@ layer — tested by the shared BDD suite. The Eclipse adapter (`plugin/`)
 wires it into editors via the same mechanism vrapper proved for vim
 emulation (a prepended `VerifyKeyListener`).
 
-Deliberate gaps for now: windmove, tree MOTION maps, and the avy overlay
-painting — the core logic is ported, the SWT surfaces are staged. Beacon's
+`SPC w w` (and `SPC x o`) is an ace-window port over the open text
+editors: with three or more visible, each gets a corner label in avy's
+colors and the next key activates that editor; with exactly two it hops
+straight to the other one; `Esc` cancels.
+
+Deliberate gaps for now: windmove geometry and tree MOTION maps — the
+core logic is ported, the SWT surfaces are staged. Beacon's
 logic is ported and tested too; SWT's single caret just means the adapter
 shows only the primary cursor (the multi-range edit still applies).
 

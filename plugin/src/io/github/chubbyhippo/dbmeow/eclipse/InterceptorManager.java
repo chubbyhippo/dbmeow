@@ -23,12 +23,18 @@ import io.github.chubbyhippo.dbmeow.core.MeowState;
 
 import org.eclipse.jface.text.ITextViewerExtension;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -109,6 +115,23 @@ public final class InterceptorManager implements IPartListener2 {
     Ctx ctxOf(AbstractTextEditor editor) {
         Hook hook = hooks.get(editor);
         return hook == null ? null : hook.ctx();
+    }
+
+    List<AceWindowSwt.Candidate> visibleCandidates() {
+        List<AceWindowSwt.Candidate> out = new ArrayList<>();
+        Map<AceWindowSwt.Candidate, Point> origins = new HashMap<>();
+        for (Map.Entry<AbstractTextEditor, Hook> entry : hooks.entrySet()) {
+            StyledText text = entry.getValue().viewer().getTextWidget();
+            if (text == null || text.isDisposed() || !text.isVisible()) continue;
+            AceWindowSwt.Candidate cand =
+                    new AceWindowSwt.Candidate(entry.getKey(), entry.getValue().painter());
+            origins.put(cand, text.toDisplay(0, 0));
+            out.add(cand);
+        }
+        out.sort(
+                Comparator.comparingInt((AceWindowSwt.Candidate c) -> origins.get(c).x)
+                        .thenComparingInt(c -> origins.get(c).y));
+        return out;
     }
 
     private static void release(Hook hook) {

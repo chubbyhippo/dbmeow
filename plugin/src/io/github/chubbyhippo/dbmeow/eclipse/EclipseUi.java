@@ -109,6 +109,10 @@ final class EclipseUi implements UiPort {
             RcCommands.edit();
             return;
         }
+        if ("dbmeow.aceWindow".equals(id)) {
+            AceWindowSwt.run(editor, this);
+            return;
+        }
         ICommandService commands =
                 PlatformUI.getWorkbench().getService(ICommandService.class);
         IHandlerService handlers =

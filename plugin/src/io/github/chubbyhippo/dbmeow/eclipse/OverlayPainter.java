@@ -49,6 +49,7 @@ final class OverlayPainter implements PaintListener {
     private List<UiPort.AvyLabel> avyLabels = List.of();
     private List<EditorPort.OffsetRange> avyMatches = List.of();
     private List<Integer> expandHints = List.of();
+    private String aceLabel;
     private String whichKeyTitle;
     private List<WhichKey.Row> whichKeyRows;
     private Font boldFont;
@@ -86,6 +87,17 @@ final class OverlayPainter implements PaintListener {
         redraw();
     }
 
+    void showAceLabel(String label) {
+        aceLabel = label;
+        redraw();
+    }
+
+    void clearAceLabel() {
+        if (aceLabel == null) return;
+        aceLabel = null;
+        redraw();
+    }
+
     void showWhichKey(String title, List<WhichKey.Row> rows) {
         whichKeyTitle = title;
         whichKeyRows = rows;
@@ -116,6 +128,7 @@ final class OverlayPainter implements PaintListener {
         if (avyLabels.isEmpty()
                 && avyMatches.isEmpty()
                 && expandHints.isEmpty()
+                && aceLabel == null
                 && whichKeyRows == null) {
             return;
         }
@@ -129,7 +142,17 @@ final class OverlayPainter implements PaintListener {
         for (int i = 0; i < expandHints.size(); i++) {
             paintBox(gc, expandHints.get(i), String.valueOf((i + 1) % 10), EXPAND_HINT_BG);
         }
+        paintAceLabel(gc);
         paintWhichKey(gc);
+    }
+
+    private void paintAceLabel(GC gc) {
+        if (aceLabel == null) return;
+        Point extent = gc.stringExtent(aceLabel);
+        gc.setBackground(AVY_LEAD_BG);
+        gc.fillRectangle(0, 0, extent.x + 4, extent.y + 4);
+        gc.setForeground(LABEL_FG);
+        gc.drawString(aceLabel, 2, 2, true);
     }
 
     private void paintWhichKey(GC gc) {

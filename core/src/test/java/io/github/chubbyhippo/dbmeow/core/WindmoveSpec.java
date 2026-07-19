@@ -90,4 +90,13 @@ class WindmoveSpec extends SpecDsl {
         assertEquals("dbmeow.windmoveUp", d.keypad.get("wk").action());
         assertEquals("dbmeow.windmoveRight", d.keypad.get("wl").action());
     }
+
+    @Test
+    @DisplayName("given one two or many windows then ace-window plans self other or labels")
+    void aceWindowPlansSelfOtherOrLabels() {
+        assertEquals(AceWindow.Plan.NONE, AceWindow.plan(1));
+        assertEquals(AceWindow.Plan.OTHER, AceWindow.plan(2));
+        assertEquals(AceWindow.Plan.LABELS, AceWindow.plan(3));
+        assertEquals(AceWindow.Plan.LABELS, AceWindow.plan(9));
+    }
 }
