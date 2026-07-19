@@ -101,6 +101,7 @@ desc <leader><Space> last editor
 desc <leader>x C-x · files / buffers / splits
 " f = goto-file: Eclipse's Open Resource dialog
 map <leader>xf <action>(org.eclipse.ui.navigate.openResource)
+map <leader>xj <action>(org.eclipse.ui.navigate.showIn(org.eclipse.ui.navigate.showIn.targetId=org.jkiss.dbeaver.core.projectExplorer))
 " SPC x z = C-x z: repeat the last command (then bare z keeps repeating)
 map <leader>xz repeat
 map <leader>xo <action>(dbmeow.aceWindow)
