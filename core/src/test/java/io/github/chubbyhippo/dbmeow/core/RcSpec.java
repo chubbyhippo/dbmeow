@@ -175,7 +175,10 @@ class RcSpec extends SpecDsl {
         assertEquals("avy-goto-char-timer", d.normal.get('S').command());
         assertEquals("meow-next", d.motion.get('j').command());
         assertEquals("meow-prev", d.motion.get('k').command());
-        assertEquals("org.eclipse.ui.window.previousEditor", d.keypad.get(" ").action());
+        assertEquals("dbmeow.aceClick", d.keypad.get(" ").action());
+        assertEquals("dbmeow.aceWindow", d.keypad.get("ww").action());
+        assertEquals("dbmeow.aceWindow", d.keypad.get("xo").action());
+        assertEquals("dbmeow.aceSwapWindow", d.keypad.get("wW").action());
         assertEquals("dbmeow.editRc", d.keypad.get("cm").action());
         assertEquals("dbmeow.reloadRc", d.keypad.get("cM").action());
         assertEquals("org.eclipse.ui.navigate.backwardHistory", d.keypad.get("m,").action());

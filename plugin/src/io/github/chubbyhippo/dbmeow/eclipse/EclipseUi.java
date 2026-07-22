@@ -113,6 +113,14 @@ final class EclipseUi implements UiPort {
             AceWindowSwt.run(editor, this);
             return;
         }
+        if ("dbmeow.aceClick".equals(id)) {
+            AceClickSwt.run(editor, this);
+            return;
+        }
+        if ("dbmeow.aceSwapWindow".equals(id)) {
+            hint("ace-swap-window has no Eclipse editor-swap API");
+            return;
+        }
         ICommandService commands =
                 PlatformUI.getWorkbench().getService(ICommandService.class);
         IHandlerService handlers =
@@ -227,8 +235,6 @@ final class EclipseUi implements UiPort {
     }
 
     private void status(String message) {
-        if (editor instanceof ITextEditor) {
-            editor.getEditorSite().getActionBars().getStatusLineManager().setMessage(message);
-        }
+        editor.getEditorSite().getActionBars().getStatusLineManager().setMessage(message);
     }
 }

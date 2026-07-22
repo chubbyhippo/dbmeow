@@ -95,8 +95,9 @@ mmap q <action>(dbmeow.hideView)
 " SPC is the leader; these sequences dispatch Eclipse workbench commands.
 " SPC 1-9 = digit argument, SPC ? = cheatsheet, SPC / = describe-key
 " (handled in code).
-map <leader><Space> <action>(org.eclipse.ui.window.previousEditor)
-desc <leader><Space> last editor
+" SPC SPC: ace-click — label every clickable UI element, then pick one
+map <leader><Space> <action>(dbmeow.aceClick)
+desc <leader><Space> ace-click
 
 desc <leader>x C-x · files / buffers / splits
 " f = goto-file: Eclipse's Open Resource dialog
@@ -126,6 +127,7 @@ map <leader>xrb <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.show
 
 desc <leader>w window / splits / zoom
 map <leader>ww <action>(dbmeow.aceWindow)
+map <leader>wW <action>(dbmeow.aceSwapWindow)
 map <leader>wn <action>(org.eclipse.ui.window.nextEditor)
 map <leader>wp <action>(org.eclipse.ui.window.previousEditor)
 map <leader>w. <action>(org.eclipse.ui.window.nextEditor)
