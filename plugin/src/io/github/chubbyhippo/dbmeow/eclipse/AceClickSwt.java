@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
@@ -44,7 +45,7 @@ import java.util.List;
 
 final class AceClickSwt {
 
-    record Target(Rectangle bounds, Runnable click) {}
+    record Target(Rectangle bounds, Runnable click, Runnable rightClick) {}
 
     private static AceClick.Session session;
     private static List<Target> targets;
@@ -79,12 +80,14 @@ final class AceClickSwt {
         }
         char c = event.character;
         if (c == 0) return true;
-        AceClick.Result result = AceClick.press(session, c);
+        char lower = Character.toLowerCase(c);
+        boolean secondary = c != lower;
+        AceClick.Result result = AceClick.press(session, lower);
         if (result instanceof AceClick.Pick pick) {
             Target target = targets.get(pick.index());
             Display display = event.display;
             cancel();
-            display.asyncExec(() -> click(target, ui));
+            display.asyncExec(() -> click(target, secondary, ui));
         } else if (result instanceof AceClick.Descend) {
             paint();
         } else {
@@ -111,9 +114,9 @@ final class AceClickSwt {
         overlay.show(badges);
     }
 
-    private static void click(Target target, UiPort ui) {
+    private static void click(Target target, boolean secondary, UiPort ui) {
         try {
-            target.click().run();
+            (secondary ? target.rightClick() : target.click()).run();
         } catch (RuntimeException e) {
             ui.hint("Click failed");
         }
@@ -146,7 +149,8 @@ final class AceClickSwt {
         Rectangle bounds = control.getBounds();
         if (bounds.width <= 0 || bounds.height <= 0) return;
         Point origin = control.toDisplay(0, 0);
-        out.add(new Target(new Rectangle(origin.x, origin.y, bounds.width, bounds.height), click));
+        Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+        out.add(new Target(display, click, () -> showMenu(control, display)));
     }
 
     private static Runnable controlClick(Control control) {
@@ -170,10 +174,8 @@ final class AceClickSwt {
         Rectangle bounds = item.getBounds();
         if (bounds.width <= 0 || bounds.height <= 0) return;
         Point origin = toolBar.toDisplay(bounds.x, bounds.y);
-        out.add(
-                new Target(
-                        new Rectangle(origin.x, origin.y, bounds.width, bounds.height),
-                        () -> selection(toolBar, item)));
+        Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+        out.add(new Target(display, () -> selection(toolBar, item), () -> showMenu(toolBar, display)));
     }
 
     private static void addTabItem(CTabFolder folder, CTabItem item, List<Target> out) {
@@ -181,10 +183,15 @@ final class AceClickSwt {
         Rectangle bounds = item.getBounds();
         if (bounds.width <= 0 || bounds.height <= 0) return;
         Point origin = folder.toDisplay(bounds.x, bounds.y);
+        Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
         out.add(
                 new Target(
-                        new Rectangle(origin.x, origin.y, bounds.width, bounds.height),
-                        () -> select(folder, item)));
+                        display,
+                        () -> select(folder, item),
+                        () -> {
+                            select(folder, item);
+                            showMenu(folder, display);
+                        }));
     }
 
     private static void selection(Control control) {
@@ -208,5 +215,13 @@ final class AceClickSwt {
 
     private static void focus(Control control) {
         if (!control.isDisposed()) control.setFocus();
+    }
+
+    private static void showMenu(Control source, Rectangle display) {
+        if (source.isDisposed()) return;
+        Menu menu = source.getMenu();
+        if (menu == null || menu.isDisposed()) return;
+        menu.setLocation(display.x + display.width / 2, display.y + display.height / 2);
+        menu.setVisible(true);
     }
 }
