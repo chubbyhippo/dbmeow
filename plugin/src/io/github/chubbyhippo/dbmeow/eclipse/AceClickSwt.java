@@ -21,12 +21,14 @@ import io.github.chubbyhippo.dbmeow.core.AceClick;
 import io.github.chubbyhippo.dbmeow.core.UiPort;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -34,9 +36,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 import java.util.ArrayList;
@@ -137,9 +143,25 @@ final class AceClickSwt {
         if (control instanceof CTabFolder folder) {
             for (CTabItem item : folder.getItems()) addTabItem(folder, item, out);
         }
-        if (control instanceof Composite composite) {
+        if (control instanceof Tree tree) {
+            addTreeRows(tree, out);
+        }
+        if (control instanceof Table table) {
+            addTableRows(table, out);
+        }
+        if (control instanceof org.eclipse.swt.widgets.List list) {
+            addListItems(list, out);
+        }
+        if (control instanceof Composite composite && !isRowContainer(control)) {
             for (Control child : composite.getChildren()) walk(child, out);
         }
+    }
+
+    private static boolean isRowContainer(Control control) {
+        return control instanceof Tree
+                || control instanceof Table
+                || control instanceof Combo
+                || control instanceof CCombo;
     }
 
     private static void addControl(Control control, List<Target> out) {
@@ -160,6 +182,12 @@ final class AceClickSwt {
         }
         if (control instanceof Link link) {
             return () -> selection(link);
+        }
+        if (control instanceof Combo combo) {
+            return () -> openCombo(combo);
+        }
+        if (control instanceof CCombo ccombo) {
+            return () -> openCCombo(ccombo);
         }
         if (control instanceof Text text) {
             if ((text.getStyle() & SWT.READ_ONLY) != 0) return null;
@@ -223,5 +251,106 @@ final class AceClickSwt {
         if (menu == null || menu.isDisposed()) return;
         menu.setLocation(display.x + display.width / 2, display.y + display.height / 2);
         menu.setVisible(true);
+    }
+
+    private static void addTreeRows(Tree tree, List<Target> out) {
+        Rectangle client = tree.getClientArea();
+        for (TreeItem item : tree.getItems()) addTreeItem(tree, item, client, out);
+    }
+
+    private static void addTreeItem(Tree tree, TreeItem item, Rectangle client, List<Target> out) {
+        if (item.isDisposed()) return;
+        Rectangle bounds = item.getBounds();
+        if (bounds.width > 0 && bounds.height > 0 && bounds.intersects(client)) {
+            Point origin = tree.toDisplay(bounds.x, bounds.y);
+            Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+            out.add(
+                    new Target(
+                            display,
+                            () -> selectTree(tree, item),
+                            () -> {
+                                selectTree(tree, item);
+                                showMenu(tree, display);
+                            }));
+        }
+        if (item.getExpanded()) {
+            for (TreeItem child : item.getItems()) addTreeItem(tree, child, client, out);
+        }
+    }
+
+    private static void selectTree(Tree tree, TreeItem item) {
+        if (tree.isDisposed() || item.isDisposed()) return;
+        tree.setSelection(item);
+        tree.showItem(item);
+    }
+
+    private static void addTableRows(Table table, List<Target> out) {
+        int count = table.getItemCount();
+        if (count == 0) return;
+        Rectangle client = table.getClientArea();
+        for (int i = table.getTopIndex(); i < count; i++) {
+            TableItem item = table.getItem(i);
+            Rectangle bounds = item.getBounds();
+            if (bounds.y > client.height) break;
+            if (bounds.width <= 0 || bounds.height <= 0 || !bounds.intersects(client)) continue;
+            Point origin = table.toDisplay(bounds.x, bounds.y);
+            Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+            int index = i;
+            out.add(
+                    new Target(
+                            display,
+                            () -> selectTable(table, index),
+                            () -> {
+                                selectTable(table, index);
+                                showMenu(table, display);
+                            }));
+        }
+    }
+
+    private static void selectTable(Table table, int index) {
+        if (table.isDisposed()) return;
+        table.setSelection(index);
+        table.showSelection();
+    }
+
+    private static void addListItems(org.eclipse.swt.widgets.List list, List<Target> out) {
+        int count = list.getItemCount();
+        if (count == 0) return;
+        int top = list.getTopIndex();
+        int itemHeight = list.getItemHeight();
+        Rectangle client = list.getClientArea();
+        for (int i = top; i < count; i++) {
+            int y = (i - top) * itemHeight;
+            if (y > client.height) break;
+            Point origin = list.toDisplay(0, y);
+            Rectangle display = new Rectangle(origin.x, origin.y, client.width, itemHeight);
+            int index = i;
+            out.add(
+                    new Target(
+                            display,
+                            () -> selectList(list, index),
+                            () -> {
+                                selectList(list, index);
+                                showMenu(list, display);
+                            }));
+        }
+    }
+
+    private static void selectList(org.eclipse.swt.widgets.List list, int index) {
+        if (list.isDisposed()) return;
+        list.setSelection(index);
+        list.showSelection();
+    }
+
+    private static void openCombo(Combo combo) {
+        if (combo.isDisposed()) return;
+        combo.setFocus();
+        combo.setListVisible(true);
+    }
+
+    private static void openCCombo(CCombo combo) {
+        if (combo.isDisposed()) return;
+        combo.setFocus();
+        combo.setListVisible(true);
     }
 }
