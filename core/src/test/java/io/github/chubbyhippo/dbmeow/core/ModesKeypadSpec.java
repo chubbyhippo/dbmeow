@@ -21,8 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -183,5 +185,32 @@ class ModesKeypadSpec extends SpecDsl {
         assertEquals(List.of(MeowMode.INSERT), ui.modes);
         pressEsc();
         assertEquals(List.of(MeowMode.INSERT, MeowMode.NORMAL), ui.modes);
+    }
+
+    @Test
+    @DisplayName("given the bundled defaults then SPC m exposes the M- motion and edit layer")
+    void bundledDefaultsExposeMetaLayerOnSpcM() {
+        Map<String, Rc.Binding> keypad = Rc.keypad();
+        assertEquals("backward-sentence", keypad.get("ma").command());
+        assertEquals("backward-word", keypad.get("mb").command());
+        assertEquals("capitalize-word", keypad.get("mc").command());
+        assertEquals("kill-word", keypad.get("md").command());
+        assertEquals("forward-sentence", keypad.get("me").command());
+        assertEquals("forward-word", keypad.get("mf").command());
+        assertEquals("downcase-word", keypad.get("ml").command());
+        assertEquals("upcase-word", keypad.get("mu").command());
+        assertEquals("beginning-of-buffer", keypad.get("m<").command());
+        assertEquals("end-of-buffer", keypad.get("m>").command());
+        assertEquals("backward-paragraph", keypad.get("m{").command());
+        assertEquals("forward-paragraph", keypad.get("m}").command());
+    }
+
+    @Test
+    @DisplayName("given the SPC m keypad then a meta word motion runs and returns to NORMAL")
+    void spcMMetaWordMotionRunsAndReturnsToNormal() {
+        given("two words", "<caret>hello world");
+        whenKeys(" mf");
+        assertTrue(editor.sels.get(0).active() > 0, "caret advanced");
+        thenMode(MeowMode.NORMAL);
     }
 }

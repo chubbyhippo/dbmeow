@@ -121,6 +121,10 @@ final class EclipseUi implements UiPort {
             hint("ace-swap-window has no Eclipse editor-swap API");
             return;
         }
+        if ("dbmeow.aceResize".equals(id)) {
+            hint("ace-resize has no Eclipse split-resize API");
+            return;
+        }
         ICommandService commands =
                 PlatformUI.getWorkbench().getService(ICommandService.class);
         IHandlerService handlers =

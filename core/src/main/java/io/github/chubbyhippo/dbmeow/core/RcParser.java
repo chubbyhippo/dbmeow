@@ -56,6 +56,7 @@ final class RcParser {
             String rest = split.length > 1 ? split[1].trim() : "";
             switch (cmd) {
                 case "let" -> {}
+                case "cmap", "cnoremap" -> {}
                 case "set" -> parseSet(c, rest);
                 case "desc" -> parseDescBody(c, rest, err);
                 case "map", "noremap", "nmap", "nnoremap", "mmap", "mnoremap" ->

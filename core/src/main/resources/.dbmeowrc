@@ -128,6 +128,7 @@ map <leader>xrb <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.show
 desc <leader>w window / splits / zoom
 map <leader>ww <action>(dbmeow.aceWindow)
 map <leader>wW <action>(dbmeow.aceSwapWindow)
+map <leader>wr <action>(dbmeow.aceResize)
 map <leader>wn <action>(org.eclipse.ui.window.nextEditor)
 map <leader>wp <action>(org.eclipse.ui.window.previousEditor)
 map <leader>w. <action>(org.eclipse.ui.window.nextEditor)
@@ -205,6 +206,22 @@ map <leader>mo avy-goto-char-timer
 map <leader>m, <action>(org.eclipse.ui.navigate.backwardHistory)
 map <leader>m. <action>(org.jkiss.dbeaver.ui.editors.sql.navigate.object)
 map <leader>mg avy-goto-line
+" the M- word/edit chords mirrored onto the keypad so SPC m reaches them
+" too (SPC m f = M-f = forward-word): a/e sentence back/forward, b/f word
+" back/forward, c/u/l capitalize/upcase/downcase-word, d kill-word,
+" < / > buffer ends, { / } paragraph
+map <leader>ma backward-sentence
+map <leader>mb backward-word
+map <leader>mc capitalize-word
+map <leader>md kill-word
+map <leader>me forward-sentence
+map <leader>mf forward-word
+map <leader>ml downcase-word
+map <leader>mu upcase-word
+map <leader>m< beginning-of-buffer
+map <leader>m> end-of-buffer
+map <leader>m{ backward-paragraph
+map <leader>m} forward-paragraph
 
 desc <leader>ms M-s · search
 map <leader>msr <action>(org.eclipse.search.ui.openFileSearchPage)

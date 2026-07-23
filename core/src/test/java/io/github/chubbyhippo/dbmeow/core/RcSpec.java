@@ -102,6 +102,16 @@ class RcSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given a cmap or cnoremap line then the rc loads it without error")
+    void cmapCnoremapLoadsWithoutError() {
+        Rc.Config c = Rc.parse(List.of("cmap kj <Esc>", "cnoremap <C-a> <Home>"));
+        assertEquals(List.of(), c.errors);
+        assertTrue(c.normal.isEmpty());
+        assertTrue(c.motion.isEmpty());
+        assertTrue(c.keypad.isEmpty());
+    }
+
+    @Test
     @DisplayName("given leader mappings and descriptions then the keypad table extends")
     void leaderMappingsExtendKeypad() {
         givenRc(
@@ -179,6 +189,7 @@ class RcSpec extends SpecDsl {
         assertEquals("dbmeow.aceWindow", d.keypad.get("ww").action());
         assertEquals("dbmeow.aceWindow", d.keypad.get("xo").action());
         assertEquals("dbmeow.aceSwapWindow", d.keypad.get("wW").action());
+        assertEquals("dbmeow.aceResize", d.keypad.get("wr").action());
         assertEquals("dbmeow.editRc", d.keypad.get("cm").action());
         assertEquals("dbmeow.reloadRc", d.keypad.get("cM").action());
         assertEquals("org.eclipse.ui.navigate.backwardHistory", d.keypad.get("m,").action());
