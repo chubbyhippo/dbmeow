@@ -19,7 +19,8 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,28 +96,27 @@ final class RcParser {
         }
     }
 
-    private static final Set<String> COLOR_SET_KEYS =
-            Set.of("overlay-color", "overlay-text-color", "expand-hint-color", "grab-color");
+    private static final Map<String, BiConsumer<Rc.Config, Rc.Rgb>> COLOR_SETTERS =
+            Map.of(
+                    "overlay-color", (c, v) -> c.overlayColor = v,
+                    "overlay-text-color", (c, v) -> c.overlayTextColor = v,
+                    "expand-hint-color", (c, v) -> c.expandHintColor = v,
+                    "grab-color", (c, v) -> c.grabColor = v);
 
     private static final Pattern HEX_COLOR_RE = Pattern.compile("[0-9a-fA-F]{6}");
 
     private static void parseSetColor(Rc.Config c, String rest, Consumer<String> err) {
         int eqIndex = rest.indexOf('=');
         String key = (eqIndex >= 0 ? rest.substring(0, eqIndex) : rest).trim();
-        if (!COLOR_SET_KEYS.contains(key)) return;
+        BiConsumer<Rc.Config, Rc.Rgb> setter = COLOR_SETTERS.get(key);
+        if (setter == null) return;
         String raw = eqIndex >= 0 ? rest.substring(eqIndex + 1).trim() : "";
         Rc.Rgb color = parseHexColor(raw);
         if (color == null) {
             err.accept("set " + key + ": invalid color '" + raw + "' (expected #RRGGBB)");
             return;
         }
-        switch (key) {
-            case "overlay-color" -> c.overlayColor = color;
-            case "overlay-text-color" -> c.overlayTextColor = color;
-            case "expand-hint-color" -> c.expandHintColor = color;
-            case "grab-color" -> c.grabColor = color;
-            default -> {}
-        }
+        setter.accept(c, color);
     }
 
     private static Rc.Rgb parseHexColor(String text) {
