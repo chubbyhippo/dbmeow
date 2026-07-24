@@ -101,9 +101,10 @@ final class RcParser {
     private static final Pattern HEX_COLOR_RE = Pattern.compile("[0-9a-fA-F]{6}");
 
     private static void parseSetColor(Rc.Config c, String rest, Consumer<String> err) {
-        String key = (rest.contains("=") ? rest.substring(0, rest.indexOf('=')) : rest).trim();
+        int eqIndex = rest.indexOf('=');
+        String key = (eqIndex >= 0 ? rest.substring(0, eqIndex) : rest).trim();
         if (!COLOR_SET_KEYS.contains(key)) return;
-        String raw = rest.contains("=") ? rest.substring(rest.indexOf('=') + 1).trim() : "";
+        String raw = eqIndex >= 0 ? rest.substring(eqIndex + 1).trim() : "";
         Rc.Rgb color = parseHexColor(raw);
         if (color == null) {
             err.accept("set " + key + ": invalid color '" + raw + "' (expected #RRGGBB)");

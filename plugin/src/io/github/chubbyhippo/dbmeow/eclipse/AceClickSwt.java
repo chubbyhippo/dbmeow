@@ -164,6 +164,11 @@ final class AceClickSwt {
                 || control instanceof CCombo;
     }
 
+    private static Rectangle toDisplayRect(Control parent, Rectangle bounds) {
+        Point origin = parent.toDisplay(bounds.x, bounds.y);
+        return new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+    }
+
     private static void addControl(Control control, List<Target> out) {
         if (!control.isEnabled()) return;
         Runnable click = controlClick(control);
@@ -201,8 +206,7 @@ final class AceClickSwt {
         if ((item.getStyle() & SWT.SEPARATOR) != 0) return;
         Rectangle bounds = item.getBounds();
         if (bounds.width <= 0 || bounds.height <= 0) return;
-        Point origin = toolBar.toDisplay(bounds.x, bounds.y);
-        Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+        Rectangle display = toDisplayRect(toolBar, bounds);
         out.add(new Target(display, () -> selection(toolBar, item), () -> showMenu(toolBar, display)));
     }
 
@@ -210,8 +214,7 @@ final class AceClickSwt {
         if (item.isDisposed()) return;
         Rectangle bounds = item.getBounds();
         if (bounds.width <= 0 || bounds.height <= 0) return;
-        Point origin = folder.toDisplay(bounds.x, bounds.y);
-        Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+        Rectangle display = toDisplayRect(folder, bounds);
         out.add(
                 new Target(
                         display,
@@ -262,8 +265,7 @@ final class AceClickSwt {
         if (item.isDisposed()) return;
         Rectangle bounds = item.getBounds();
         if (bounds.width > 0 && bounds.height > 0 && bounds.intersects(client)) {
-            Point origin = tree.toDisplay(bounds.x, bounds.y);
-            Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+            Rectangle display = toDisplayRect(tree, bounds);
             out.add(
                     new Target(
                             display,
@@ -293,8 +295,7 @@ final class AceClickSwt {
             Rectangle bounds = item.getBounds();
             if (bounds.y > client.height) break;
             if (bounds.width <= 0 || bounds.height <= 0 || !bounds.intersects(client)) continue;
-            Point origin = table.toDisplay(bounds.x, bounds.y);
-            Rectangle display = new Rectangle(origin.x, origin.y, bounds.width, bounds.height);
+            Rectangle display = toDisplayRect(table, bounds);
             int index = i;
             out.add(
                     new Target(

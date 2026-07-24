@@ -124,9 +124,9 @@ public final class Avy {
         AvySession session = new AvySession(true);
         ctx.st().avy = session;
         String text = ctx.port().getText();
-        int[] fl = visibleLines(ctx);
+        int[] visible = visibleLines(ctx);
         List<Integer> candidates = new ArrayList<>();
-        for (int ln = fl[0]; ln <= fl[1]; ln++) candidates.add(Text.lineStart(text, ln));
+        for (int ln = visible[0]; ln <= visible[1]; ln++) candidates.add(Text.lineStart(text, ln));
         toSelecting(ctx, session, candidates);
     }
 
@@ -237,9 +237,9 @@ public final class Avy {
     private static List<Integer> matches(Ctx ctx, String input) {
         if (input.isEmpty()) return List.of();
         String text = ctx.port().getText();
-        int[] fl = visibleLines(ctx);
-        int from = Text.lineStart(text, fl[0]);
-        int to = Text.lineEnd(text, fl[1]);
+        int[] visible = visibleLines(ctx);
+        int from = Text.lineStart(text, visible[0]);
+        int to = Text.lineEnd(text, visible[1]);
         String haystack = text.toLowerCase();
         String needle = input.toLowerCase();
         List<Integer> out = new ArrayList<>();

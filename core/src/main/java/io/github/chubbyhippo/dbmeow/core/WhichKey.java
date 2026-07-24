@@ -51,15 +51,7 @@ public final class WhichKey {
             String child = buffer + seq.charAt(buffer.length());
             String label;
             if (seq.equals(child)) {
-                Rc.Binding b = e.getValue();
-                label =
-                        descs.containsKey(seq)
-                                ? descs.get(seq)
-                                : b.action() != null
-                                        ? b.action()
-                                        : b.command() != null
-                                                ? b.command()
-                                                : b.keys() != null ? b.keys() : "";
+                label = descs.containsKey(seq) ? descs.get(seq) : e.getValue().target();
             } else {
                 label = descs.containsKey(child) ? descs.get(child) : "+more";
             }

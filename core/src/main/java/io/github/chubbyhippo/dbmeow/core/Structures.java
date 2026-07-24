@@ -101,8 +101,8 @@ public final class Structures {
         SelRange sel = Selections.primary(ctx);
         boolean active = ctx.st().selType == SelType.BLOCK && Selections.hasSelection(sel);
         boolean back = Selections.backwardP(ctx) != (ctx.st().takeCount(1) < 0);
-        int s = active ? Math.min(sel.anchor(), sel.active()) : sel.active();
-        int e = active ? Math.max(sel.anchor(), sel.active()) : sel.active();
+        int s = active ? sel.lo() : sel.active();
+        int e = active ? sel.hi() : sel.active();
         int[] p = enclosingPair(text, s, e);
         if (p == null) {
             ctx.ui().hint("No enclosing block");
@@ -132,24 +132,24 @@ public final class Structures {
         int n = ctx.st().takeCount(1);
         int ln = Text.lineOfOffset(text, Selections.primary(ctx).active());
         if (n >= 0) {
-            int pl = ln - 1;
-            while (pl >= 0 && Things.blank(text, pl)) pl--;
-            if (pl < 0) return;
-            int m = Text.lineEnd(text, pl);
-            int p = Text.lineStart(text, ln);
-            int eol = Text.lineEnd(text, ln);
-            while (p < eol && Character.isWhitespace(text.charAt(p))) p++;
-            Selections.select(ctx, SelType.JOIN, m, p, true);
+            int upper = ln - 1;
+            while (upper >= 0 && Things.blank(text, upper)) upper--;
+            if (upper < 0) return;
+            selectJoin(ctx, text, upper, ln);
         } else {
             int last = Text.lineCount(text) - 1;
-            int nl = ln + 1;
-            while (nl <= last && Things.blank(text, nl)) nl++;
-            if (nl > last) return;
-            int m = Text.lineEnd(text, ln);
-            int p = Text.lineStart(text, nl);
-            int eol = Text.lineEnd(text, nl);
-            while (p < eol && Character.isWhitespace(text.charAt(p))) p++;
-            Selections.select(ctx, SelType.JOIN, m, p, true);
+            int lower = ln + 1;
+            while (lower <= last && Things.blank(text, lower)) lower++;
+            if (lower > last) return;
+            selectJoin(ctx, text, ln, lower);
         }
+    }
+
+    private static void selectJoin(Ctx ctx, String text, int upperLine, int lowerLine) {
+        int mark = Text.lineEnd(text, upperLine);
+        int point = Text.lineStart(text, lowerLine);
+        int eol = Text.lineEnd(text, lowerLine);
+        while (point < eol && Character.isWhitespace(text.charAt(point))) point++;
+        Selections.select(ctx, SelType.JOIN, mark, point, true);
     }
 }

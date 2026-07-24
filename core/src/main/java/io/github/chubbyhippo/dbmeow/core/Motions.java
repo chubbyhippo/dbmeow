@@ -264,8 +264,8 @@ public final class Motions {
         String text = ctx.port().getText();
         SelType type = wordType(symbol);
         SelRange sel = Selections.primary(ctx);
-        int lo = Math.min(sel.anchor(), sel.active());
-        int hi = Math.max(sel.anchor(), sel.active());
+        int lo = sel.lo();
+        int hi = sel.hi();
         if (!(Selections.hasSelection(sel) && ctx.st().selType == type)) Selections.cancel(ctx);
         boolean extend =
                 ctx.st().selExpand && ctx.st().selType == type && Selections.hasSelection(sel);

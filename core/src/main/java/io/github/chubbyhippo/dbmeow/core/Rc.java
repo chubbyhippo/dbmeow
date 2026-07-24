@@ -35,7 +35,14 @@ public final class Rc {
 
     public static final String FILE_NAME = ".dbmeowrc";
 
-    public record Binding(String action, String keys, String command, boolean recursive) {}
+    public record Binding(String action, String keys, String command, boolean recursive) {
+        public String target() {
+            if (action != null) return action;
+            if (command != null) return command;
+            if (keys != null) return keys;
+            return "";
+        }
+    }
 
     public record Rgb(int r, int g, int b) {}
 
@@ -163,7 +170,7 @@ public final class Rc {
 
     private static final Rgb DEFAULT_OVERLAY_COLOR = new Rgb(0xE5, 0x2B, 0x50);
     private static final Rgb DEFAULT_OVERLAY_TEXT_COLOR = new Rgb(0xFF, 0xFF, 0xFF);
-    private static final Rgb DEFAULT_EXPAND_HINT_COLOR = new Rgb(43, 93, 178);
+    private static final Rgb DEFAULT_EXPAND_HINT_COLOR = new Rgb(0x2B, 0x5D, 0xB2);
     private static final Rgb DEFAULT_GRAB_COLOR = new Rgb(0xCD, 0xE8, 0xCD);
 
     public static Rgb overlayColor() {

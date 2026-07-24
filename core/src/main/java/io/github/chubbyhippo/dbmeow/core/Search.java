@@ -81,12 +81,7 @@ public final class Search {
                         ? null
                         : st.searchHistory.get(st.searchHistory.size() - 1);
         if (Selections.hasSelection(sel)) {
-            String selText =
-                    ctx.port()
-                            .getText()
-                            .substring(
-                                    Math.min(sel.anchor(), sel.active()),
-                                    Math.max(sel.anchor(), sel.active()));
+            String selText = ctx.port().getText().substring(sel.lo(), sel.hi());
             if (!selText.isEmpty() && (pattern == null || !fullyMatches(pattern, selText))) {
                 pattern = Text.escapeRegExp(selText);
                 push(st, pattern);

@@ -78,7 +78,7 @@ public final class Edits {
         List<Item> order = new ArrayList<>();
         for (int i = 0; i < sels.size(); i++) {
             SelRange sel = sels.get(i);
-            order.add(new Item(sel, i, Math.min(sel.anchor(), sel.active())));
+            order.add(new Item(sel, i, sel.lo()));
         }
         order.sort(Comparator.comparingInt(Item::lo).reversed());
         List<TextEdit> edits = new ArrayList<>();
@@ -108,22 +108,18 @@ public final class Edits {
     }
 
     private static void insert(Ctx ctx) {
-        List<SelRange> collapsed = new ArrayList<>();
-        for (SelRange s : ctx.port().getSelections()) {
-            int o = Math.min(s.anchor(), s.active());
-            collapsed.add(new SelRange(o, o));
-        }
-        ctx.port().setSelections(collapsed);
-        ctx.st().selType = SelType.NONE;
-        Selections.resetSelectionMemory(ctx.st());
-        ctx.setMode(MeowMode.INSERT);
+        collapseCaretsAndEnterInsert(ctx, false);
     }
 
     private static void append(Ctx ctx) {
+        collapseCaretsAndEnterInsert(ctx, true);
+    }
+
+    private static void collapseCaretsAndEnterInsert(Ctx ctx, boolean toSelectionEnd) {
         List<SelRange> collapsed = new ArrayList<>();
         for (SelRange s : ctx.port().getSelections()) {
-            int o = Math.max(s.anchor(), s.active());
-            collapsed.add(new SelRange(o, o));
+            int caret = toSelectionEnd ? s.hi() : s.lo();
+            collapsed.add(new SelRange(caret, caret));
         }
         ctx.port().setSelections(collapsed);
         ctx.st().selType = SelType.NONE;
@@ -201,8 +197,8 @@ public final class Edits {
     }
 
     private static int[] killRange(Ctx ctx, SelRange sel, String text) {
-        int lo = Math.min(sel.anchor(), sel.active());
-        int hi = Math.max(sel.anchor(), sel.active());
+        int lo = sel.lo();
+        int hi = sel.hi();
         if (ctx.st().selType == SelType.LINE
                 && sel.active() >= sel.anchor()
                 && hi < text.length()) {
@@ -217,7 +213,7 @@ public final class Edits {
         for (SelRange s : sels) {
             if (s.anchor() != s.active()) regions.add(s);
         }
-        regions.sort(Comparator.comparingInt(s -> Math.min(s.anchor(), s.active())));
+        regions.sort(Comparator.comparingInt(s -> s.lo()));
         return regions;
     }
 
@@ -268,8 +264,8 @@ public final class Edits {
     private static void joinKill(Ctx ctx) {
         String text = ctx.port().getText();
         SelRange prim = Selections.primary(ctx);
-        int s = Math.min(prim.anchor(), prim.active());
-        int e = Math.max(prim.anchor(), prim.active());
+        int s = prim.lo();
+        int e = prim.hi();
         char before = s > 0 ? text.charAt(s - 1) : '\n';
         char after = e < text.length() ? text.charAt(e) : '\n';
         boolean space =

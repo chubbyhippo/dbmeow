@@ -97,13 +97,7 @@ public final class Keypad {
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(
                         e -> {
-                            Rc.Binding b = e.getValue();
-                            String target =
-                                    b.action() != null
-                                            ? b.action()
-                                            : b.command() != null
-                                                    ? b.command()
-                                                    : b.keys() != null ? b.keys() : "";
+                            String target = e.getValue().target();
                             String desc =
                                     descs.containsKey(e.getKey())
                                             ? "  (" + descs.get(e.getKey()) + ")"
