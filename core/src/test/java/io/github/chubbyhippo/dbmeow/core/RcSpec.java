@@ -20,6 +20,7 @@ package io.github.chubbyhippo.dbmeow.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.LinkedHashMap;
@@ -154,6 +155,50 @@ class RcSpec extends SpecDsl {
         givenRc("set nowhich-key\nset timeoutlen=150");
         assertFalse(Rc.whichKeyEnabled());
         assertEquals(150, Rc.whichKeyDelayMs());
+    }
+
+    @Test
+    @DisplayName("given overlay color set lines then they parse into rgb colors")
+    void overlayColorSetLinesParseIntoRgb() {
+        Rc.Config c =
+                Rc.parse(
+                        List.of(
+                                "set overlay-color=#E52B50",
+                                "set overlay-text-color=#ffffff",
+                                "set expand-hint-color=#d05c0a",
+                                "set grab-color=#CDE8CD"));
+        assertEquals(new Rc.Rgb(0xE5, 0x2B, 0x50), c.overlayColor);
+        assertEquals(new Rc.Rgb(0xFF, 0xFF, 0xFF), c.overlayTextColor);
+        assertEquals(new Rc.Rgb(0xD0, 0x5C, 0x0A), c.expandHintColor);
+        assertEquals(new Rc.Rgb(0xCD, 0xE8, 0xCD), c.grabColor);
+        assertEquals(List.of(), c.errors);
+    }
+
+    @Test
+    @DisplayName("given a malformed overlay color then an error is collected and it stays unset")
+    void malformedOverlayColorCollectsErrorAndStaysUnset() {
+        Rc.Config c = Rc.parse(List.of("set overlay-color=#12345", "set grab-color=nope"));
+        assertNull(c.overlayColor);
+        assertNull(c.grabColor);
+        assertEquals(2, c.errors.size());
+        assertTrue(c.errors.get(0).contains("overlay-color"));
+    }
+
+    @Test
+    @DisplayName("given an unknown set color option then it is ignored without error")
+    void unknownSetColorOptionIgnored() {
+        Rc.Config c = Rc.parse(List.of("set cursor-color=#123456"));
+        assertNull(c.overlayColor);
+        assertEquals(List.of(), c.errors);
+    }
+
+    @Test
+    @DisplayName("overlay colors layer user over the bundled default")
+    void overlayColorsLayerUserOverBundled() {
+        assertEquals(new Rc.Rgb(0xE5, 0x2B, 0x50), Rc.overlayColor());
+        givenRc("set overlay-color=#010203\nset grab-color=#040506");
+        assertEquals(new Rc.Rgb(0x01, 0x02, 0x03), Rc.overlayColor());
+        assertEquals(new Rc.Rgb(0x04, 0x05, 0x06), Rc.grabColor());
     }
 
     @Test

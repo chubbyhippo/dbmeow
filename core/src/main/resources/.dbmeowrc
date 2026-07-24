@@ -9,10 +9,23 @@
 " `ignore` to disable a key). Open it with SPC c m — the first press creates
 " ~/.dbmeowrc as a full copy of this file; reload after editing with SPC c M.
 " Within this file, a later line for the same key wins.
+"
+" set which-key / nowhich-key toggles the popup, set timeoutlen=<ms> its delay.
+" set overlay-color / overlay-text-color / expand-hint-color / grab-color each
+" take a #RRGGBB and recolor the avy/ace jump labels, the 0-9 expand hints and
+" the grab highlight (see the block below).
 " ============================================================================
 
 set which-key
 set timeoutlen=300
+
+" Overlay colors — #RRGGBB, applied to both the light and dark themes. The two
+" label colors below sit at their defaults; expand-hint and grab are commented
+" so their built-in defaults stand — uncomment to pin your own.
+set overlay-color=#E52B50
+set overlay-text-color=#ffffff
+" set expand-hint-color=#2b5db2
+" set grab-color=#cde8cd
 
 " expand / counts
 nmap 0 meow-expand-0

@@ -18,6 +18,7 @@
 package io.github.chubbyhippo.dbmeow.eclipse;
 
 import io.github.chubbyhippo.dbmeow.core.EditorPort;
+import io.github.chubbyhippo.dbmeow.core.Rc;
 import io.github.chubbyhippo.dbmeow.core.UiPort;
 import io.github.chubbyhippo.dbmeow.core.WhichKey;
 
@@ -38,10 +39,8 @@ import java.util.List;
 
 final class OverlayPainter implements PaintListener {
 
-    private static final Color AVY_LEAD_BG = new Color(229, 43, 80);
-    private static final Color EXPAND_HINT_BG = new Color(43, 93, 178);
     private static final Color MATCH_BG = new Color(255, 220, 0);
-    private static final Color LABEL_FG = new Color(255, 255, 255);
+    private static final Color WHICH_KEY_KEY_FG = new Color(43, 93, 178);
     private static final int MATCH_ALPHA = 96;
 
     private final ISourceViewer viewer;
@@ -136,11 +135,14 @@ final class OverlayPainter implements PaintListener {
         gc.setTextAntialias(SWT.ON);
         paintMatches(gc);
         gc.setFont(boldEditorFont());
+        Color labelFg = swt(Rc.overlayTextColor());
+        Color avyBg = swt(Rc.overlayColor());
         for (UiPort.AvyLabel label : avyLabels) {
-            paintBox(gc, label.offset(), label.label(), AVY_LEAD_BG);
+            paintBox(gc, label.offset(), label.label(), avyBg, labelFg);
         }
+        Color hintBg = swt(Rc.expandHintColor());
         for (int i = 0; i < expandHints.size(); i++) {
-            paintBox(gc, expandHints.get(i), String.valueOf((i + 1) % 10), EXPAND_HINT_BG);
+            paintBox(gc, expandHints.get(i), String.valueOf((i + 1) % 10), hintBg, labelFg);
         }
         paintAceLabel(gc);
         paintWhichKey(gc);
@@ -149,9 +151,9 @@ final class OverlayPainter implements PaintListener {
     private void paintAceLabel(GC gc) {
         if (aceLabel == null) return;
         Point extent = gc.stringExtent(aceLabel);
-        gc.setBackground(AVY_LEAD_BG);
+        gc.setBackground(swt(Rc.overlayColor()));
         gc.fillRectangle(0, 0, extent.x + 4, extent.y + 4);
-        gc.setForeground(LABEL_FG);
+        gc.setForeground(swt(Rc.overlayTextColor()));
         gc.drawString(aceLabel, 2, 2, true);
     }
 
@@ -189,7 +191,7 @@ final class OverlayPainter implements PaintListener {
             for (int i = 0; i < slice.size(); i++) {
                 WhichKey.Row row = slice.get(i);
                 int y = top + 5 + (i + 1) * lineHeight;
-                gc.setForeground(EXPAND_HINT_BG);
+                gc.setForeground(WHICH_KEY_KEY_FG);
                 gc.drawString(row.key(), x, y, true);
                 gc.setForeground(fg);
                 gc.drawString(row.label(), x + keyWidth + 12, y, true);
@@ -215,7 +217,7 @@ final class OverlayPainter implements PaintListener {
         gc.setAlpha(255);
     }
 
-    private void paintBox(GC gc, int modelOffset, String label, Color bg) {
+    private void paintBox(GC gc, int modelOffset, String label, Color bg, Color fg) {
         int offset = widgetOffset(modelOffset);
         if (offset < 0) return;
         Point loc = text.getLocationAtOffset(offset);
@@ -223,8 +225,12 @@ final class OverlayPainter implements PaintListener {
         Point extent = gc.stringExtent(label);
         gc.setBackground(bg);
         gc.fillRectangle(loc.x, loc.y, extent.x + 3, height);
-        gc.setForeground(LABEL_FG);
+        gc.setForeground(fg);
         gc.drawString(label, loc.x + 1, loc.y + (height - extent.y) / 2, true);
+    }
+
+    private static Color swt(Rc.Rgb c) {
+        return new Color(c.r(), c.g(), c.b());
     }
 
     private int widgetOffset(int modelOffset) {

@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 public final class Rc {
     private Rc() {}
@@ -35,6 +36,8 @@ public final class Rc {
     public static final String FILE_NAME = ".dbmeowrc";
 
     public record Binding(String action, String keys, String command, boolean recursive) {}
+
+    public record Rgb(int r, int g, int b) {}
 
     public static final class Config {
         public final Map<Character, Binding> normal = new HashMap<>();
@@ -46,6 +49,10 @@ public final class Rc {
 
         public Boolean whichKey = null;
         public Integer whichKeyDelayMs = null;
+        public Rgb overlayColor = null;
+        public Rgb overlayTextColor = null;
+        public Rgb expandHintColor = null;
+        public Rgb grabColor = null;
         public final List<String> errors = new ArrayList<>();
     }
 
@@ -152,5 +159,34 @@ public final class Rc {
         if (cfg().whichKeyDelayMs != null) return cfg().whichKeyDelayMs;
         if (defaults().whichKeyDelayMs != null) return defaults().whichKeyDelayMs;
         return DEFAULT_WHICH_KEY_DELAY_MS;
+    }
+
+    private static final Rgb DEFAULT_OVERLAY_COLOR = new Rgb(0xE5, 0x2B, 0x50);
+    private static final Rgb DEFAULT_OVERLAY_TEXT_COLOR = new Rgb(0xFF, 0xFF, 0xFF);
+    private static final Rgb DEFAULT_EXPAND_HINT_COLOR = new Rgb(43, 93, 178);
+    private static final Rgb DEFAULT_GRAB_COLOR = new Rgb(0xCD, 0xE8, 0xCD);
+
+    public static Rgb overlayColor() {
+        return resolveColor(DEFAULT_OVERLAY_COLOR, c -> c.overlayColor);
+    }
+
+    public static Rgb overlayTextColor() {
+        return resolveColor(DEFAULT_OVERLAY_TEXT_COLOR, c -> c.overlayTextColor);
+    }
+
+    public static Rgb expandHintColor() {
+        return resolveColor(DEFAULT_EXPAND_HINT_COLOR, c -> c.expandHintColor);
+    }
+
+    public static Rgb grabColor() {
+        return resolveColor(DEFAULT_GRAB_COLOR, c -> c.grabColor);
+    }
+
+    private static Rgb resolveColor(Rgb fallback, Function<Config, Rgb> pick) {
+        Rgb user = pick.apply(cfg());
+        if (user != null) return user;
+        Rgb bundled = pick.apply(defaults());
+        if (bundled != null) return bundled;
+        return fallback;
     }
 }

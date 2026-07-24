@@ -53,3 +53,17 @@ Same syntax and defaults model as the siblings: the bundled `.dbmeowrc` is
 the whole keymap (one `nmap <key> <meow-command>` line per key plus the
 `SPC` keypad table of Eclipse command ids); `~/.dbmeowrc` overrides it entry
 by entry. Either sibling's rc pastes in — unknown lines are ignored.
+
+### `set` options
+
+| line | effect |
+|---|---|
+| `set which-key` / `set nowhich-key` | which-key popup on/off (default on) |
+| `set timeoutlen=300` | which-key popup delay in ms (bundled default 300) |
+| `set overlay-color=#E52B50` | background of the avy / ace-window / ace-click jump labels (`#RRGGBB`) |
+| `set overlay-text-color=#ffffff` | the jump-label text color |
+| `set expand-hint-color=#2b5db2` | the `0`–`9` expand-hint color |
+| `set grab-color=#cde8cd` | the grab / beacon highlight color |
+
+A single `#RRGGBB` applies to both light and dark themes; a malformed value is
+reported like any other rc error, and unknown `set` keys are ignored.

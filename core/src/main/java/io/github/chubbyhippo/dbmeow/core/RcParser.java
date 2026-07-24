@@ -19,6 +19,7 @@ package io.github.chubbyhippo.dbmeow.core;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,7 +58,7 @@ final class RcParser {
             switch (cmd) {
                 case "let" -> {}
                 case "cmap", "cnoremap" -> {}
-                case "set" -> parseSet(c, rest);
+                case "set" -> parseSet(c, rest, err);
                 case "desc" -> parseDescBody(c, rest, err);
                 case "map", "noremap", "nmap", "nnoremap", "mmap", "mnoremap" ->
                         parseMap(c, cmd, rest, err);
@@ -68,7 +69,7 @@ final class RcParser {
         return c;
     }
 
-    private static void parseSet(Rc.Config c, String rest) {
+    private static void parseSet(Rc.Config c, String rest, Consumer<String> err) {
         if (rest.equals("which-key")) {
             c.whichKey = true;
         } else if (rest.equals("nowhich-key")) {
@@ -81,6 +82,8 @@ final class RcParser {
                             : parseIntOrNull(
                                     rest.split("\\s+").length > 1 ? rest.split("\\s+")[1] : "");
             if (n != null && n >= 0) c.whichKeyDelayMs = n;
+        } else {
+            parseSetColor(c, rest, err);
         }
     }
 
@@ -90,6 +93,36 @@ final class RcParser {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private static final Set<String> COLOR_SET_KEYS =
+            Set.of("overlay-color", "overlay-text-color", "expand-hint-color", "grab-color");
+
+    private static final Pattern HEX_COLOR_RE = Pattern.compile("[0-9a-fA-F]{6}");
+
+    private static void parseSetColor(Rc.Config c, String rest, Consumer<String> err) {
+        String key = (rest.contains("=") ? rest.substring(0, rest.indexOf('=')) : rest).trim();
+        if (!COLOR_SET_KEYS.contains(key)) return;
+        String raw = rest.contains("=") ? rest.substring(rest.indexOf('=') + 1).trim() : "";
+        Rc.Rgb color = parseHexColor(raw);
+        if (color == null) {
+            err.accept("set " + key + ": invalid color '" + raw + "' (expected #RRGGBB)");
+            return;
+        }
+        switch (key) {
+            case "overlay-color" -> c.overlayColor = color;
+            case "overlay-text-color" -> c.overlayTextColor = color;
+            case "expand-hint-color" -> c.expandHintColor = color;
+            case "grab-color" -> c.grabColor = color;
+            default -> {}
+        }
+    }
+
+    private static Rc.Rgb parseHexColor(String text) {
+        String hex = text.startsWith("#") ? text.substring(1) : text;
+        if (!HEX_COLOR_RE.matcher(hex).matches()) return null;
+        int rgb = Integer.parseInt(hex, 16);
+        return new Rc.Rgb((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF);
     }
 
     private static void parseDescBody(Rc.Config c, String body, Consumer<String> err) {

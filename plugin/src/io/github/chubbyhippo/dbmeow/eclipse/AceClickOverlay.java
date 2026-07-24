@@ -17,6 +17,8 @@
 
 package io.github.chubbyhippo.dbmeow.eclipse;
 
+import io.github.chubbyhippo.dbmeow.core.Rc;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.Color;
@@ -34,8 +36,6 @@ final class AceClickOverlay {
 
     record Badge(Rectangle displayBounds, String label) {}
 
-    private static final Color BADGE_BG = new Color(229, 43, 80);
-    private static final Color BADGE_FG = new Color(255, 255, 255);
     private static final int PADDING = 2;
 
     private final Shell parent;
@@ -48,7 +48,7 @@ final class AceClickOverlay {
     AceClickOverlay(Shell parent) {
         this.parent = parent;
         this.shell = new Shell(parent, SWT.NO_TRIM | SWT.ON_TOP | SWT.NO_FOCUS);
-        this.shell.setBackground(BADGE_BG);
+        this.shell.setBackground(swt(Rc.overlayColor()));
         this.shell.addPaintListener(this::paint);
     }
 
@@ -102,8 +102,8 @@ final class AceClickOverlay {
         GC gc = e.gc;
         gc.setTextAntialias(SWT.ON);
         gc.setFont(boldFont());
-        gc.setBackground(BADGE_BG);
-        gc.setForeground(BADGE_FG);
+        gc.setBackground(swt(Rc.overlayColor()));
+        gc.setForeground(swt(Rc.overlayTextColor()));
         for (Badge badge : badges) {
             Point extent = gc.stringExtent(badge.label());
             int x = badge.displayBounds().x - area.x;
@@ -111,6 +111,10 @@ final class AceClickOverlay {
             gc.fillRectangle(x, y, extent.x + PADDING * 2, extent.y + PADDING * 2);
             gc.drawString(badge.label(), x + PADDING, y + PADDING, true);
         }
+    }
+
+    private static Color swt(Rc.Rgb c) {
+        return new Color(c.r(), c.g(), c.b());
     }
 
     private Font boldFont() {
