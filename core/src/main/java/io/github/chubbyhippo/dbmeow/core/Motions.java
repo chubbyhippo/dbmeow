@@ -149,7 +149,7 @@ public final class Motions {
     }
 
     private static void bufferBoundary(Ctx ctx, boolean top) {
-        boolean counted = ctx.st().pendingCount != 0 || ctx.st().negative;
+        boolean counted = ctx.st().counted();
         int n = ctx.st().takeCount(1);
         moveToOrExpand(
                 ctx,

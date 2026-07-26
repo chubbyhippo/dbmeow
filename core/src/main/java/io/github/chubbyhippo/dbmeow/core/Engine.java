@@ -75,7 +75,7 @@ public final class Engine {
         String cmd = binding != null ? binding.command() : null;
 
         if (!st.replaying && !"repeat".equals(cmd)) {
-            if (pend == null && st.pendingCount == 0 && !st.negative) st.unit.clear();
+            if (pend == null && !st.counted()) st.unit.clear();
             st.unit.add(c);
         }
 
@@ -95,8 +95,8 @@ public final class Engine {
 
         boolean awaitingMoreKeys =
                 st.pending != null
-                        || (st.pendingCount != 0 && cmd != null && cmd.startsWith("meow-expand-"))
-                        || (st.negative && "meow-negative-argument".equals(cmd))
+                        || (st.pendingCount() != 0 && cmd != null && cmd.startsWith("meow-expand-"))
+                        || (st.negative() && "meow-negative-argument".equals(cmd))
                         || "meow-keypad".equals(cmd);
         if (!st.replaying && !"repeat".equals(cmd) && !awaitingMoreKeys) {
             st.lastKeys = List.copyOf(st.unit);

@@ -37,7 +37,7 @@ public final class Keypad {
         }
         if (buf.isEmpty()) {
             if (c >= '0' && c <= '9') {
-                st.pendingCount = st.pendingCount * 10 + (c - '0');
+                st.pushCountDigit(c - '0');
                 exit(ctx);
                 return;
             }

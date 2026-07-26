@@ -27,8 +27,8 @@ public class MeowState {
     public boolean selExpand = false;
     public Pending pending = null;
 
-    public int pendingCount = 0;
-    public boolean negative = false;
+    private int pendingCount = 0;
+    private boolean negative = false;
 
     public Character lastFind = null;
 
@@ -56,6 +56,26 @@ public class MeowState {
 
     public int replayDepth = 0;
     public int noremapDepth = 0;
+
+    public int pendingCount() {
+        return pendingCount;
+    }
+
+    public void pushCountDigit(int digit) {
+        pendingCount = pendingCount * 10 + digit;
+    }
+
+    public boolean negative() {
+        return negative;
+    }
+
+    public void negate() {
+        negative = true;
+    }
+
+    public boolean counted() {
+        return pendingCount != 0 || negative;
+    }
 
     public int takeCount() {
         return takeCount(1);

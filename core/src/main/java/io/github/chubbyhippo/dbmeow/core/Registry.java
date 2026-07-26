@@ -35,8 +35,8 @@ public final class Registry {
         commands.putAll(Grab.commands);
         commands.putAll(Avy.commands);
         commands.putAll(Edits.commands);
-        commands.put("meow-negative-argument", ctx -> ctx.st().negative = true);
-        commands.put("negative-argument", ctx -> ctx.st().negative = true);
+        commands.put("meow-negative-argument", ctx -> ctx.st().negate());
+        commands.put("negative-argument", ctx -> ctx.st().negate());
         commands.put("meow-quit", ctx -> ctx.port().closeEditor());
         commands.put("meow-keypad", Engine::enterKeypad);
         commands.put("repeat", Engine::repeatLast);

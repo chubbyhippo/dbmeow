@@ -46,6 +46,7 @@
         </configuration>
         <executions>
           <execution>
+            <phase>process-sources</phase>
             <goals>
               <goal>check</goal>
             </goals>
@@ -57,10 +58,11 @@
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>4.10.2.0</version>
         <configuration>
-          <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+          <omitVisitors>FindReturnRef</omitVisitors>
         </configuration>
         <executions>
           <execution>
+            <phase>process-classes</phase>
             <goals>
               <goal>check</goal>
             </goals>

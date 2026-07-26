@@ -160,7 +160,7 @@ public final class Selections {
         if (hasSelection(primary(ctx)) && EXPANDABLE.contains(st.selType)) {
             expand(ctx, n == 0 ? DIGIT_ZERO_EXPAND : n);
         } else {
-            st.pendingCount = st.pendingCount * 10 + n;
+            st.pushCountDigit(n);
         }
     }
 
