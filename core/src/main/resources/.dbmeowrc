@@ -22,7 +22,7 @@ set timeoutlen=300
 " Overlay colors — #RRGGBB, applied to both the light and dark themes. The two
 " label colors below sit at their defaults; expand-hint and grab are commented
 " so their built-in defaults stand — uncomment to pin your own.
-set overlay-color=#E52B50
+set overlay-color=#2ECC71
 set overlay-text-color=#ffffff
 " set expand-hint-color=#2b5db2
 " set grab-color=#cde8cd

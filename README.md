@@ -60,7 +60,7 @@ by entry. Either sibling's rc pastes in — unknown lines are ignored.
 |---|---|
 | `set which-key` / `set nowhich-key` | which-key popup on/off (default on) |
 | `set timeoutlen=300` | which-key popup delay in ms (bundled default 300) |
-| `set overlay-color=#E52B50` | background of the avy / ace-window / ace-click jump labels (`#RRGGBB`) |
+| `set overlay-color=#2ECC71` | background of the avy / ace-window / ace-click jump labels (`#RRGGBB`) |
 | `set overlay-text-color=#ffffff` | the jump-label text color |
 | `set expand-hint-color=#2b5db2` | the `0`–`9` expand-hint color |
 | `set grab-color=#cde8cd` | the grab / beacon highlight color |
