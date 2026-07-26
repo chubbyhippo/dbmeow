@@ -24,6 +24,32 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class EmacsMotionSpec extends SpecDsl {
+
+    @Test
+    @DisplayName("given an indented line then back-to-indentation lands on the first real char")
+    void backToIndentationSkipsLeadingBlanks() {
+        given("indented", "    hel<caret>lo");
+        whenCommand("back-to-indentation");
+        thenCaretAt(4);
+    }
+
+    @Test
+    @DisplayName("given a blank-only line then back-to-indentation lands at its end")
+    void backToIndentationOnBlankLine() {
+        given("blank line", "  <caret>  \nnext");
+        whenCommand("back-to-indentation");
+        thenCaretAt(4);
+    }
+
+    @Test
+    @DisplayName("given a selection then back-to-indentation extends it like the other motions")
+    void backToIndentationExtends() {
+        given("indented", "    hello world<caret>");
+        whenKeys("w");
+        whenCommand("back-to-indentation");
+        thenSelection("hello ");
+    }
+
     @Test
     @DisplayName(
             "given no selection when forward-char then the caret moves right without selecting")

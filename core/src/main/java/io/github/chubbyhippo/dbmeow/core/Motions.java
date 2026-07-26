@@ -67,6 +67,9 @@ public final class Motions {
         commands.put(
                 "move-end-of-line",
                 ctx -> moveToOrExpand(ctx, SelType.CHAR, Motions::lineEndTarget));
+        commands.put(
+                "back-to-indentation",
+                ctx -> moveToOrExpand(ctx, SelType.CHAR, Motions::indentationTarget));
         commands.put("forward-word", ctx -> wordOrExpand(ctx, ctx.st().takeCount(1)));
         commands.put("backward-word", ctx -> wordOrExpand(ctx, -ctx.st().takeCount(1)));
         commands.put("forward-sentence", ctx -> sentenceOrExpand(ctx, ctx.st().takeCount(1)));
@@ -87,6 +90,18 @@ public final class Motions {
 
     private static int lineEndTarget(String text, int off) {
         return Text.lineEnd(text, Text.lineOfOffset(text, off));
+    }
+
+    private static int indentationTarget(String text, int off) {
+        int line = Text.lineOfOffset(text, off);
+        int end = Text.lineEnd(text, line);
+        int at = Text.lineStart(text, line);
+        while (at < end && isBlank(text.charAt(at))) at++;
+        return at;
+    }
+
+    static boolean isBlank(char ch) {
+        return ch == ' ' || ch == '\t';
     }
 
     private static void charOrExpand(Ctx ctx, int dx) {

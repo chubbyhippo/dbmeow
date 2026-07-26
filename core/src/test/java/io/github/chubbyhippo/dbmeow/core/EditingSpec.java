@@ -24,6 +24,43 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class EditingSpec extends SpecDsl {
+
+    @Test
+    @DisplayName("given a caret mid-line then open-line breaks the line and stays put")
+    void openLineKeepsPoint() {
+        given("one line", "hel<caret>lo");
+        whenCommand("open-line");
+        thenText("hel\nlo");
+        thenCaretAt(3);
+    }
+
+    @Test
+    @DisplayName("given blanks around the caret then delete-horizontal-space removes them all")
+    void deleteHorizontalSpaceRemovesBoth() {
+        given("spaced", "a   <caret>   b");
+        whenCommand("delete-horizontal-space");
+        thenText("ab");
+        thenCaretAt(1);
+    }
+
+    @Test
+    @DisplayName("given blanks around the caret then just-one-space leaves exactly one")
+    void justOneSpaceLeavesOne() {
+        given("spaced", "a   <caret>   b");
+        whenCommand("just-one-space");
+        thenText("a b");
+        thenCaretAt(2);
+    }
+
+    @Test
+    @DisplayName("given no blanks then just-one-space inserts one")
+    void justOneSpaceInsertsWhenNone() {
+        given("tight", "a<caret>b");
+        whenCommand("just-one-space");
+        thenText("a b");
+        thenCaretAt(2);
+    }
+
     @Test
     @DisplayName("given a selection when i then INSERT starts at the selection beginning")
     void selectionIStartsInsertAtBeginning() {

@@ -57,6 +57,9 @@ public final class Edits {
         commands.put("downcase-word", ctx -> caseWord(ctx, CaseOp.DOWNCASE));
         commands.put("capitalize-word", ctx -> caseWord(ctx, CaseOp.CAPITALIZE));
         commands.put("kill-word", Edits::killWord);
+        commands.put("open-line", Edits::openLine);
+        commands.put("delete-horizontal-space", ctx -> horizontalSpace(ctx, ""));
+        commands.put("just-one-space", ctx -> horizontalSpace(ctx, " "));
     }
 
     private enum CaseOp {
@@ -137,6 +140,33 @@ public final class Edits {
         ctx.port().edit(nl);
         ctx.port().setSelections(List.of(new SelRange(eol + 1, eol + 1)));
         ctx.setMode(MeowMode.INSERT);
+    }
+
+    private static void openLine(Ctx ctx) {
+        if (blockedReadOnly(ctx)) return;
+        Selections.collapse(ctx);
+        int at = Selections.primary(ctx).active();
+        List<TextEdit> nl = List.of(new TextEdit(at, at, "\n"));
+        Grab.adjustForEdits(ctx.st(), nl);
+        ctx.port().edit(nl);
+        ctx.port().setSelections(List.of(new SelRange(at, at)));
+    }
+
+    private static void horizontalSpace(Ctx ctx, String replacement) {
+        if (blockedReadOnly(ctx)) return;
+        Selections.collapse(ctx);
+        String text = ctx.port().getText();
+        int at = Selections.primary(ctx).active();
+        int from = at;
+        while (from > 0 && Motions.isBlank(text.charAt(from - 1))) from--;
+        int to = at;
+        while (to < text.length() && Motions.isBlank(text.charAt(to))) to++;
+        if (from == to && replacement.isEmpty()) return;
+        List<TextEdit> edits = List.of(new TextEdit(from, to, replacement));
+        Grab.adjustForEdits(ctx.st(), edits);
+        ctx.port().edit(edits);
+        int caret = from + replacement.length();
+        ctx.port().setSelections(List.of(new SelRange(caret, caret)));
     }
 
     private static void openAbove(Ctx ctx) {
