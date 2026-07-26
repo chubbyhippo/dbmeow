@@ -53,6 +53,15 @@ class ModesKeypadSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given a selection in NORMAL when escape then it collapses to the caret")
+    void escapeCollapsesSelection() {
+        given("plain text", "<caret>hello world");
+        whenKeys("w");
+        assertTrue(pressEsc());
+        thenNoSelection();
+    }
+
+    @Test
     @DisplayName("given a pending find when escape then the pending key is dropped")
     void escapeDropsPendingFind() {
         given("word", "<caret>hello");

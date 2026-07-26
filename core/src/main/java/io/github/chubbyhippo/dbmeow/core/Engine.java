@@ -17,7 +17,6 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -208,10 +207,9 @@ public final class Engine {
             return true;
         }
         List<SelRange> sels = ctx.port().getSelections();
-        if (sels.size() > 1) {
-            SelRange p = sels.get(0);
-            ctx.port()
-                    .setSelections(new ArrayList<>(List.of(new SelRange(p.active(), p.active()))));
+        boolean anySelected = sels.stream().anyMatch(Selections::hasSelection);
+        if (sels.size() > 1 || anySelected) {
+            Selections.cancelAll(ctx);
             ctx.ui().refresh(st);
             return true;
         }
