@@ -206,7 +206,7 @@ class TreeMeowSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given an <action> mmap then it dispatches with the tree as context")
+    @DisplayName("given an action mmap then it dispatches with the tree as context")
     void actionMmapDispatches() {
         givenRc("mmap z <action>(dbmeow.test.probe)");
         FakeTree tree = givenTree();

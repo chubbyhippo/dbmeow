@@ -229,8 +229,8 @@ class RepeatSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given the bundled rc then SPC x z repeats the last command and bare z keeps repeating"
-                    + " like Emacs C-x z")
+            "given the bundled rc then SPC x z repeats last command and bare z keeps repeating "
+                    + "like Emacs C-x z")
     void spcXzRepeatsAndBareZContinues() {
         given("delete run", "<caret>aaaaa");
         whenKeys("d");

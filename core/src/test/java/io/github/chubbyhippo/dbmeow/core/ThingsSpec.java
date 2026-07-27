@@ -95,7 +95,8 @@ class ThingsSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given a triple double quoted string when comma g then inner drops all three quotes and dot g keeps them")
+            "given a triple double quoted string when comma g then inner drops the quotes and dot "
+                    + "g keeps them")
     void tripleDoubleQuotedString() {
         given("triple double", "say \"\"\"hi th<caret>ere\"\"\" now");
         whenKeys(",g");
@@ -106,7 +107,8 @@ class ThingsSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given a triple single quoted string when comma g then inner drops all three quotes and dot g keeps them")
+            "given a triple single quoted string when comma g then inner drops the quotes and dot "
+                    + "g keeps them")
     void tripleSingleQuotedString() {
         given("triple single", "say '''hi th<caret>ere''' now");
         whenKeys(",g");

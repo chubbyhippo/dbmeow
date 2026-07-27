@@ -21,13 +21,22 @@ import static io.github.chubbyhippo.dbmeow.core.ToolWindowEscape.TIMEOUT_MS;
 import static io.github.chubbyhippo.dbmeow.core.ToolWindowEscape.onEscape;
 import static io.github.chubbyhippo.dbmeow.core.ToolWindowEscape.reset;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class ToolWindowEscapeSpec {
+class ToolWindowEscapeSpec extends SpecDsl {
+
+    private static final String NAV_RC =
+            """
+            map <leader>tn meow-next
+            repeat nav . meow-next
+            repeat nav , meow-prev""";
+
     @BeforeEach
     void resetState() {
         reset();
@@ -76,5 +85,53 @@ class ToolWindowEscapeSpec {
         onEscape("terminal", 1_000);
         assertFalse(onEscape(null, 1_100));
         assertFalse(onEscape("terminal", 1_200));
+    }
+
+    @Test
+    @DisplayName("given INSERT then escape is meow's and returns to NORMAL")
+    void insertEscapeIsMeows() {
+        given("insert escape", "<caret>hello");
+        whenKeys("i");
+        thenMode(MeowMode.INSERT);
+        assertTrue(pressEsc());
+        thenMode(MeowMode.NORMAL);
+    }
+
+    @Test
+    @DisplayName("given KEYPAD then escape is meow's and exits the keypad")
+    void keypadEscapeIsMeows() {
+        given("keypad escape", "<caret>hello");
+        whenKeys(" ");
+        thenMode(MeowMode.KEYPAD);
+        assertTrue(pressEsc());
+        thenMode(MeowMode.NORMAL);
+    }
+
+    @Test
+    @DisplayName("given an active selection then escape is meow's and clears it")
+    void selectionEscapeIsMeows() {
+        given("selection escape", "<caret>hello world");
+        whenKeys("w");
+        assertNotNull(selectedText());
+        assertTrue(pressEsc());
+        assertNull(selectedText());
+    }
+
+    @Test
+    @DisplayName("given an armed repeat run then escape is meow's and ends it")
+    void repeatRunEscapeIsMeows() {
+        given("four lines", "<caret>one\ntwo\nthree\nfour");
+        givenRc(NAV_RC);
+        whenKeys(" tn");
+        assertNotNull(Engine.repeatMap);
+        assertTrue(pressEsc());
+        assertNull(Engine.repeatMap);
+    }
+
+    @Test
+    @DisplayName("given NORMAL with nothing to cancel then escape is not meow's")
+    void idleEscapeIsNotMeows() {
+        given("idle escape", "<caret>hello");
+        assertFalse(pressEsc());
     }
 }

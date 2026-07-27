@@ -14,17 +14,25 @@
 // with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
-
 package io.github.chubbyhippo.dbmeow.core;
 
-public enum MeowMode {
-    NORMAL,
-    INSERT,
-    MOTION,
-    KEYPAD,
-    ;
+public final class Chords {
 
-    public boolean takesChords() {
-        return this == NORMAL || this == MOTION;
+    private Chords() {}
+
+    public static Rc.Binding bindingFor(Chord chord) {
+        if (chord == null) return null;
+        return Rc.chords().get(chord);
+    }
+
+    public static boolean claims(MeowMode mode, Chord chord) {
+        if (!mode.takesChords()) return false;
+        return bindingFor(chord) != null;
+    }
+
+    public static boolean dispatch(Ctx ctx, Chord chord) {
+        if (!claims(ctx.st().mode, chord)) return false;
+        Engine.runBinding(ctx, bindingFor(chord));
+        return true;
     }
 }

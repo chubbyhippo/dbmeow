@@ -58,7 +58,7 @@ final class RcParser {
             String rest = split.length > 1 ? split[1].trim() : "";
             switch (cmd) {
                 case "let" -> {}
-                case "cmap", "cnoremap" -> {}
+                case "cmap", "cnoremap" -> parseChord(c, cmd, rest, err);
                 case "set" -> parseSet(c, rest, err);
                 case "desc" -> parseDescBody(c, rest, err);
                 case "map", "noremap", "nmap", "nnoremap", "mmap", "mnoremap" ->
@@ -141,6 +141,27 @@ final class RcParser {
             return;
         }
         c.keypadDesc.put(seq, desc);
+    }
+
+    private static void parseChord(Rc.Config c, String cmd, String rest, Consumer<String> err) {
+        int lastSpace = rest.lastIndexOf(' ');
+        int lastTab = rest.lastIndexOf('\t');
+        int split = Math.max(lastSpace, lastTab);
+        if (split <= 0) {
+            err.accept(cmd + " needs a chord and a target");
+            return;
+        }
+        String spelling = rest.substring(0, split).trim();
+        Chord chord = Chord.parse(spelling);
+        if (chord == null) {
+            err.accept("not a chord (needs Ctrl or Alt and one key): " + spelling);
+            return;
+        }
+        String rhs = rest.substring(split + 1).trim();
+        boolean recursive = cmd.equals("cmap");
+        Rc.Binding binding = parseTarget(rhs, recursive, cmd + " " + rest, err);
+        if (binding == null) return;
+        c.chords.put(chord, binding);
     }
 
     private static void parseMap(Rc.Config c, String cmd, String rest, Consumer<String> err) {

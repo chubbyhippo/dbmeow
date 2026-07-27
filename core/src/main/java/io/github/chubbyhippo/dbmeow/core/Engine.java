@@ -192,6 +192,7 @@ public final class Engine {
             ctx.ui().refresh(st);
             return true;
         }
+        boolean hadTransient = st.pending != null || repeatMap != null;
         st.pending = null;
         repeatMap = null;
         ctx.ui().hideWhichKey();
@@ -213,6 +214,6 @@ public final class Engine {
             ctx.ui().refresh(st);
             return true;
         }
-        return false;
+        return hadTransient;
     }
 }

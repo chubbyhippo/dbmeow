@@ -211,8 +211,7 @@ class SelectionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName(
-            "given a selection then expand hints overlay the text without inserting inline content")
+    @DisplayName("given a selection then expand hints overlay the text without inserting inlays")
     void expandHintsOverlay() {
         given("three words", "<caret>hello world again");
         whenKeys("w");

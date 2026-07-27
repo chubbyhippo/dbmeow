@@ -265,8 +265,7 @@ class EmacsMotionSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName(
-            "given beacon cursors when forward-char then every cursor extends its own selection")
+    @DisplayName("given beacon carets when forward-char then every caret extends its own selection")
     void beaconForwardCharExtendsEach() {
         given("repeats with identical trailing context", "<caret>foo. foo. foo.");
         whenKeys(",bG");
@@ -350,8 +349,8 @@ class EmacsMotionSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given a count landing on a line boundary when beginning-of-buffer then the caret"
-                    + " lands one line past that tenth")
+            "given a count on a line boundary when beginning-of-buffer then the caret lands past "
+                    + "that tenth")
     void countedBeginningOfBufferLandsPastLineBoundary() {
         given("three two-char lines", "<caret>aa\naa\naa\n");
         whenKeys("3");
@@ -385,8 +384,8 @@ class EmacsMotionSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given no selection when backward-paragraph then the caret lands on the empty line"
-                    + " joining the paragraph start")
+            "given no selection when backward-paragraph then caret lands on empty line joining "
+                    + "paragraph start")
     void backwardParagraphLandsOnEmptyLineJoiningStart() {
         given("two paragraphs", "aaa\n\nbb<caret>b");
         whenCommand("backward-paragraph");
@@ -418,8 +417,8 @@ class EmacsMotionSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given a whitespace-only separator when backward-paragraph then the caret stops at the"
-                    + " paragraph text start")
+            "given a whitespace-only separator when backward-paragraph then caret stops at "
+                    + "paragraph text start")
     void backwardParagraphStopsAtTextStartAfterWhitespaceSeparator() {
         given("space-only separator line", "aaa\n \nbb<caret>b");
         whenCommand("backward-paragraph");
@@ -429,8 +428,8 @@ class EmacsMotionSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given consecutive empty lines when backward-paragraph then only the adjacent one joins"
-                    + " the paragraph start")
+            "given consecutive empty lines when backward-paragraph then only the adjacent joins "
+                    + "paragraph start")
     void backwardParagraphJoinsOnlyAdjacentEmptyLine() {
         given("two empty separator lines", "aaa\n\n\nbb<caret>b");
         whenCommand("backward-paragraph");

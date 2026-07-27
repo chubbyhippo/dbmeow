@@ -103,13 +103,11 @@ class RcSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a cmap or cnoremap line then the rc loads it without error")
-    void cmapCnoremapLoadsWithoutError() {
-        Rc.Config c = Rc.parse(List.of("cmap kj <Esc>", "cnoremap <C-a> <Home>"));
+    @DisplayName("given a cmap line then it parses into a chord binding")
+    void cmapParsesIntoChordBinding() {
+        Rc.Config c = Rc.parse(List.of("cmap control F forward-char"));
         assertEquals(List.of(), c.errors);
-        assertTrue(c.normal.isEmpty());
-        assertTrue(c.motion.isEmpty());
-        assertTrue(c.keypad.isEmpty());
+        assertEquals("forward-char", c.chords.get(Chord.parse("C-f")).target());
     }
 
     @Test
@@ -449,5 +447,25 @@ class RcSpec extends SpecDsl {
         m.put('z', "meow-pop-selection");
         m.put('\'', "repeat");
         return m;
+    }
+
+    @Test
+    @DisplayName("given no home rc then the first SPC c m seeds it with the full bundled keymap")
+    void bundledSeedCarriesTheWholeKeymap() {
+        List<String> bundled = Rc.bundledLines();
+        assertFalse(bundled.isEmpty());
+        assertTrue(bundled.stream().anyMatch(line -> line.startsWith("nmap j meow-next")));
+        assertTrue(bundled.stream().anyMatch(line -> line.startsWith("map <leader>")));
+    }
+
+    @Test
+    @DisplayName("given a space-keyed keypad entry then SPC SPC dispatches it")
+    void spaceKeypadEntryDispatches() {
+        given("spc spc dispatch", "<caret>hello");
+        givenRc("map <leader><Space> meow-insert");
+        whenKeys(" ");
+        thenMode(MeowMode.KEYPAD);
+        whenKeys(" ");
+        thenMode(MeowMode.INSERT);
     }
 }

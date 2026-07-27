@@ -41,7 +41,7 @@ class AceClickSpec {
     }
 
     @Test
-    @DisplayName("given a unique hint key then the target is picked and the session ends")
+    @DisplayName("given a unique hint key then the target is clicked once and the session ends")
     void uniqueHintKeyPicks() {
         AceClick.Session session = AceClick.begin(3);
         assertEquals(new AceClick.Pick(1), AceClick.press(session, 's'));
@@ -57,7 +57,7 @@ class AceClickSpec {
     }
 
     @Test
-    @DisplayName("given a bad hint key then ace-click reports no match and stays")
+    @DisplayName("given a bad hint key then ace-click hints and stays")
     void badHintKeyReportsNoMatch() {
         AceClick.Session session = AceClick.begin(3);
         assertEquals(new AceClick.NoMatch('x'), AceClick.press(session, 'x'));
@@ -65,7 +65,7 @@ class AceClickSpec {
     }
 
     @Test
-    @DisplayName("given a single target then ace-click labels instead of auto-picking")
+    @DisplayName("given a single target then ace-click labels instead of auto-clicking")
     void singleTargetLabelsInsteadOfAutoPicking() {
         AceClick.Session session = AceClick.begin(1);
         assertEquals(List.of("a"), labelStrings(session));

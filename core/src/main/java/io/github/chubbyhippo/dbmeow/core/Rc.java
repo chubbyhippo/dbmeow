@@ -54,6 +54,8 @@ public final class Rc {
 
         public final Map<String, Map<Character, Binding>> repeat = new LinkedHashMap<>();
 
+        public final Map<Chord, Binding> chords = new LinkedHashMap<>();
+
         public Boolean whichKey = null;
         public Integer whichKeyDelayMs = null;
         public Rgb overlayColor = null;
@@ -117,6 +119,13 @@ public final class Rc {
     public static Map<String, Binding> keypad() {
         Map<String, Binding> merged = new LinkedHashMap<>(defaults().keypad);
         merged.putAll(cfg().keypad);
+        return merged;
+    }
+
+    public static Map<Chord, Binding> chords() {
+        Map<Chord, Binding> merged = new LinkedHashMap<>(defaults().chords);
+        merged.putAll(cfg().chords);
+        merged.values().removeIf(b -> "ignore".equals(b.command()));
         return merged;
     }
 

@@ -55,7 +55,7 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given no selection when G then an existing grab is cancelled (meow 1.5.0 body)")
+    @DisplayName("given no selection when G then an existing grab is cancelled (meow 1-5-0 body)")
     void noSelectionGCancelsGrab() {
         given("word", "<caret>hello world");
         whenKeys("wG");
@@ -98,7 +98,8 @@ class GrabBeaconSpec extends SpecDsl {
 
     @Test
     @DisplayName(
-            "given a grab when marking a word inside it then a cursor lands on every occurrence (BEACON)")
+            "given a grab when marking a word inside it then a caret lands on every occurrence "
+                    + "(BEACON)")
     void beaconWordOccurrences() {
         given("repeats", "<caret>foo bar foo baz foo");
         whenKeys(",bG");
@@ -108,7 +109,7 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given beacon cursors when c then all occurrences change together")
+    @DisplayName("given beacon carets when c then all occurrences change together")
     void beaconChangeTogether() {
         given("repeats", "<caret>foo bar foo baz foo");
         whenKeys(",bG");
@@ -120,7 +121,7 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given beacon cursors when c then every cursor lands at its own edit")
+    @DisplayName("given beacon carets when c then every caret lands at its own edit")
     void beaconChangeCursorOffsets() {
         given("repeats", "<caret>foo bar foo baz foo");
         whenKeys(",bG");
@@ -133,7 +134,7 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a grab when x inside it then a cursor lands on every line (line beacon)")
+    @DisplayName("given a grab when x inside it then a caret lands on every line (line beacon)")
     void beaconLineOccurrences() {
         given("three lines", "<caret>a\nb\nc");
         whenKeys(",bG");
@@ -143,7 +144,7 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given beacon cursors when g then they collapse to one")
+    @DisplayName("given beacon carets when g then they collapse to one")
     void beaconCollapseOnG() {
         given("repeats", "<caret>foo bar foo baz foo");
         whenKeys(",bG");
@@ -156,7 +157,7 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName("given a selection outside the grab then no beacon cursors appear")
+    @DisplayName("given a selection outside the grab then no beacon carets appear")
     void noBeaconOutsideGrab() {
         given("repeats", "<caret>foo bar foo");
         whenKeys("wG");
