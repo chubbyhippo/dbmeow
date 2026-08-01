@@ -22,6 +22,8 @@ import java.util.List;
 public interface UiPort {
     void hint(String text);
 
+    void revealCaret(RevealAt at);
+
     void info(String title, String body);
 
     String input(String prompt, String initial);
@@ -45,6 +47,8 @@ public interface UiPort {
     void showAvyLabels(List<AvyLabel> labels);
 
     void clearAvy();
+
+    void setGrabHighlight(EditorPort.OffsetRange range);
 
     record AvyLabel(int offset, String label) {}
 

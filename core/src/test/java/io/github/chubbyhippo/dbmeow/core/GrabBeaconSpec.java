@@ -55,6 +55,26 @@ class GrabBeaconSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given a grab then the highlight paints its range")
+    void grabPaintsHighlight() {
+        given("word", "<caret>hello world");
+        whenKeys("wG");
+        assertNotNull(ui.grabHighlight);
+        assertEquals(0, ui.grabHighlight.start());
+        assertEquals(5, ui.grabHighlight.end());
+    }
+
+    @Test
+    @DisplayName("given the grab is cancelled then the highlight clears")
+    void cancelledGrabClearsHighlight() {
+        given("word", "<caret>hello world");
+        whenKeys("wG");
+        assertNotNull(ui.grabHighlight);
+        whenKeys("G");
+        assertNull(ui.grabHighlight);
+    }
+
+    @Test
     @DisplayName("given no selection when G then an existing grab is cancelled (meow 1-5-0 body)")
     void noSelectionGCancelsGrab() {
         given("word", "<caret>hello world");

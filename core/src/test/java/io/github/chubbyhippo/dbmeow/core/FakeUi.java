@@ -71,11 +71,25 @@ public class FakeUi implements UiPort {
         expandHints = new ArrayList<>();
     }
 
+    public final List<RevealAt> revealed = new ArrayList<>();
+
+    @Override
+    public void revealCaret(RevealAt at) {
+        revealed.add(at);
+    }
+
     @Override
     public void showAvyMatches(List<EditorPort.OffsetRange> matches) {}
 
     @Override
     public void showAvyLabels(List<UiPort.AvyLabel> labels) {}
+
+    public EditorPort.OffsetRange grabHighlight = null;
+
+    @Override
+    public void setGrabHighlight(EditorPort.OffsetRange range) {
+        grabHighlight = range;
+    }
 
     @Override
     public void clearAvy() {}

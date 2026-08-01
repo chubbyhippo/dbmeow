@@ -41,10 +41,12 @@ public final class Grab {
 
     public static void clear(Ctx ctx) {
         ctx.st().grab = null;
+        ctx.ui().setGrabHighlight(null);
     }
 
     private static void set(Ctx ctx, int start, int end) {
         ctx.st().grab = new OffsetRange(start, end);
+        ctx.ui().setGrabHighlight(end > start ? new OffsetRange(start, end) : null);
     }
 
     public static void adjustForEdits(MeowState st, List<TextEdit> edits) {

@@ -42,6 +42,8 @@ public class MeowState {
 
     public String lastCommand = null;
 
+    public int recenterPhase = 0;
+
     public EditorPort.OffsetRange grab = null;
 
     public Avy.AvySession avy = null;

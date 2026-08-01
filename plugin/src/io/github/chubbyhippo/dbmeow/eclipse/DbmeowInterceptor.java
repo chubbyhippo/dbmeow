@@ -18,6 +18,8 @@
 package io.github.chubbyhippo.dbmeow.eclipse;
 
 import io.github.chubbyhippo.dbmeow.core.Avy;
+import io.github.chubbyhippo.dbmeow.core.Chord;
+import io.github.chubbyhippo.dbmeow.core.Chords;
 import io.github.chubbyhippo.dbmeow.core.Ctx;
 import io.github.chubbyhippo.dbmeow.core.Engine;
 
@@ -25,11 +27,29 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 
 public final class DbmeowInterceptor implements VerifyKeyListener {
 
     private static final int AVY_TIMEOUT_MS = 250;
+    private static final int MODIFIER_MASK = SWT.CTRL | SWT.ALT | SWT.COMMAND;
+
+    private static final Map<Character, String> KEY_NAMES =
+            Map.ofEntries(
+                    Map.entry(' ', "SPC"),
+                    Map.entry('\t', "TAB"),
+                    Map.entry(',', "COMMA"),
+                    Map.entry('.', "PERIOD"),
+                    Map.entry('/', "SLASH"),
+                    Map.entry(';', "SEMICOLON"),
+                    Map.entry('\'', "QUOTE"),
+                    Map.entry('[', "OPEN_BRACKET"),
+                    Map.entry(']', "CLOSE_BRACKET"),
+                    Map.entry('\\', "BACK_SLASH"),
+                    Map.entry('-', "MINUS"),
+                    Map.entry('=', "EQUALS"),
+                    Map.entry('`', "BACK_QUOTE"));
 
     private final Ctx ctx;
     private final Runnable finishAvyInput;
@@ -58,8 +78,12 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
             return;
         }
 
-        int chord = SWT.CTRL | SWT.ALT | SWT.COMMAND;
-        if ((event.stateMask & chord) != 0) return;
+        if ((event.stateMask & MODIFIER_MASK) != 0) {
+            Chord chord = chordOf(event);
+            if (!Chords.claims(ctx.st().mode, chord)) return;
+            if (guarded(() -> Chords.dispatch(ctx, chord))) event.doit = false;
+            return;
+        }
 
         char c = event.character;
         if (c == 0 || c < 0x20 || c == SWT.DEL) return;
@@ -72,6 +96,25 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
                 event.display.timerExec(AVY_TIMEOUT_MS, finishAvyInput);
             }
         }
+    }
+
+    static Chord chordOf(VerifyEvent event) {
+        String name = hostKeyName(event.keyCode);
+        if (name == null) return null;
+        StringBuilder spelling = new StringBuilder();
+        if ((event.stateMask & SWT.CTRL) != 0) spelling.append("control ");
+        if ((event.stateMask & (SWT.ALT | SWT.COMMAND)) != 0) spelling.append("alt ");
+        if ((event.stateMask & SWT.SHIFT) != 0) spelling.append("shift ");
+        return Chord.parse(spelling.append(name).toString());
+    }
+
+    private static String hostKeyName(int keyCode) {
+        if (keyCode <= 0 || keyCode > Character.MAX_VALUE) return null;
+        char key = (char) keyCode;
+        String named = KEY_NAMES.get(key);
+        if (named != null) return named;
+        if (Character.isLetterOrDigit(key)) return String.valueOf(Character.toUpperCase(key));
+        return null;
     }
 
     private boolean guarded(BooleanSupplier engineCall) {

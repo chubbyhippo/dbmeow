@@ -20,6 +20,7 @@ package io.github.chubbyhippo.dbmeow.eclipse;
 import io.github.chubbyhippo.dbmeow.core.MeowMode;
 import io.github.chubbyhippo.dbmeow.core.MeowState;
 import io.github.chubbyhippo.dbmeow.core.Rc;
+import io.github.chubbyhippo.dbmeow.core.RevealAt;
 import io.github.chubbyhippo.dbmeow.core.UiPort;
 import io.github.chubbyhippo.dbmeow.core.WhichKey;
 
@@ -81,6 +82,20 @@ final class EclipseUi implements UiPort {
     @Override
     public void hint(String text) {
         status("meow: " + text);
+    }
+
+    @Override
+    public void revealCaret(RevealAt at) {
+        if (text.isDisposed()) return;
+        int caretLine = text.getLineAtOffset(text.getCaretOffset());
+        int visibleLines = Math.max(1, text.getClientArea().height / text.getLineHeight());
+        int top =
+                switch (at) {
+                    case TOP -> caretLine;
+                    case BOTTOM -> caretLine - visibleLines + 1;
+                    case CENTER -> caretLine - visibleLines / 2;
+                };
+        text.setTopIndex(Math.max(0, Math.min(top, text.getLineCount() - 1)));
     }
 
     @Override
@@ -194,6 +209,12 @@ final class EclipseUi implements UiPort {
     @Override
     public void clearAvy() {
         painter.clearAvy();
+    }
+
+    @Override
+    public void setGrabHighlight(
+            io.github.chubbyhippo.dbmeow.core.EditorPort.OffsetRange range) {
+        painter.setGrabHighlight(range);
     }
 
     @Override

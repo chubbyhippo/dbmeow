@@ -26,10 +26,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 
-public final class DbmeowChordHandler extends AbstractHandler {
-
-    private static final String PREFIX = "io.github.chubbyhippo.dbmeow.";
-    private static final String EMACS = "emacs.";
+public final class DbmeowKeypadHandler extends AbstractHandler {
 
     @Override
     public Object execute(ExecutionEvent event) {
@@ -37,15 +34,8 @@ public final class DbmeowChordHandler extends AbstractHandler {
         if (!(part instanceof AbstractTextEditor editor)) return null;
         Ctx ctx = InterceptorManager.INSTANCE.ctxOf(editor);
         if (ctx == null) return null;
-        String id = event.getCommand().getId();
-        if (!id.startsWith(PREFIX)) return null;
-        String name = id.substring(PREFIX.length());
         try {
-            if (name.equals("keypad")) {
-                Engine.enterKeypad(ctx);
-            } else if (name.startsWith(EMACS)) {
-                Engine.runEmacsMotion(ctx, name.substring(EMACS.length()));
-            }
+            Engine.enterKeypad(ctx);
         } catch (RuntimeException e) {
             String reason = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
             ctx.ui().hint("error — " + reason);

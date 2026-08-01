@@ -36,17 +36,22 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 
 import java.util.List;
+import java.util.Objects;
 
 final class OverlayPainter implements PaintListener {
 
     private static final Color MATCH_BG = new Color(255, 220, 0);
     private static final Color WHICH_KEY_KEY_FG = new Color(43, 93, 178);
     private static final int MATCH_ALPHA = 96;
+    private static final int GRAB_ALPHA = 128;
+    private static final int OPAQUE = 255;
+    private static final int MIN_FILL_WIDTH = 2;
 
     private final ISourceViewer viewer;
     private final StyledText text;
     private List<UiPort.AvyLabel> avyLabels = List.of();
     private List<EditorPort.OffsetRange> avyMatches = List.of();
+    private EditorPort.OffsetRange grabHighlight;
     private List<Integer> expandHints = List.of();
     private String aceLabel;
     private String whichKeyTitle;
@@ -73,6 +78,12 @@ final class OverlayPainter implements PaintListener {
     void clearAvy() {
         avyMatches = List.of();
         avyLabels = List.of();
+        redraw();
+    }
+
+    void setGrabHighlight(EditorPort.OffsetRange range) {
+        if (Objects.equals(grabHighlight, range)) return;
+        grabHighlight = range;
         redraw();
     }
 
@@ -126,6 +137,7 @@ final class OverlayPainter implements PaintListener {
     public void paintControl(PaintEvent e) {
         if (avyLabels.isEmpty()
                 && avyMatches.isEmpty()
+                && grabHighlight == null
                 && expandHints.isEmpty()
                 && aceLabel == null
                 && whichKeyRows == null) {
@@ -133,6 +145,7 @@ final class OverlayPainter implements PaintListener {
         }
         GC gc = e.gc;
         gc.setTextAntialias(SWT.ON);
+        paintGrabHighlight(gc);
         paintMatches(gc);
         gc.setFont(boldEditorFont());
         Color labelFg = swt(Rc.overlayTextColor());
@@ -200,21 +213,47 @@ final class OverlayPainter implements PaintListener {
         }
     }
 
+    private void paintGrabHighlight(GC gc) {
+        if (grabHighlight == null) return;
+        fillRanges(gc, List.of(grabHighlight), swt(Rc.grabColor()), GRAB_ALPHA);
+    }
+
     private void paintMatches(GC gc) {
         if (avyMatches.isEmpty()) return;
-        gc.setBackground(MATCH_BG);
-        gc.setAlpha(MATCH_ALPHA);
-        for (EditorPort.OffsetRange range : avyMatches) {
+        fillRanges(gc, avyMatches, MATCH_BG, MATCH_ALPHA);
+    }
+
+    private void fillRanges(GC gc, List<EditorPort.OffsetRange> ranges, Color bg, int alpha) {
+        gc.setBackground(bg);
+        gc.setAlpha(alpha);
+        for (EditorPort.OffsetRange range : ranges) {
             int start = widgetOffset(range.start());
             int end = widgetOffset(range.end());
             if (start < 0 || end < start) continue;
-            Point from = text.getLocationAtOffset(start);
-            Point to = text.getLocationAtOffset(end);
-            int height = text.getLineHeight(start);
-            int width = to.y == from.y ? to.x - from.x : text.getClientArea().width - from.x;
-            gc.fillRectangle(from.x, from.y, Math.max(width, 2), height);
+            fillSpan(gc, start, end);
         }
-        gc.setAlpha(255);
+        gc.setAlpha(OPAQUE);
+    }
+
+    private void fillSpan(GC gc, int start, int end) {
+        int firstLine = text.getLineAtOffset(start);
+        int lastLine = text.getLineAtOffset(end);
+        for (int line = firstLine; line <= lastLine; line++) {
+            int spanStart = Math.max(start, text.getOffsetAtLine(line));
+            int spanEnd = line == lastLine ? end : endOfLine(line);
+            Point from = text.getLocationAtOffset(spanStart);
+            Point to = text.getLocationAtOffset(spanEnd);
+            int width = line == lastLine ? to.x - from.x : Math.max(to.x - from.x, MIN_FILL_WIDTH);
+            gc.fillRectangle(
+                    from.x,
+                    from.y,
+                    Math.max(width, MIN_FILL_WIDTH),
+                    text.getLineHeight(spanStart));
+        }
+    }
+
+    private int endOfLine(int line) {
+        return text.getOffsetAtLine(line) + text.getLine(line).length();
     }
 
     private void paintBox(GC gc, int modelOffset, String label, Color bg, Color fg) {

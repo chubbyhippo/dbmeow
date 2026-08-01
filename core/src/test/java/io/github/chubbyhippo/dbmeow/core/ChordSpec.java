@@ -108,6 +108,61 @@ class ChordSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given the bundled defaults then the whole Emacs chord layer resolves")
+    void bundledChordLayerResolves() {
+        givenRc("");
+        assertEquals("forward-char", Chords.bindingFor(Chord.parse("C-f")).target());
+        assertEquals("backward-char", Chords.bindingFor(Chord.parse("C-b")).target());
+        assertEquals("next-line", Chords.bindingFor(Chord.parse("C-n")).target());
+        assertEquals("previous-line", Chords.bindingFor(Chord.parse("C-p")).target());
+        assertEquals("move-beginning-of-line", Chords.bindingFor(Chord.parse("C-a")).target());
+        assertEquals("move-end-of-line", Chords.bindingFor(Chord.parse("C-e")).target());
+        assertEquals("forward-word", Chords.bindingFor(Chord.parse("M-f")).target());
+        assertEquals("backward-word", Chords.bindingFor(Chord.parse("M-b")).target());
+        assertEquals("backward-sentence", Chords.bindingFor(Chord.parse("M-a")).target());
+        assertEquals("forward-sentence", Chords.bindingFor(Chord.parse("M-e")).target());
+        assertEquals("beginning-of-buffer", Chords.bindingFor(Chord.parse("M-<")).target());
+        assertEquals("end-of-buffer", Chords.bindingFor(Chord.parse("M->")).target());
+        assertEquals("backward-paragraph", Chords.bindingFor(Chord.parse("M-{")).target());
+        assertEquals("forward-paragraph", Chords.bindingFor(Chord.parse("M-}")).target());
+        assertEquals("upcase-word", Chords.bindingFor(Chord.parse("M-u")).target());
+        assertEquals("downcase-word", Chords.bindingFor(Chord.parse("M-l")).target());
+        assertEquals("capitalize-word", Chords.bindingFor(Chord.parse("M-c")).target());
+        assertEquals("kill-word", Chords.bindingFor(Chord.parse("M-d")).target());
+        assertEquals(32, Rc.chords().size());
+    }
+
+    @Test
+    @DisplayName("given the bundled defaults then the stock Emacs edit chords resolve")
+    void bundledEditChordsResolve() {
+        givenRc("");
+        assertEquals("meow-undo", Chords.bindingFor(Chord.parse("C-/")).command());
+        assertEquals("meow-undo", Chords.bindingFor(Chord.parse("C-_")).command());
+        assertEquals("meow-delete", Chords.bindingFor(Chord.parse("C-d")).command());
+        assertEquals("meow-kill", Chords.bindingFor(Chord.parse("C-k")).command());
+        assertEquals("meow-kill", Chords.bindingFor(Chord.parse("C-w")).command());
+        assertEquals("meow-save", Chords.bindingFor(Chord.parse("M-w")).command());
+        assertEquals("meow-yank", Chords.bindingFor(Chord.parse("C-y")).command());
+        assertEquals("meow-cancel-selection", Chords.bindingFor(Chord.parse("C-g")).command());
+    }
+
+    @Test
+    @DisplayName("given a home cmap override then it wins over the bundled default")
+    void homeOverrideWins() {
+        givenRc("cmap C-f end-of-buffer");
+        assertEquals("end-of-buffer", Chords.bindingFor(Chord.parse("C-f")).target());
+        assertEquals("backward-char", Chords.bindingFor(Chord.parse("C-b")).target());
+    }
+
+    @Test
+    @DisplayName("given a home cmap ignore then the chord is handed back to the IDE")
+    void homeIgnoreHandsChordBack() {
+        givenRc("cmap C-f ignore");
+        assertNull(Chords.bindingFor(Chord.parse("C-f")));
+        assertEquals(31, Rc.chords().size());
+    }
+
+    @Test
     @DisplayName("given both spellings of a punctuation chord then they collapse to one binding")
     void punctuationSpellingsCollapse() {
         assertEquals(Chord.parse("M-<"), Chord.parse("alt shift COMMA"));
