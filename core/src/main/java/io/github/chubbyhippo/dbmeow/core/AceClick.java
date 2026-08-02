@@ -22,8 +22,6 @@ import java.util.List;
 
 public final class AceClick {
 
-    private static final String KEYS = "asdfghjkl";
-
     private AceClick() {}
 
     public static final class Session {
@@ -46,7 +44,7 @@ public final class AceClick {
         if (count <= 0) return null;
         List<Integer> indices = new ArrayList<>();
         for (int i = 0; i < count; i++) indices.add(i);
-        return new Session(Avy.tree(indices, KEYS));
+        return new Session(Avy.tree(indices, Avy.KEYS));
     }
 
     public static List<UiPort.AvyLabel> labels(Session session) {
@@ -54,12 +52,10 @@ public final class AceClick {
     }
 
     public static Result press(Session session, char key) {
-        for (Avy.Entry entry : session.node.children()) {
-            if (entry.key() != key) continue;
-            if (entry.child() instanceof Avy.Leaf leaf) return new Pick(leaf.offset());
-            session.node = (Avy.Branch) entry.child();
-            return new Descend();
-        }
-        return new NoMatch(key);
+        Avy.AvyNode child = Avy.childOf(session.node, key);
+        if (child == null) return new NoMatch(key);
+        if (child instanceof Avy.Leaf leaf) return new Pick(leaf.offset());
+        session.node = (Avy.Branch) child;
+        return new Descend();
     }
 }

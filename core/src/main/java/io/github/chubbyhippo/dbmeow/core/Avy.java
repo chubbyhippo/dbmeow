@@ -27,7 +27,7 @@ import java.util.Map;
 public final class Avy {
     private Avy() {}
 
-    private static final String KEYS = "asdfghjkl";
+    public static final String KEYS = "asdfghjkl";
 
     static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
@@ -82,6 +82,13 @@ public final class Avy {
                             size == 1 ? new Leaf(taken.get(0)) : tree(taken, keys)));
         }
         return new Branch(children);
+    }
+
+    static AvyNode childOf(Branch node, char key) {
+        for (Entry entry : node.children()) {
+            if (entry.key() == key) return entry.child();
+        }
+        return null;
     }
 
     static List<UiPort.AvyLabel> labels(Branch node) {
@@ -179,28 +186,12 @@ public final class Avy {
     private static void select(Ctx ctx, AvySession session, char c) {
         if (session.gotoLine && c >= '0' && c <= '9') {
             cancel(ctx);
-            String input = ctx.ui().input("Goto line:", String.valueOf(c));
-            if (input == null) return;
-            int requested;
-            try {
-                requested = Integer.parseInt(input.trim());
-            } catch (NumberFormatException notANumber) {
-                return;
-            }
-            String text = ctx.port().getText();
-            int line = Math.min(Math.max(requested - 1, 0), Text.lineCount(text) - 1);
-            jump(ctx, Text.lineStart(text, line));
+            jumpToTypedLine(ctx, c);
             return;
         }
         Branch node = session.node;
         if (node == null) return;
-        AvyNode child = null;
-        for (Entry e : node.children()) {
-            if (e.key() == c) {
-                child = e.child();
-                break;
-            }
-        }
+        AvyNode child = childOf(node, c);
         if (child == null) {
             ctx.ui().hint("No such candidate: " + c);
         } else if (child instanceof Leaf leaf) {
@@ -208,8 +199,21 @@ public final class Avy {
             jump(ctx, leaf.offset());
         } else {
             session.node = (Branch) child;
-            ctx.ui().showAvyLabels(labels((Branch) child));
+            ctx.ui().showAvyLabels(labels(session.node));
         }
+    }
+
+    private static void jumpToTypedLine(Ctx ctx, char firstDigit) {
+        String input = ctx.ui().input("Goto line:", String.valueOf(firstDigit));
+        if (input == null) return;
+        int requested;
+        try {
+            requested = Integer.parseInt(input.trim());
+        } catch (NumberFormatException notANumber) {
+            return;
+        }
+        String text = ctx.port().getText();
+        jump(ctx, Text.lineStart(text, Text.clamp(requested - 1, 0, Text.lineCount(text) - 1)));
     }
 
     private static void jump(Ctx ctx, int offset) {

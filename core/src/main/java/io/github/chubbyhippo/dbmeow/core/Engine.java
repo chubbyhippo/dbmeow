@@ -92,19 +92,19 @@ public final class Engine {
             state.lastCommand = null;
         }
 
-        boolean awaitingMoreKeys =
-                state.pending != null
-                        || (state.pendingCount() != 0
-                                && cmd != null
-                                && cmd.startsWith("meow-expand-"))
-                        || (state.negative() && "meow-negative-argument".equals(cmd))
-                        || "meow-keypad".equals(cmd);
-        if (!state.replaying && !"repeat".equals(cmd) && !awaitingMoreKeys) {
+        if (!state.replaying && !"repeat".equals(cmd) && !awaitingMoreKeys(state, cmd)) {
             state.lastKeys = List.copyOf(state.unit);
         }
 
         ctx.ui().refresh(state);
         return true;
+    }
+
+    private static boolean awaitingMoreKeys(MeowState state, String cmd) {
+        return state.pending != null
+                || (state.pendingCount() != 0 && cmd != null && cmd.startsWith("meow-expand-"))
+                || (state.negative() && "meow-negative-argument".equals(cmd))
+                || "meow-keypad".equals(cmd);
     }
 
     private static Rc.Binding resolve(Ctx ctx, char c, boolean motion) {

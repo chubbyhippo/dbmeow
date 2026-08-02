@@ -18,6 +18,7 @@
 package io.github.chubbyhippo.dbmeow.eclipse;
 
 import io.github.chubbyhippo.dbmeow.core.AceWindow;
+import io.github.chubbyhippo.dbmeow.core.Avy;
 import io.github.chubbyhippo.dbmeow.core.UiPort;
 
 import org.eclipse.swt.SWT;
@@ -29,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 final class AceWindowSwt {
-
-    private static final String KEYS = "asdfghjkl";
 
     record Candidate(AbstractTextEditor editor, OverlayPainter painter) {}
 
@@ -53,11 +52,11 @@ final class AceWindowSwt {
             return;
         }
         Map<Character, Candidate> next = new LinkedHashMap<>();
-        int count = Math.min(visible.size(), KEYS.length());
+        int count = Math.min(visible.size(), Avy.KEYS.length());
         for (int i = 0; i < count; i++) {
             Candidate cand = visible.get(i);
-            next.put(KEYS.charAt(i), cand);
-            cand.painter().showAceLabel(" " + KEYS.charAt(i) + " ");
+            next.put(Avy.KEYS.charAt(i), cand);
+            cand.painter().showAceLabel(" " + Avy.KEYS.charAt(i) + " ");
         }
         session = next;
     }
