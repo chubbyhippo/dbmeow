@@ -1,33 +1,34 @@
-# dbmeow — meow modal editing for DBeaver
+# dbmeow
 
-If you love [meow](https://github.com/meow-edit/meow) in Emacs and sigh every
-time you open DBeaver, this plugin is for you. It implements meow's suggested
-**QWERTY layout** as a native modal editing engine over Eclipse text editors —
-DBeaver's SQL editor included. Just meow: select first, then act.
+[meow](https://github.com/meow-edit/meow)-style modal editing for DBeaver —
+meow's suggested **QWERTY layout** as a native modal engine over Eclipse text
+editors, DBeaver's SQL editor included. Select first, then act.
 
-It is the third sibling of [ideameow](https://github.com/chubbyhippo/ideameow)
-(IntelliJ) and [codemeow](https://github.com/chubbyhippo/codemeow)
-(VS Code/VSCodium): the three share their keymap format, their default layout,
-and a behavior-identical BDD suite, so your muscle memory transfers unchanged.
+| | |
+|---|---|
+| Siblings | [ideameow](https://github.com/chubbyhippo/ideameow) (IntelliJ), [codemeow](https://github.com/chubbyhippo/codemeow) (VS Code/VSCodium) |
+| Shared with them | keymap format, default layout, a behavior-identical BDD suite |
+| Keymap | bundled `.dbmeowrc`; user copy at `~/.dbmeowrc` |
 
 ## Status
 
-The engine (`core/`) is a full headless port — modes, the meow layout,
-selections with history, words/things/find/till/search, kill/save/yank
-editing, grab, digit expand, the `SPC` keypad, and the `.dbmeowrc` config
-layer — tested by the shared BDD suite. The Eclipse adapter (`plugin/`)
-wires it into editors via the same mechanism vrapper proved for vim
-emulation (a prepended `VerifyKeyListener`).
+| Area | State |
+|---|---|
+| Modes, the meow layout, selections with history | ported, BDD-tested |
+| Words, things, find/till, search | ported, BDD-tested |
+| Kill/save/yank editing, grab, digit expand | ported, BDD-tested |
+| The `SPC` keypad, the `.dbmeowrc` config layer | ported, BDD-tested |
+| Beacon | logic ported and tested; SWT's single caret means the adapter shows only the primary cursor — the multi-range edit still applies |
+| Windmove geometry, tree MOTION maps | core logic ported, the SWT surfaces staged |
 
-`SPC w w` (and `SPC x o`) is an ace-window port over the open text
-editors: with three or more visible, each gets a corner label in avy's
-colors and the next key activates that editor; with exactly two it hops
-straight to the other one; `Esc` cancels.
+| Layer | Mechanism |
+|---|---|
+| `core/` | a full headless port |
+| `plugin/` | the Eclipse adapter: a prepended `VerifyKeyListener`, the mechanism vrapper proved for vim emulation |
 
-Deliberate gaps for now: windmove geometry and tree MOTION maps — the
-core logic is ported, the SWT surfaces are staged. Beacon's
-logic is ported and tested too; SWT's single caret just means the adapter
-shows only the primary cursor (the multi-range edit still applies).
+| Key | Does |
+|---|---|
+| `SPC w w`, `SPC x o` | ace-window over the open text editors — three or more each get a corner label in avy's colors and the next key activates that editor; with exactly two it hops straight across; `Esc` cancels |
 
 ## Build & install
 
@@ -39,20 +40,23 @@ cd dbmeow
                              # Eclipse target-platform download)
 ```
 
-The bundle lands at `plugin/target/dbmeow-plugin-*.jar`; drop it into DBeaver's
-`dropins/` and restart, then open a SQL editor — you're in NORMAL mode. The
-toolchain is pinned in `mise.toml` (java 21, maven) and `setup.sh` falls back
-to `mise exec` when your PATH tools are older. Behind a TLS-inspecting proxy it
-sets the system trust store for you (the p2 target-platform download needs it);
-the full plugin build flow and its runtime-unverified status are in
-[plugin/BUILD.md](plugin/BUILD.md).
+| Item | Value |
+|---|---|
+| Bundle lands at | `plugin/target/dbmeow-plugin-*.jar` |
+| Install | drop it into DBeaver's `dropins/`, restart, open a SQL editor — you are in NORMAL |
+| Toolchain | pinned in `mise.toml` (java 21, maven); `setup.sh` falls back to `mise exec` when the PATH tools are older |
+| Behind a TLS-inspecting proxy | `setup.sh` sets the system trust store — the p2 target-platform download needs it |
+| Full build flow, runtime-unverified status | [plugin/BUILD.md](plugin/BUILD.md) |
 
 ## ~/.dbmeowrc
 
-Same syntax and defaults model as the siblings: the bundled `.dbmeowrc` is
-the whole keymap (one `nmap <key> <meow-command>` line per key plus the
-`SPC` keypad table of Eclipse command ids); `~/.dbmeowrc` overrides it entry
-by entry. Either sibling's rc pastes in — unknown lines are ignored.
+Same syntax and defaults model as the siblings — either sibling's rc pastes in,
+and unknown lines are ignored.
+
+| Layer | What |
+|---|---|
+| Bundled `.dbmeowrc` | the whole keymap: one `nmap <key> <meow-command>` line per key, plus the `SPC` keypad table of Eclipse command ids |
+| `~/.dbmeowrc` | overrides it entry by entry |
 
 ### `set` options
 
