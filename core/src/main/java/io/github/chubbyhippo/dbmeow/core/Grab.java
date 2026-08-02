@@ -75,7 +75,7 @@ public final class Grab {
         clear(ctx);
         SelRange sel = Selections.primary(ctx);
         if (Selections.hasSelection(sel)) {
-            set(ctx, sel.lo(), sel.hi());
+            set(ctx, sel.selStart(), sel.selEnd());
         }
         Selections.cancel(ctx);
     }
@@ -87,7 +87,7 @@ public final class Grab {
             return;
         }
         clear(ctx);
-        set(ctx, sel.lo(), sel.hi());
+        set(ctx, sel.selStart(), sel.selEnd());
         Selections.cancel(ctx);
     }
 
@@ -106,8 +106,8 @@ public final class Grab {
         }
         int grabStart = g.start();
         int grabEnd = g.end();
-        int selStart = sel.lo();
-        int selEnd = sel.hi();
+        int selStart = sel.selStart();
+        int selEnd = sel.selEnd();
         if (Math.max(grabStart, selStart) < Math.min(grabEnd, selEnd)
                 && !(grabStart == selStart && grabEnd == selEnd)) {
             ctx.ui().hint("Selection overlaps the grab");
@@ -152,8 +152,8 @@ public final class Grab {
         if (g == null || g.end() <= g.start()) return;
         SelRange sel = Selections.primary(ctx);
         if (!Selections.hasSelection(sel)) return;
-        int selStart = sel.lo();
-        int selEnd = sel.hi();
+        int selStart = sel.selStart();
+        int selEnd = sel.selEnd();
         if (selStart < g.start() || selEnd > g.end() || selEnd == selStart) return;
         String text = ctx.port().getText();
         List<SelRange> sels = new ArrayList<>();

@@ -107,8 +107,8 @@ public final class Structures {
         SelRange sel = Selections.primary(ctx);
         boolean active = ctx.state().selType == SelType.BLOCK && Selections.hasSelection(sel);
         boolean back = Selections.backwardP(ctx) != (ctx.state().takeCount(1) < 0);
-        int selStart = active ? sel.lo() : sel.active();
-        int selEnd = active ? sel.hi() : sel.active();
+        int selStart = active ? sel.selStart() : sel.active();
+        int selEnd = active ? sel.selEnd() : sel.active();
         int[] pair = enclosingPair(text, selStart, selEnd);
         if (pair == null) {
             ctx.ui().hint("No enclosing block");

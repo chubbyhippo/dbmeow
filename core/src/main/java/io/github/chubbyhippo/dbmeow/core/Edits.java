@@ -81,7 +81,7 @@ public final class Edits {
         List<Item> order = new ArrayList<>();
         for (int i = 0; i < sels.size(); i++) {
             SelRange sel = sels.get(i);
-            order.add(new Item(sel, i, sel.lo()));
+            order.add(new Item(sel, i, sel.selStart()));
         }
         order.sort(Comparator.comparingInt(Item::selStart).reversed());
         List<TextEdit> edits = new ArrayList<>();
@@ -122,7 +122,7 @@ public final class Edits {
     private static void collapseCaretsAndEnterInsert(Ctx ctx, boolean toSelectionEnd) {
         List<SelRange> collapsed = new ArrayList<>();
         for (SelRange s : ctx.port().getSelections()) {
-            int caret = toSelectionEnd ? s.hi() : s.lo();
+            int caret = toSelectionEnd ? s.selEnd() : s.selStart();
             collapsed.add(new SelRange(caret, caret));
         }
         ctx.port().setSelections(collapsed);
@@ -228,8 +228,8 @@ public final class Edits {
     }
 
     private static int[] killRange(Ctx ctx, SelRange sel, String text) {
-        int start = sel.lo();
-        int end = sel.hi();
+        int start = sel.selStart();
+        int end = sel.selEnd();
         if (ctx.state().selType == SelType.LINE
                 && sel.active() >= sel.anchor()
                 && end < text.length()) {
@@ -244,7 +244,7 @@ public final class Edits {
         for (SelRange sel : sels) {
             if (sel.anchor() != sel.active()) regions.add(sel);
         }
-        regions.sort(Comparator.comparingInt(s -> s.lo()));
+        regions.sort(Comparator.comparingInt(s -> s.selStart()));
         return regions;
     }
 
@@ -297,8 +297,8 @@ public final class Edits {
     private static void joinKill(Ctx ctx) {
         String text = ctx.port().getText();
         SelRange prim = Selections.primary(ctx);
-        int start = prim.lo();
-        int end = prim.hi();
+        int start = prim.selStart();
+        int end = prim.selEnd();
         char before = start > 0 ? text.charAt(start - 1) : '\n';
         char after = end < text.length() ? text.charAt(end) : '\n';
         boolean space =

@@ -81,7 +81,7 @@ public final class Search {
                         ? null
                         : state.searchHistory.get(state.searchHistory.size() - 1);
         if (Selections.hasSelection(sel)) {
-            String selText = ctx.port().getText().substring(sel.lo(), sel.hi());
+            String selText = ctx.port().getText().substring(sel.selStart(), sel.selEnd());
             if (!selText.isEmpty() && (pattern == null || !fullyMatches(pattern, selText))) {
                 pattern = Text.escapeRegExp(selText);
                 push(state, pattern);

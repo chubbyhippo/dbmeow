@@ -61,7 +61,7 @@ public final class TreeMeow {
             run.accept(b.action());
             return;
         }
-        if (b.keys() == null || depth >= 8) return;
+        if (b.keys() == null || depth >= Engine.MAX_REPLAY_DEPTH) return;
         for (char k : b.keys().toCharArray()) {
             dispatch(run, k, noremap || !b.recursive(), depth + 1);
         }

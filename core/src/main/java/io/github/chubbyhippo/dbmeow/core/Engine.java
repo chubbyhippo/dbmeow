@@ -26,7 +26,7 @@ public final class Engine {
     private static final Rc.Binding KEYPAD_BINDING =
             new Rc.Binding(null, null, "meow-keypad", true);
 
-    private static final int MAX_REPLAY_DEPTH = 8;
+    static final int MAX_REPLAY_DEPTH = 8;
 
     static Map<Character, Rc.Binding> repeatMap = null;
 

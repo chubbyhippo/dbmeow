@@ -18,11 +18,11 @@
 package io.github.chubbyhippo.dbmeow.core;
 
 public record SelRange(int anchor, int active) {
-    public int lo() {
+    public int selStart() {
         return Math.min(anchor, active);
     }
 
-    public int hi() {
+    public int selEnd() {
         return Math.max(anchor, active);
     }
 }

@@ -32,8 +32,13 @@ public final class RcFileState {
                 c.keypad,
                 c.keypadDesc,
                 c.repeat,
+                c.chords,
                 c.whichKey,
-                c.whichKeyDelayMs);
+                c.whichKeyDelayMs,
+                c.overlayColor,
+                c.overlayTextColor,
+                c.expandHintColor,
+                c.grabColor);
     }
 
     static void saveParsed(Rc.Config c) {
