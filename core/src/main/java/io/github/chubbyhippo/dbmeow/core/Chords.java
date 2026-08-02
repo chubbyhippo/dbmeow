@@ -31,7 +31,7 @@ public final class Chords {
     }
 
     public static boolean dispatch(Ctx ctx, Chord chord) {
-        if (!claims(ctx.st().mode, chord)) return false;
+        if (!claims(ctx.state().mode, chord)) return false;
         Engine.runBinding(ctx, bindingFor(chord));
         return true;
     }

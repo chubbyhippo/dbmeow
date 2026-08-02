@@ -49,7 +49,7 @@ public final class InterceptorManager implements IPartListener2 {
             DbmeowInterceptor interceptor,
             OverlayPainter painter,
             EclipseUi ui,
-            MeowState st,
+            MeowState state,
             Ctx ctx) {}
 
     private final Map<AbstractTextEditor, Hook> hooks = new WeakHashMap<>();
@@ -94,22 +94,22 @@ public final class InterceptorManager implements IPartListener2 {
         if (!(viewer instanceof ITextViewerExtension ext)) return;
         Hook existing = hooks.get(editor);
         if (existing != null && existing.viewer() == viewer) {
-            existing.ui().refresh(existing.st());
+            existing.ui().refresh(existing.state());
             return;
         }
         if (existing != null) release(existing);
 
-        MeowState st = new MeowState();
-        st.mode = MeowMode.NORMAL;
+        MeowState state = new MeowState();
+        state.mode = MeowMode.NORMAL;
         OverlayPainter painter = new OverlayPainter(viewer);
-        EclipseUi ui = new EclipseUi(editor, st, viewer.getTextWidget(), painter);
+        EclipseUi ui = new EclipseUi(editor, state, viewer.getTextWidget(), painter);
         Ctx ctx = new Ctx(
-                new EclipseEditorPort(viewer, editor), new EclipseClipboard(viewer), ui, st);
+                new EclipseEditorPort(viewer, editor), new EclipseClipboard(viewer), ui, state);
         DbmeowInterceptor interceptor = new DbmeowInterceptor(ctx);
 
         ext.prependVerifyKeyListener(interceptor);
-        hooks.put(editor, new Hook(viewer, interceptor, painter, ui, st, ctx));
-        ui.refresh(st);
+        hooks.put(editor, new Hook(viewer, interceptor, painter, ui, state, ctx));
+        ui.refresh(state);
     }
 
     Ctx ctxOf(AbstractTextEditor editor) {

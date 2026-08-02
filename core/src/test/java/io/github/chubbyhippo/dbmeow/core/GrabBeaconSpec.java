@@ -31,9 +31,9 @@ class GrabBeaconSpec extends SpecDsl {
         given("word", "<caret>hello world");
         whenKeys("wG");
         thenNoSelection();
-        assertNotNull(st.grab);
-        assertEquals(0, st.grab.start());
-        assertEquals(5, st.grab.end());
+        assertNotNull(state.grab);
+        assertEquals(0, state.grab.start());
+        assertEquals(5, state.grab.end());
     }
 
     @Test
@@ -50,7 +50,7 @@ class GrabBeaconSpec extends SpecDsl {
         thenNoSelection();
         assertEquals(
                 "three",
-                editor.getText().substring(st.grab.start(), st.grab.end()),
+                editor.getText().substring(state.grab.start(), state.grab.end()),
                 "grab now holds the swapped-in text");
     }
 
@@ -79,9 +79,9 @@ class GrabBeaconSpec extends SpecDsl {
     void noSelectionGCancelsGrab() {
         given("word", "<caret>hello world");
         whenKeys("wG");
-        assertNotNull(st.grab);
+        assertNotNull(state.grab);
         whenKeys("G");
-        assertNull(st.grab);
+        assertNull(state.grab);
     }
 
     @Test
@@ -112,8 +112,8 @@ class GrabBeaconSpec extends SpecDsl {
         givenCaretAt(6);
         whenKeys("wY");
         thenNoSelection();
-        assertEquals(6, st.grab.start());
-        assertEquals(11, st.grab.end());
+        assertEquals(6, state.grab.start());
+        assertEquals(11, state.grab.end());
     }
 
     @Test

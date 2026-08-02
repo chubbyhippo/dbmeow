@@ -40,35 +40,35 @@ public final class Grab {
     private static final int MAX_BEACONS = 500;
 
     public static void clear(Ctx ctx) {
-        ctx.st().grab = null;
+        ctx.state().grab = null;
         ctx.ui().setGrabHighlight(null);
     }
 
     private static void set(Ctx ctx, int start, int end) {
-        ctx.st().grab = new OffsetRange(start, end);
+        ctx.state().grab = new OffsetRange(start, end);
         ctx.ui().setGrabHighlight(end > start ? new OffsetRange(start, end) : null);
     }
 
-    public static void adjustForEdits(MeowState st, List<TextEdit> edits) {
-        OffsetRange g = st.grab;
+    public static void adjustForEdits(MeowState state, List<TextEdit> edits) {
+        OffsetRange g = state.grab;
         if (g == null) return;
-        int gs = g.start();
-        int ge = g.end();
+        int grabStart = g.start();
+        int grabEnd = g.end();
         List<TextEdit> ordered = new ArrayList<>(edits);
         ordered.sort(Comparator.comparingInt(TextEdit::start).reversed());
         for (TextEdit e : ordered) {
             int delta = e.text().length() - (e.end() - e.start());
-            if (gs >= e.end()) {
-                gs += delta;
-                ge += delta;
+            if (grabStart >= e.end()) {
+                grabStart += delta;
+                grabEnd += delta;
             } else {
-                if (ge >= e.end()) ge += delta;
-                else if (ge > e.start()) ge = e.start();
-                if (gs > e.start()) gs = e.start();
+                if (grabEnd >= e.end()) grabEnd += delta;
+                else if (grabEnd > e.start()) grabEnd = e.start();
+                if (grabStart > e.start()) grabStart = e.start();
             }
         }
-        if (ge < gs) ge = gs;
-        st.grab = new OffsetRange(gs, ge);
+        if (grabEnd < grabStart) grabEnd = grabStart;
+        state.grab = new OffsetRange(grabStart, grabEnd);
     }
 
     private static void grab(Ctx ctx) {
@@ -93,8 +93,8 @@ public final class Grab {
 
     private static void swap(Ctx ctx) {
         if (Edits.blockedReadOnly(ctx)) return;
-        MeowState st = ctx.st();
-        OffsetRange g = st.grab;
+        MeowState state = ctx.state();
+        OffsetRange g = state.grab;
         SelRange sel = Selections.primary(ctx);
         if (g == null) {
             ctx.ui().hint("No grab");
@@ -104,35 +104,40 @@ public final class Grab {
             ctx.ui().hint("meow-swap-grab needs a selection");
             return;
         }
-        int gs = g.start();
-        int ge = g.end();
-        int ss = sel.lo();
-        int se = sel.hi();
-        if (Math.max(gs, ss) < Math.min(ge, se) && !(gs == ss && ge == se)) {
+        int grabStart = g.start();
+        int grabEnd = g.end();
+        int selStart = sel.lo();
+        int selEnd = sel.hi();
+        if (Math.max(grabStart, selStart) < Math.min(grabEnd, selEnd)
+                && !(grabStart == selStart && grabEnd == selEnd)) {
             ctx.ui().hint("Selection overlaps the grab");
             return;
         }
         String text = ctx.port().getText();
-        String grabText = text.substring(gs, ge);
-        String selText = text.substring(ss, se);
-        st.grab = null;
-        ctx.port().edit(List.of(new TextEdit(ss, se, grabText), new TextEdit(gs, ge, selText)));
-        if (gs <= ss) {
-            int delta = selText.length() - (ge - gs);
-            set(ctx, gs, gs + selText.length());
-            int caret = ss + delta + grabText.length();
+        String grabText = text.substring(grabStart, grabEnd);
+        String selText = text.substring(selStart, selEnd);
+        state.grab = null;
+        ctx.port()
+                .edit(
+                        List.of(
+                                new TextEdit(selStart, selEnd, grabText),
+                                new TextEdit(grabStart, grabEnd, selText)));
+        if (grabStart <= selStart) {
+            int delta = selText.length() - (grabEnd - grabStart);
+            set(ctx, grabStart, grabStart + selText.length());
+            int caret = selStart + delta + grabText.length();
             ctx.port().setSelections(List.of(new SelRange(caret, caret)));
         } else {
-            int delta = grabText.length() - (se - ss);
-            set(ctx, gs + delta, gs + delta + selText.length());
-            int caret = ss + grabText.length();
+            int delta = grabText.length() - (selEnd - selStart);
+            set(ctx, grabStart + delta, grabStart + delta + selText.length());
+            int caret = selStart + grabText.length();
             ctx.port().setSelections(List.of(new SelRange(caret, caret)));
         }
-        st.selType = SelType.NONE;
+        state.selType = SelType.NONE;
     }
 
     public static boolean pop(Ctx ctx) {
-        OffsetRange g = ctx.st().grab;
+        OffsetRange g = ctx.state().grab;
         if (g == null) return false;
         int start = g.start();
         int end = g.end();
@@ -142,21 +147,21 @@ public final class Grab {
     }
 
     public static void beacon(Ctx ctx) {
-        MeowState st = ctx.st();
-        OffsetRange g = st.grab;
+        MeowState state = ctx.state();
+        OffsetRange g = state.grab;
         if (g == null || g.end() <= g.start()) return;
         SelRange sel = Selections.primary(ctx);
         if (!Selections.hasSelection(sel)) return;
-        int ss = sel.lo();
-        int se = sel.hi();
-        if (ss < g.start() || se > g.end() || se == ss) return;
+        int selStart = sel.lo();
+        int selEnd = sel.hi();
+        if (selStart < g.start() || selEnd > g.end() || selEnd == selStart) return;
         String text = ctx.port().getText();
         List<SelRange> sels = new ArrayList<>();
-        switch (st.selType) {
+        switch (state.selType) {
             case WORD, SYMBOL, VISIT, FIND, TILL, CHAR -> {
-                String selText = text.substring(ss, se);
+                String selText = text.substring(selStart, selEnd);
                 if (selText.trim().isEmpty()) return;
-                boolean bounded = st.selType == SelType.WORD || st.selType == SelType.SYMBOL;
+                boolean bounded = state.selType == SelType.WORD || state.selType == SelType.SYMBOL;
                 String pat =
                         bounded
                                 ? "\\b" + Text.escapeRegExp(selText) + "\\b"
@@ -171,29 +176,29 @@ public final class Grab {
                 int added = 0;
                 int from = 0;
                 while (from <= rlen && m.find(from)) {
-                    int rs = m.start();
-                    int re = m.end();
-                    if (re == rs) {
-                        from = re + 1;
+                    int matchStart = m.start();
+                    int matchEnd = m.end();
+                    if (matchEnd == matchStart) {
+                        from = matchEnd + 1;
                         continue;
                     }
-                    int s0 = g.start() + rs;
-                    int e0 = g.start() + re;
-                    if (s0 != ss) {
+                    int s0 = g.start() + matchStart;
+                    int e0 = g.start() + matchEnd;
+                    if (s0 != selStart) {
                         sels.add(new SelRange(s0, e0));
                         if (++added >= MAX_BEACONS) break;
                     }
-                    from = re;
+                    from = matchEnd;
                 }
                 if (sels.isEmpty()) return;
-                sels.add(0, new SelRange(ss, se));
+                sels.add(0, new SelRange(selStart, selEnd));
             }
             case LINE -> {
                 int first = Text.lineOfOffset(text, g.start());
                 int last = Text.lineOfOffset(text, Math.max(g.end() - 1, g.start()));
                 if (last <= first) return;
-                for (int ln = first; ln <= last; ln++) {
-                    sels.add(new SelRange(Text.lineStart(text, ln), Text.lineEnd(text, ln)));
+                for (int line = first; line <= last; line++) {
+                    sels.add(new SelRange(Text.lineStart(text, line), Text.lineEnd(text, line)));
                 }
             }
             default -> {

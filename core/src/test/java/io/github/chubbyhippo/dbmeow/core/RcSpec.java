@@ -332,7 +332,7 @@ class RcSpec extends SpecDsl {
     void motionRebindingApplies() {
         given("three lines", "<caret>one\ntwo\nthree");
         givenRc("mmap n meow-next");
-        st.mode = MeowMode.MOTION;
+        state.mode = MeowMode.MOTION;
         whenKeys("n");
         assertEquals(1, caretLine());
         whenKeys("j");

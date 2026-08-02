@@ -22,81 +22,81 @@ public final class Text {
 
     @FunctionalInterface
     public interface CharPredicate {
-        boolean test(char c);
+        boolean test(char ch);
     }
 
-    public static int clamp(int n, int lo, int hi) {
-        return Math.min(Math.max(n, lo), hi);
+    public static int clamp(int value, int min, int max) {
+        return Math.min(Math.max(value, min), max);
     }
 
-    public static String escapeRegExp(String s) {
-        return s.replaceAll("[.*+?^${}()|\\[\\]\\\\]", "\\\\$0");
+    public static String escapeRegExp(String pattern) {
+        return pattern.replaceAll("[.*+?^${}()|\\[\\]\\\\]", "\\\\$0");
     }
 
     public static int lineOfOffset(String text, int offset) {
-        int ln = 0;
+        int line = 0;
         int end = clamp(offset, 0, text.length());
         for (int i = 0; i < end; i++) {
-            if (text.charAt(i) == '\n') ln++;
+            if (text.charAt(i) == '\n') line++;
         }
-        return ln;
+        return line;
     }
 
     public static int lineCount(String text) {
-        int n = 1;
+        int lines = 1;
         for (int i = 0; i < text.length(); i++) {
-            if (text.charAt(i) == '\n') n++;
+            if (text.charAt(i) == '\n') lines++;
         }
-        return n;
+        return lines;
     }
 
     public static int lineStart(String text, int line) {
         if (line <= 0) return 0;
-        int ln = 0;
+        int newlinesSeen = 0;
         for (int i = 0; i < text.length(); i++) {
-            if (text.charAt(i) == '\n' && ++ln == line) return i + 1;
+            if (text.charAt(i) == '\n' && ++newlinesSeen == line) return i + 1;
         }
         return text.length();
     }
 
     public static int lineEnd(String text, int line) {
-        int s = lineStart(text, line);
-        int nl = text.indexOf('\n', s);
-        if (nl < 0) return text.length();
-        return nl > s && text.charAt(nl - 1) == '\r' ? nl - 1 : nl;
+        int start = lineStart(text, line);
+        int newline = text.indexOf('\n', start);
+        if (newline < 0) return text.length();
+        return newline > start && text.charAt(newline - 1) == '\r' ? newline - 1 : newline;
     }
 
-    public static boolean isWordChar(char c) {
-        return Character.isLetterOrDigit(c);
+    public static boolean isWordChar(char ch) {
+        return Character.isLetterOrDigit(ch);
     }
 
-    public static boolean isSymbolChar(char c) {
-        return isWordChar(c) || c == '_' || c == '$';
+    public static boolean isSymbolChar(char ch) {
+        return isWordChar(ch) || ch == '_' || ch == '$';
     }
 
     public static CharPredicate charPred(boolean symbol) {
         return symbol ? Text::isSymbolChar : Text::isWordChar;
     }
 
-    public static int indexOfChar(String text, char c, int from) {
+    public static int indexOfChar(String text, char ch, int from) {
         for (int i = Math.max(from, 0); i < text.length(); i++) {
-            if (text.charAt(i) == c) return i;
+            if (text.charAt(i) == ch) return i;
         }
         return -1;
     }
 
-    public static int lastIndexOfChar(String text, char c, int from) {
+    public static int lastIndexOfChar(String text, char ch, int from) {
         for (int i = Math.min(from, text.length() - 1); i >= 0; i--) {
-            if (text.charAt(i) == c) return i;
+            if (text.charAt(i) == ch) return i;
         }
         return -1;
     }
 
     public static int nthCharTarget(
-            String text, char ch, int caret, int n, boolean backward, boolean till) {
+            String text, char ch, int caret, int count, boolean backward, boolean till) {
         int found = -1;
         int from = backward ? (till ? caret - 2 : caret - 1) : (till ? caret + 1 : caret);
-        for (int k = 0; k < n; k++) {
+        for (int step = 0; step < count; step++) {
             found = backward ? lastIndexOfChar(text, ch, from) : indexOfChar(text, ch, from);
             if (found < 0) return -1;
             from = backward ? found - 1 : found + 1;
@@ -108,13 +108,13 @@ public final class Text {
 
     public static final String SENTENCE_ENDERS = ".!?";
 
-    private static boolean isSentenceGap(char c) {
-        return Character.isWhitespace(c) || SENTENCE_ENDERS.indexOf(c) >= 0;
+    private static boolean isSentenceGap(char ch) {
+        return Character.isWhitespace(ch) || SENTENCE_ENDERS.indexOf(ch) >= 0;
     }
 
-    public static int nextSentenceEnd(String text, int from, int n) {
+    public static int nextSentenceEnd(String text, int from, int count) {
         int i = clamp(from, 0, text.length());
-        for (int k = 0; k < n; k++) {
+        for (int step = 0; step < count; step++) {
             while (i < text.length() && SENTENCE_ENDERS.indexOf(text.charAt(i)) < 0) i++;
             while (i < text.length() && SENTENCE_ENDERS.indexOf(text.charAt(i)) >= 0) i++;
             while (i < text.length() && Character.isWhitespace(text.charAt(i))) i++;
@@ -122,9 +122,9 @@ public final class Text {
         return i;
     }
 
-    public static int prevSentenceStart(String text, int from, int n) {
+    public static int prevSentenceStart(String text, int from, int count) {
         int i = clamp(from, 0, text.length());
-        for (int k = 0; k < n; k++) {
+        for (int step = 0; step < count; step++) {
             while (i > 0 && isSentenceGap(text.charAt(i - 1))) i--;
             while (i > 0 && !isSentenceGap(text.charAt(i - 1))) i--;
         }
@@ -137,14 +137,14 @@ public final class Text {
         return i;
     }
 
-    private static int followingLineStart(String text, int bol) {
-        int i = bol;
+    private static int followingLineStart(String text, int lineStartOffset) {
+        int i = lineStartOffset;
         while (i < text.length() && text.charAt(i) != '\n') i++;
         return i < text.length() ? i + 1 : i;
     }
 
-    private static boolean blankLineAt(String text, int bol) {
-        int i = bol;
+    private static boolean blankLineAt(String text, int lineStartOffset) {
+        int i = lineStartOffset;
         while (i < text.length() && text.charAt(i) != '\n') {
             if (!Character.isWhitespace(text.charAt(i))) return false;
             i++;
@@ -152,9 +152,9 @@ public final class Text {
         return true;
     }
 
-    public static int nextParagraphEnd(String text, int from, int n) {
+    public static int nextParagraphEnd(String text, int from, int count) {
         int pos = clamp(from, 0, text.length());
-        for (int k = 0; k < n; k++) {
+        for (int step = 0; step < count; step++) {
             int i = lineStartAt(text, pos);
             while (i < text.length() && blankLineAt(text, i)) i = followingLineStart(text, i);
             while (i < text.length() && !blankLineAt(text, i)) i = followingLineStart(text, i);
@@ -163,9 +163,9 @@ public final class Text {
         return pos;
     }
 
-    public static int prevParagraphStart(String text, int from, int n) {
+    public static int prevParagraphStart(String text, int from, int count) {
         int pos = clamp(from, 0, text.length());
-        for (int k = 0; k < n; k++) {
+        for (int step = 0; step < count; step++) {
             if (pos > 0) {
                 int start = paragraphStartBefore(text, pos);
                 pos = start < pos ? start : paragraphStartBefore(text, start - 1);
@@ -186,48 +186,47 @@ public final class Text {
     public static final class Words {
         private Words() {}
 
-        public static int nextEnd(String text, int from, int n, CharPredicate pred) {
+        public static int nextEnd(String text, int from, int count, CharPredicate isWord) {
             int i = clamp(from, 0, text.length());
-            for (int k = 0; k < n; k++) {
-                while (i < text.length() && !pred.test(text.charAt(i))) i++;
-                while (i < text.length() && pred.test(text.charAt(i))) i++;
+            for (int step = 0; step < count; step++) {
+                while (i < text.length() && !isWord.test(text.charAt(i))) i++;
+                while (i < text.length() && isWord.test(text.charAt(i))) i++;
             }
             return i;
         }
 
-        public static int prevStart(String text, int from, int n, CharPredicate pred) {
+        public static int prevStart(String text, int from, int count, CharPredicate isWord) {
             int i = clamp(from, 0, text.length());
-            for (int k = 0; k < n; k++) {
-                while (i > 0 && !pred.test(text.charAt(i - 1))) i--;
-                while (i > 0 && pred.test(text.charAt(i - 1))) i--;
+            for (int step = 0; step < count; step++) {
+                while (i > 0 && !isWord.test(text.charAt(i - 1))) i--;
+                while (i > 0 && isWord.test(text.charAt(i - 1))) i--;
             }
             return i;
         }
 
-        public static int fixSelectionMark(String text, int pos, int mark, CharPredicate pred) {
+        public static int fixSelectionMark(String text, int pos, int mark, CharPredicate isWord) {
             int probe = clamp(mark > pos ? pos : pos - 1, 0, Math.max(text.length() - 1, 0));
-            int[] bounds = boundsAt(text, probe, pred);
+            int[] bounds = boundsAt(text, probe, isWord);
             if (bounds == null) return mark;
             return mark > pos ? Math.min(mark, bounds[1]) : Math.max(mark, bounds[0]);
         }
 
-        public static int[] boundsAt(String text, int offset, CharPredicate pred) {
-            int o = offset;
-            if (o >= text.length() || !pred.test(text.charAt(o))) {
-                if (o > 0 && pred.test(text.charAt(o - 1))) {
-                    o--;
-                } else {
-                    int f = o;
-                    while (f < text.length() && !pred.test(text.charAt(f))) f++;
-                    if (f >= text.length()) return null;
-                    o = f;
-                }
-            }
-            int s = o;
-            int e = o;
-            while (s > 0 && pred.test(text.charAt(s - 1))) s--;
-            while (e < text.length() && pred.test(text.charAt(e))) e++;
-            return new int[] {s, e};
+        public static int[] boundsAt(String text, int offset, CharPredicate isWord) {
+            int inWord = offsetInWord(text, offset, isWord);
+            if (inWord < 0) return null;
+            int start = inWord;
+            int end = inWord;
+            while (start > 0 && isWord.test(text.charAt(start - 1))) start--;
+            while (end < text.length() && isWord.test(text.charAt(end))) end++;
+            return new int[] {start, end};
+        }
+
+        private static int offsetInWord(String text, int offset, CharPredicate isWord) {
+            if (offset < text.length() && isWord.test(text.charAt(offset))) return offset;
+            if (offset > 0 && isWord.test(text.charAt(offset - 1))) return offset - 1;
+            int scan = offset;
+            while (scan < text.length() && !isWord.test(text.charAt(scan))) scan++;
+            return scan < text.length() ? scan : -1;
         }
     }
 }

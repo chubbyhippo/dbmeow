@@ -52,7 +52,7 @@ public interface UiPort {
 
     record AvyLabel(int offset, String label) {}
 
-    void modeChanged(MeowState st);
+    void modeChanged(MeowState state);
 
-    void refresh(MeowState st);
+    void refresh(MeowState state);
 }

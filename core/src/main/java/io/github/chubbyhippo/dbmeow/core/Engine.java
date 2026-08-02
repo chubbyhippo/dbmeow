@@ -31,9 +31,9 @@ public final class Engine {
     static Map<Character, Rc.Binding> repeatMap = null;
 
     public static void enterKeypad(Ctx ctx) {
-        MeowState st = ctx.st();
-        if (st.mode == MeowMode.KEYPAD) return;
-        st.keypadPreviousState = st.mode;
+        MeowState state = ctx.state();
+        if (state.mode == MeowMode.KEYPAD) return;
+        state.keypadPreviousState = state.mode;
         ctx.setMode(MeowMode.KEYPAD);
         ctx.ui().scheduleWhichKey("keypad", "");
     }
@@ -41,73 +41,75 @@ public final class Engine {
     public static void runEmacsMotion(Ctx ctx, String command) {
         MeowCommand cmd = Registry.COMMANDS.get(command);
         if (cmd != null) cmd.run(ctx);
-        ctx.ui().refresh(ctx.st());
+        ctx.ui().refresh(ctx.state());
     }
 
     public static boolean handleChar(Ctx ctx, char c) {
-        MeowState st = ctx.st();
-        if (st.mode == MeowMode.INSERT) return false;
-        if (st.mode == MeowMode.KEYPAD) {
+        MeowState state = ctx.state();
+        if (state.mode == MeowMode.INSERT) return false;
+        if (state.mode == MeowMode.KEYPAD) {
             Keypad.key(ctx, c);
-            st.lastCommand = "keypad";
-            ctx.ui().refresh(st);
+            state.lastCommand = "keypad";
+            ctx.ui().refresh(state);
             return true;
         }
-        if (st.avy != null) {
+        if (state.avy != null) {
             Avy.key(ctx, c);
-            st.lastCommand = "avy";
-            ctx.ui().refresh(st);
+            state.lastCommand = "avy";
+            ctx.ui().refresh(state);
             return true;
         }
 
         ctx.ui().hideWhichKey();
         ctx.ui().clearExpandHints();
 
-        Pending pend = st.pending;
+        Pending pend = state.pending;
         Rc.Binding repeatBinding = pend == null && repeatMap != null ? repeatMap.get(c) : null;
         if (pend == null && repeatBinding == null) repeatMap = null;
-        boolean motionish = st.mode == MeowMode.MOTION;
+        boolean motionish = state.mode == MeowMode.MOTION;
         Rc.Binding binding =
                 pend == null
                         ? repeatBinding != null ? repeatBinding : resolve(ctx, c, motionish)
                         : null;
         String cmd = binding != null ? binding.command() : null;
 
-        if (!st.replaying && !"repeat".equals(cmd)) {
-            if (pend == null && !st.counted()) st.unit.clear();
-            st.unit.add(c);
+        if (!state.replaying && !"repeat".equals(cmd)) {
+            if (pend == null && !state.counted()) state.unit.clear();
+            state.unit.add(c);
         }
 
         if (pend != null) {
-            st.pending = null;
+            state.pending = null;
             resolvePending(ctx, pend, c);
-            st.lastCommand = "pending";
+            state.lastCommand = "pending";
         } else if (binding != null) {
             runBinding(ctx, binding);
-            st.lastCommand =
+            state.lastCommand =
                     cmd != null
                             ? cmd
-                            : binding.action() != null ? binding.action() : st.lastCommand;
+                            : binding.action() != null ? binding.action() : state.lastCommand;
         } else {
-            st.lastCommand = null;
+            state.lastCommand = null;
         }
 
         boolean awaitingMoreKeys =
-                st.pending != null
-                        || (st.pendingCount() != 0 && cmd != null && cmd.startsWith("meow-expand-"))
-                        || (st.negative() && "meow-negative-argument".equals(cmd))
+                state.pending != null
+                        || (state.pendingCount() != 0
+                                && cmd != null
+                                && cmd.startsWith("meow-expand-"))
+                        || (state.negative() && "meow-negative-argument".equals(cmd))
                         || "meow-keypad".equals(cmd);
-        if (!st.replaying && !"repeat".equals(cmd) && !awaitingMoreKeys) {
-            st.lastKeys = List.copyOf(st.unit);
+        if (!state.replaying && !"repeat".equals(cmd) && !awaitingMoreKeys) {
+            state.lastKeys = List.copyOf(state.unit);
         }
 
-        ctx.ui().refresh(st);
+        ctx.ui().refresh(state);
         return true;
     }
 
     private static Rc.Binding resolve(Ctx ctx, char c, boolean motion) {
         if (c == ' ') return KEYPAD_BINDING;
-        if (ctx.st().noremapDepth == 0) {
+        if (ctx.state().noremapDepth == 0) {
             Rc.Config cfg = Rc.cfg();
             Rc.Binding user = motion ? cfg.motion.get(c) : cfg.normal.get(c);
             if (user != null) return user;
@@ -125,14 +127,14 @@ public final class Engine {
     }
 
     public static void repeatLast(Ctx ctx) {
-        MeowState st = ctx.st();
-        List<Character> keys = st.lastKeys;
+        MeowState state = ctx.state();
+        List<Character> keys = state.lastKeys;
         if (keys.isEmpty()) return;
-        st.replaying = true;
+        state.replaying = true;
         try {
             for (char k : keys) handleChar(ctx, k);
         } finally {
-            st.replaying = false;
+            state.replaying = false;
         }
     }
 
@@ -152,7 +154,7 @@ public final class Engine {
     }
 
     private static void dispatch(Ctx ctx, Rc.Binding b) {
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         if (b.command() != null) {
             MeowCommand cmd = Registry.COMMANDS.get(b.command());
             if (cmd != null) cmd.run(ctx);
@@ -168,50 +170,50 @@ public final class Engine {
             return;
         }
         if (b.keys() == null) return;
-        if (st.replayDepth >= MAX_REPLAY_DEPTH) {
+        if (state.replayDepth >= MAX_REPLAY_DEPTH) {
             ctx.ui().hint("dbmeow: mapping recursion is too deep");
             return;
         }
-        boolean savedReplaying = st.replaying;
-        st.replaying = true;
-        st.replayDepth++;
-        if (!b.recursive()) st.noremapDepth++;
+        boolean savedReplaying = state.replaying;
+        state.replaying = true;
+        state.replayDepth++;
+        if (!b.recursive()) state.noremapDepth++;
         try {
             for (int i = 0; i < b.keys().length(); i++) handleChar(ctx, b.keys().charAt(i));
         } finally {
-            if (!b.recursive()) st.noremapDepth--;
-            st.replayDepth--;
-            st.replaying = savedReplaying;
+            if (!b.recursive()) state.noremapDepth--;
+            state.replayDepth--;
+            state.replaying = savedReplaying;
         }
     }
 
     public static boolean escapeKey(Ctx ctx) {
-        MeowState st = ctx.st();
-        if (st.avy != null) {
+        MeowState state = ctx.state();
+        if (state.avy != null) {
             Avy.cancel(ctx);
-            ctx.ui().refresh(st);
+            ctx.ui().refresh(state);
             return true;
         }
-        boolean hadTransient = st.pending != null || repeatMap != null;
-        st.pending = null;
+        boolean hadTransient = state.pending != null || repeatMap != null;
+        state.pending = null;
         repeatMap = null;
         ctx.ui().hideWhichKey();
         ctx.ui().clearExpandHints();
-        if (st.mode == MeowMode.INSERT) {
+        if (state.mode == MeowMode.INSERT) {
             ctx.setMode(MeowMode.NORMAL);
-            ctx.ui().refresh(st);
+            ctx.ui().refresh(state);
             return true;
         }
-        if (st.mode == MeowMode.KEYPAD) {
+        if (state.mode == MeowMode.KEYPAD) {
             Keypad.exit(ctx);
-            ctx.ui().refresh(st);
+            ctx.ui().refresh(state);
             return true;
         }
         List<SelRange> sels = ctx.port().getSelections();
         boolean anySelected = sels.stream().anyMatch(Selections::hasSelection);
         if (sels.size() > 1 || anySelected) {
             Selections.cancelAll(ctx);
-            ctx.ui().refresh(st);
+            ctx.ui().refresh(state);
             return true;
         }
         return hadTransient;

@@ -40,7 +40,7 @@ class AvySpec extends SpecDsl {
         timeout();
         whenKeys("s");
         thenCaretAt(8);
-        assertNull(st.avy, "session ends after the jump");
+        assertNull(state.avy, "session ends after the jump");
     }
 
     @Test
@@ -51,7 +51,7 @@ class AvySpec extends SpecDsl {
         whenKeys("gam");
         timeout();
         thenCaretAt(11);
-        assertNull(st.avy);
+        assertNull(state.avy);
     }
 
     @Test
@@ -62,7 +62,7 @@ class AvySpec extends SpecDsl {
         whenKeys("zz");
         timeout();
         thenCaretAt(0);
-        assertNull(st.avy);
+        assertNull(state.avy);
         whenKeys("l");
         thenCaretAt(1);
     }
@@ -98,7 +98,7 @@ class AvySpec extends SpecDsl {
         whenKeys("xx");
         timeout();
         whenKeys("z");
-        assertNotNull(st.avy);
+        assertNotNull(state.avy);
         whenKeys("d");
         thenCaretAt(6);
     }
@@ -112,7 +112,7 @@ class AvySpec extends SpecDsl {
         whenKeys("e");
         timeout();
         whenKeys("l");
-        assertNotNull(st.avy);
+        assertNotNull(state.avy);
         whenKeys("s");
         thenCaretAt(18);
     }
@@ -124,9 +124,9 @@ class AvySpec extends SpecDsl {
         whenKeys("S");
         whenKeys("foo");
         timeout();
-        assertNotNull(st.avy);
+        assertNotNull(state.avy);
         assertTrue(pressEsc());
-        assertNull(st.avy);
+        assertNull(state.avy);
         thenCaretAt(0);
     }
 
@@ -137,12 +137,12 @@ class AvySpec extends SpecDsl {
     void timeoutAwaitedOnlyAfterFirstChar() {
         given("words", "<caret>foo foo foo");
         whenKeys("S");
-        assertFalse(Avy.awaitingTimeout(st));
+        assertFalse(Avy.awaitingTimeout(state));
         whenKeys("f");
-        assertTrue(Avy.awaitingTimeout(st));
+        assertTrue(Avy.awaitingTimeout(state));
         timeout();
-        assertFalse(Avy.awaitingTimeout(st));
-        assertNotNull(st.avy);
+        assertFalse(Avy.awaitingTimeout(state));
+        assertNotNull(state.avy);
     }
 
     @Test
@@ -150,10 +150,10 @@ class AvySpec extends SpecDsl {
     void qLabelsVisibleLinesJump() {
         given("four lines", "one\ntwo\nthr<caret>ee\nfour");
         whenKeys("Q");
-        assertNotNull(st.avy);
+        assertNotNull(state.avy);
         whenKeys("f");
         thenCaretAt(14);
-        assertNull(st.avy);
+        assertNull(state.avy);
     }
 
     @Test
@@ -163,7 +163,7 @@ class AvySpec extends SpecDsl {
         givenMinibufferAnswers("3");
         whenKeys("Q3");
         thenCaretAt(8);
-        assertNull(st.avy);
+        assertNull(state.avy);
     }
 
     @Test

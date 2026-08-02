@@ -36,10 +36,10 @@ public final class Search {
 
     private static final int MAX_SEARCH_HISTORY = 50;
 
-    public static void push(MeowState st, String pattern) {
-        st.searchHistory.removeIf(p -> p.equals(pattern));
-        st.searchHistory.add(pattern);
-        while (st.searchHistory.size() > MAX_SEARCH_HISTORY) st.searchHistory.remove(0);
+    public static void push(MeowState state, String pattern) {
+        state.searchHistory.removeIf(p -> p.equals(pattern));
+        state.searchHistory.add(pattern);
+        while (state.searchHistory.size() > MAX_SEARCH_HISTORY) state.searchHistory.remove(0);
     }
 
     private record Match(int start, int end) {}
@@ -74,28 +74,28 @@ public final class Search {
     }
 
     private static void search(Ctx ctx) {
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         SelRange sel = Selections.primary(ctx);
         String pattern =
-                st.searchHistory.isEmpty()
+                state.searchHistory.isEmpty()
                         ? null
-                        : st.searchHistory.get(st.searchHistory.size() - 1);
+                        : state.searchHistory.get(state.searchHistory.size() - 1);
         if (Selections.hasSelection(sel)) {
             String selText = ctx.port().getText().substring(sel.lo(), sel.hi());
             if (!selText.isEmpty() && (pattern == null || !fullyMatches(pattern, selText))) {
                 pattern = Text.escapeRegExp(selText);
-                push(st, pattern);
+                push(state, pattern);
             }
         }
         if (pattern == null) {
             ctx.ui().hint("No search pattern");
             return;
         }
-        searchWith(ctx, pattern, st.takeCount(1) < 0 || Selections.backwardP(ctx));
+        searchWith(ctx, pattern, state.takeCount(1) < 0 || Selections.backwardP(ctx));
     }
 
     private static void visit(Ctx ctx) {
-        boolean backward = ctx.st().takeCount(1) < 0;
+        boolean backward = ctx.state().takeCount(1) < 0;
         String input = ctx.ui().input("Visit (regexp):");
         if (input == null || input.isEmpty()) return;
         String pattern = input;
@@ -104,7 +104,7 @@ public final class Search {
         } catch (RuntimeException e) {
             pattern = Text.escapeRegExp(input);
         }
-        push(ctx.st(), pattern);
+        push(ctx.state(), pattern);
         searchWith(ctx, pattern, backward);
     }
 

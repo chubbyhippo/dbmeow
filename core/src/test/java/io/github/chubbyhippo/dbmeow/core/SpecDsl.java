@@ -27,20 +27,20 @@ public abstract class SpecDsl {
     protected FakeEditor editor;
     protected FakeClipboard clip;
     protected FakeUi ui;
-    protected MeowState st;
+    protected MeowState state;
 
     @BeforeEach
     void freshSpec() {
         editor = new FakeEditor();
         clip = new FakeClipboard();
         ui = new FakeUi();
-        st = new MeowState();
+        state = new MeowState();
         Rc.setForTest(new Rc.Config());
         Engine.repeatMap = null;
     }
 
     protected Ctx ctx() {
-        return new Ctx(editor, clip, ui, st);
+        return new Ctx(editor, clip, ui, state);
     }
 
     protected void given(String description, String textWithCaret) {
@@ -49,7 +49,7 @@ public abstract class SpecDsl {
         editor.text.append(textWithCaret.replace("<caret>", ""));
         int off = Math.max(at, 0);
         editor.sels = new java.util.ArrayList<>(List.of(new SelRange(off, off)));
-        st = new MeowState();
+        state = new MeowState();
     }
 
     protected void givenRc(String text) {
@@ -133,11 +133,11 @@ public abstract class SpecDsl {
     }
 
     protected void thenMode(MeowMode expected) {
-        assertEquals(expected, st.mode, "meow mode");
+        assertEquals(expected, state.mode, "meow mode");
     }
 
     protected void thenSelType(SelType expected) {
-        assertEquals(expected, st.selType, "selection type");
+        assertEquals(expected, state.selType, "selection type");
     }
 
     protected void thenClipboard(String expected) {

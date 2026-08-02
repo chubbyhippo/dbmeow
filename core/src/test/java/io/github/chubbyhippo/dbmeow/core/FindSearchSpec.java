@@ -141,7 +141,7 @@ class FindSearchSpec extends SpecDsl {
             "given a selection that does not match the pattern when n then the selection text becomes the pattern")
     void nonMatchingSelectionBecomesPattern() {
         given("repeats", "foo <caret>bar foo bar");
-        st.searchHistory.add("zzz");
+        state.searchHistory.add("zzz");
         whenKeys(",e");
         whenKeys("n");
         thenSelection("bar");

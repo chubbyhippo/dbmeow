@@ -72,39 +72,40 @@ public final class Edits {
 
     @FunctionalInterface
     private interface Compute {
-        Computed apply(SelRange sel, int lo, int hi);
+        Computed apply(SelRange sel, int selStart, int selEnd);
     }
 
     private static void editCarets(Ctx ctx, Compute compute) {
         List<SelRange> sels = ctx.port().getSelections();
-        record Item(SelRange sel, int index, int lo) {}
+        record Item(SelRange sel, int index, int selStart) {}
         List<Item> order = new ArrayList<>();
         for (int i = 0; i < sels.size(); i++) {
             SelRange sel = sels.get(i);
             order.add(new Item(sel, i, sel.lo()));
         }
-        order.sort(Comparator.comparingInt(Item::lo).reversed());
+        order.sort(Comparator.comparingInt(Item::selStart).reversed());
         List<TextEdit> edits = new ArrayList<>();
         Computed[] results = new Computed[sels.size()];
         for (Item item : order) {
-            int hi = Math.max(item.sel().anchor(), item.sel().active());
-            Computed r = compute.apply(item.sel(), item.lo(), hi);
-            if (r.edit() != null) edits.add(r.edit());
-            results[item.index()] = r;
+            int selEnd = Math.max(item.sel().anchor(), item.sel().active());
+            Computed computed = compute.apply(item.sel(), item.selStart(), selEnd);
+            if (computed.edit() != null) edits.add(computed.edit());
+            results[item.index()] = computed;
         }
         SelRange[] newSels = new SelRange[sels.size()];
         int delta = 0;
         for (int i = order.size() - 1; i >= 0; i--) {
             Item item = order.get(i);
-            Computed r = results[item.index()];
+            Computed computed = results[item.index()];
             newSels[item.index()] =
-                    new SelRange(r.sel().anchor() + delta, r.sel().active() + delta);
-            if (r.edit() != null) {
-                delta += r.edit().text().length() - (r.edit().end() - r.edit().start());
+                    new SelRange(computed.sel().anchor() + delta, computed.sel().active() + delta);
+            TextEdit edit = computed.edit();
+            if (edit != null) {
+                delta += edit.text().length() - (edit.end() - edit.start());
             }
         }
         if (!edits.isEmpty()) {
-            Grab.adjustForEdits(ctx.st(), edits);
+            Grab.adjustForEdits(ctx.state(), edits);
             ctx.port().edit(edits);
         }
         ctx.port().setSelections(List.of(newSels));
@@ -125,8 +126,8 @@ public final class Edits {
             collapsed.add(new SelRange(caret, caret));
         }
         ctx.port().setSelections(collapsed);
-        ctx.st().selType = SelType.NONE;
-        Selections.resetSelectionMemory(ctx.st());
+        ctx.state().selType = SelType.NONE;
+        Selections.resetSelectionMemory(ctx.state());
         ctx.setMode(MeowMode.INSERT);
     }
 
@@ -136,7 +137,7 @@ public final class Edits {
         String text = ctx.port().getText();
         int eol = Text.lineEnd(text, Text.lineOfOffset(text, Selections.primary(ctx).active()));
         List<TextEdit> nl = List.of(new TextEdit(eol, eol, "\n"));
-        Grab.adjustForEdits(ctx.st(), nl);
+        Grab.adjustForEdits(ctx.state(), nl);
         ctx.port().edit(nl);
         ctx.port().setSelections(List.of(new SelRange(eol + 1, eol + 1)));
         ctx.setMode(MeowMode.INSERT);
@@ -147,7 +148,7 @@ public final class Edits {
         Selections.collapse(ctx);
         int at = Selections.primary(ctx).active();
         List<TextEdit> nl = List.of(new TextEdit(at, at, "\n"));
-        Grab.adjustForEdits(ctx.st(), nl);
+        Grab.adjustForEdits(ctx.state(), nl);
         ctx.port().edit(nl);
         ctx.port().setSelections(List.of(new SelRange(at, at)));
     }
@@ -163,7 +164,7 @@ public final class Edits {
         while (to < text.length() && Motions.isBlank(text.charAt(to))) to++;
         if (from == to && replacement.isEmpty()) return;
         List<TextEdit> edits = List.of(new TextEdit(from, to, replacement));
-        Grab.adjustForEdits(ctx.st(), edits);
+        Grab.adjustForEdits(ctx.state(), edits);
         ctx.port().edit(edits);
         int caret = from + replacement.length();
         ctx.port().setSelections(List.of(new SelRange(caret, caret)));
@@ -175,7 +176,7 @@ public final class Edits {
         String text = ctx.port().getText();
         int bol = Text.lineStart(text, Text.lineOfOffset(text, Selections.primary(ctx).active()));
         List<TextEdit> nl = List.of(new TextEdit(bol, bol, "\n"));
-        Grab.adjustForEdits(ctx.st(), nl);
+        Grab.adjustForEdits(ctx.state(), nl);
         ctx.port().edit(nl);
         ctx.port().setSelections(List.of(new SelRange(bol, bol)));
         ctx.setMode(MeowMode.INSERT);
@@ -199,14 +200,14 @@ public final class Edits {
         SelRange prim = Selections.primary(ctx);
         if (!Selections.hasSelection(prim) && prim.active() >= text.length()) return;
         editCarets(ctx, deleteForward(text));
-        ctx.st().selType = SelType.NONE;
+        ctx.state().selType = SelType.NONE;
         ctx.setMode(MeowMode.INSERT);
     }
 
     private static void del(Ctx ctx) {
         if (blockedReadOnly(ctx)) return;
         editCarets(ctx, deleteForward(ctx.port().getText()));
-        ctx.st().selType = SelType.NONE;
+        ctx.state().selType = SelType.NONE;
     }
 
     private static void backwardDelete(Ctx ctx) {
@@ -223,25 +224,25 @@ public final class Edits {
                     }
                     return new Computed(null, new SelRange(lo, lo));
                 });
-        ctx.st().selType = SelType.NONE;
+        ctx.state().selType = SelType.NONE;
     }
 
     private static int[] killRange(Ctx ctx, SelRange sel, String text) {
-        int lo = sel.lo();
-        int hi = sel.hi();
-        if (ctx.st().selType == SelType.LINE
+        int start = sel.lo();
+        int end = sel.hi();
+        if (ctx.state().selType == SelType.LINE
                 && sel.active() >= sel.anchor()
-                && hi < text.length()) {
-            if (text.charAt(hi) == '\r') hi++;
-            if (hi < text.length() && text.charAt(hi) == '\n') hi++;
+                && end < text.length()) {
+            if (text.charAt(end) == '\r') end++;
+            if (end < text.length() && text.charAt(end) == '\n') end++;
         }
-        return new int[] {lo, hi};
+        return new int[] {start, end};
     }
 
     private static List<SelRange> regionsInOrder(List<SelRange> sels) {
         List<SelRange> regions = new ArrayList<>();
-        for (SelRange s : sels) {
-            if (s.anchor() != s.active()) regions.add(s);
+        for (SelRange sel : sels) {
+            if (sel.anchor() != sel.active()) regions.add(sel);
         }
         regions.sort(Comparator.comparingInt(s -> s.lo()));
         return regions;
@@ -259,10 +260,10 @@ public final class Edits {
 
     private static void kill(Ctx ctx) {
         if (!allowModify(ctx)) return;
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         String text = ctx.port().getText();
         SelRange prim = Selections.primary(ctx);
-        if (st.selType == SelType.JOIN && Selections.hasSelection(prim)) {
+        if (state.selType == SelType.JOIN && Selections.hasSelection(prim)) {
             joinKill(ctx);
             return;
         }
@@ -271,19 +272,21 @@ public final class Edits {
                     .write(joinedKillText(ctx, text, regionsInOrder(ctx.port().getSelections())));
             editCarets(
                     ctx,
-                    (sel, lo, hi) -> {
-                        if (lo == hi) return new Computed(null, sel);
-                        int[] r = killRange(ctx, sel, text);
-                        return new Computed(new TextEdit(r[0], r[1], ""), new SelRange(r[0], r[0]));
+                    (sel, selStart, selEnd) -> {
+                        if (selStart == selEnd) return new Computed(null, sel);
+                        int[] killed = killRange(ctx, sel, text);
+                        return new Computed(
+                                new TextEdit(killed[0], killed[1], ""),
+                                new SelRange(killed[0], killed[0]));
                     });
-            st.selType = SelType.NONE;
+            state.selType = SelType.NONE;
             return;
         }
         if (text.isEmpty()) return;
         int caret = prim.active();
-        int ln = Text.lineOfOffset(text, caret);
-        int eol = Text.lineEnd(text, ln);
-        int end = caret == eol ? Text.lineStart(text, ln + 1) : eol;
+        int line = Text.lineOfOffset(text, caret);
+        int eol = Text.lineEnd(text, line);
+        int end = caret == eol ? Text.lineStart(text, line + 1) : eol;
         if (end > caret) {
             ctx.clipboard().write(text.substring(caret, end));
             ctx.port().edit(List.of(new TextEdit(caret, end, "")));
@@ -294,10 +297,10 @@ public final class Edits {
     private static void joinKill(Ctx ctx) {
         String text = ctx.port().getText();
         SelRange prim = Selections.primary(ctx);
-        int s = prim.lo();
-        int e = prim.hi();
-        char before = s > 0 ? text.charAt(s - 1) : '\n';
-        char after = e < text.length() ? text.charAt(e) : '\n';
+        int start = prim.lo();
+        int end = prim.hi();
+        char before = start > 0 ? text.charAt(start - 1) : '\n';
+        char after = end < text.length() ? text.charAt(end) : '\n';
         boolean space =
                 before != '\n'
                         && after != '\n'
@@ -305,10 +308,10 @@ public final class Edits {
                         && !Character.isWhitespace(after)
                         && ")]}.,;:".indexOf(after) < 0
                         && "([{".indexOf(before) < 0;
-        ctx.port().edit(List.of(new TextEdit(s, e, space ? " " : "")));
-        ctx.port().setSelections(List.of(new SelRange(s, s)));
-        ctx.st().selType = SelType.NONE;
-        ctx.st().selExpand = false;
+        ctx.port().edit(List.of(new TextEdit(start, end, space ? " " : "")));
+        ctx.port().setSelections(List.of(new SelRange(start, start)));
+        ctx.state().selType = SelType.NONE;
+        ctx.state().selExpand = false;
     }
 
     private static void save(Ctx ctx) {
@@ -328,8 +331,8 @@ public final class Edits {
             collapsed.add(new SelRange(caret, caret));
         }
         ctx.port().setSelections(collapsed);
-        ctx.st().selType = SelType.NONE;
-        ctx.st().selExpand = false;
+        ctx.state().selType = SelType.NONE;
+        ctx.state().selExpand = false;
     }
 
     private static void yank(Ctx ctx) {
@@ -360,7 +363,7 @@ public final class Edits {
                                 : new Computed(
                                         new TextEdit(lo, hi, clip),
                                         new SelRange(lo + clip.length(), lo + clip.length())));
-        ctx.st().selType = SelType.NONE;
+        ctx.state().selType = SelType.NONE;
     }
 
     private static String casified(String slice, CaseOp op) {
@@ -372,16 +375,16 @@ public final class Edits {
     }
 
     private static String capitalizedWords(String slice) {
-        Text.CharPredicate pred = Text.charPred(false);
+        Text.CharPredicate isWord = Text.charPred(false);
         StringBuilder out = new StringBuilder(slice.length());
         boolean inWord = false;
         for (int i = 0; i < slice.length(); i++) {
-            char c = slice.charAt(i);
-            if (pred.test(c)) {
-                out.append(inWord ? Character.toLowerCase(c) : Character.toUpperCase(c));
+            char ch = slice.charAt(i);
+            if (isWord.test(ch)) {
+                out.append(inWord ? Character.toLowerCase(ch) : Character.toUpperCase(ch));
                 inWord = true;
             } else {
-                out.append(c);
+                out.append(ch);
                 inWord = false;
             }
         }
@@ -390,64 +393,69 @@ public final class Edits {
 
     private static void caseWord(Ctx ctx, CaseOp op) {
         if (blockedReadOnly(ctx)) return;
-        int n = ctx.st().takeCount(1);
-        if (n == 0) return;
+        int count = ctx.state().takeCount(1);
+        if (count == 0) return;
         boolean hadSelection = Selections.hasSelection(Selections.primary(ctx));
         String text = ctx.port().getText();
-        Text.CharPredicate pred = Text.charPred(false);
+        Text.CharPredicate isWord = Text.charPred(false);
         editCarets(
                 ctx,
-                (sel, lo, hi) -> {
+                (sel, selStart, selEnd) -> {
                     int from = sel.active();
-                    int[] r = wordKillRange(text, from, n, pred);
-                    if (r[0] == r[1]) return new Computed(null, sel);
-                    int caret = n > 0 ? r[1] : from;
+                    int[] range = wordKillRange(text, from, count, isWord);
+                    if (range[0] == range[1]) return new Computed(null, sel);
+                    int caret = count > 0 ? range[1] : from;
                     return new Computed(
-                            new TextEdit(r[0], r[1], casified(text.substring(r[0], r[1]), op)),
+                            new TextEdit(
+                                    range[0],
+                                    range[1],
+                                    casified(text.substring(range[0], range[1]), op)),
                             new SelRange(caret, caret));
                 });
         if (hadSelection) Selections.collapse(ctx);
     }
 
-    private static int[] wordKillRange(String text, int from, int n, Text.CharPredicate pred) {
+    private static int[] wordKillRange(
+            String text, int from, int count, Text.CharPredicate isWord) {
         int target =
-                n > 0
-                        ? Text.Words.nextEnd(text, from, n, pred)
-                        : Text.Words.prevStart(text, from, -n, pred);
+                count > 0
+                        ? Text.Words.nextEnd(text, from, count, isWord)
+                        : Text.Words.prevStart(text, from, -count, isWord);
         return new int[] {Math.min(from, target), Math.max(from, target)};
     }
 
     private static void killWord(Ctx ctx) {
         if (blockedReadOnly(ctx)) return;
-        int n = ctx.st().takeCount(1);
-        if (n == 0) return;
+        int count = ctx.state().takeCount(1);
+        if (count == 0) return;
         String text = ctx.port().getText();
-        Text.CharPredicate pred = Text.charPred(false);
+        Text.CharPredicate isWord = Text.charPred(false);
         List<int[]> killed = new ArrayList<>();
         for (SelRange sel : ctx.port().getSelections()) {
-            int[] r = wordKillRange(text, sel.active(), n, pred);
-            if (r[0] != r[1]) killed.add(r);
+            int[] range = wordKillRange(text, sel.active(), count, isWord);
+            if (range[0] != range[1]) killed.add(range);
         }
         if (killed.isEmpty()) return;
-        killed.sort(Comparator.comparingInt(r -> r[0]));
+        killed.sort(Comparator.comparingInt(range -> range[0]));
         StringBuilder joined = new StringBuilder();
         for (int i = 0; i < killed.size(); i++) {
             if (i > 0) joined.append('\n');
-            int[] r = killed.get(i);
-            joined.append(text, r[0], r[1]);
+            int[] range = killed.get(i);
+            joined.append(text, range[0], range[1]);
         }
         ctx.clipboard().write(joined.toString());
         editCarets(
                 ctx,
                 (sel, lo, hi) -> {
-                    int[] r = wordKillRange(text, sel.active(), n, pred);
-                    if (r[0] == r[1]) {
+                    int[] range = wordKillRange(text, sel.active(), count, isWord);
+                    if (range[0] == range[1]) {
                         return new Computed(null, new SelRange(sel.active(), sel.active()));
                     }
-                    return new Computed(new TextEdit(r[0], r[1], ""), new SelRange(r[0], r[0]));
+                    return new Computed(
+                            new TextEdit(range[0], range[1], ""), new SelRange(range[0], range[0]));
                 });
-        ctx.st().selType = SelType.NONE;
-        ctx.st().selExpand = false;
+        ctx.state().selType = SelType.NONE;
+        ctx.state().selExpand = false;
     }
 
     private static void undo(Ctx ctx) {

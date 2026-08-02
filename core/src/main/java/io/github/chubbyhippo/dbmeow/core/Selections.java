@@ -31,7 +31,7 @@ public final class Selections {
     static {
         for (int n = 0; n <= 9; n++) {
             final int digit = n;
-            commands.put("meow-expand-" + n, ctx -> expandOrCount(ctx, digit));
+            commands.put("meow-expand-" + digit, ctx -> expandOrCount(ctx, digit));
         }
         commands.put("meow-reverse", Selections::reverse);
         commands.put("meow-cancel-selection", Selections::cancelAll);
@@ -70,16 +70,16 @@ public final class Selections {
 
     public static void recordSelect(
             Ctx ctx, SelType type, int anchor, int active, boolean expand, int posBefore) {
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         SavedSelection prev =
-                st.lastSelection != null
-                        ? st.lastSelection
+                state.lastSelection != null
+                        ? state.lastSelection
                         : new SavedSelection(null, false, posBefore, posBefore);
-        SavedSelection head = st.selectionHistory.peekLast();
-        if (head == null || !head.equals(prev)) st.selectionHistory.addLast(prev);
-        while (st.selectionHistory.size() > MAX_SELECTION_HISTORY)
-            st.selectionHistory.removeFirst();
-        st.lastSelection = new SavedSelection(type, expand, anchor, active);
+        SavedSelection head = state.selectionHistory.peekLast();
+        if (head == null || !head.equals(prev)) state.selectionHistory.addLast(prev);
+        while (state.selectionHistory.size() > MAX_SELECTION_HISTORY)
+            state.selectionHistory.removeFirst();
+        state.lastSelection = new SavedSelection(type, expand, anchor, active);
     }
 
     public static void select(Ctx ctx, SelType type, int markOff, int point, boolean expand) {
@@ -88,38 +88,38 @@ public final class Selections {
 
     public static void select(
             Ctx ctx, SelType type, int markOff, int point, boolean expand, boolean push) {
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         int len = ctx.port().getText().length();
-        int m = Text.clamp(markOff, 0, len);
-        int p = Text.clamp(point, 0, len);
+        int mark = Text.clamp(markOff, 0, len);
+        int caret = Text.clamp(point, 0, len);
         List<SelRange> sels = ctx.port().getSelections();
-        if (push) recordSelect(ctx, type, m, p, expand, sels.get(0).active());
-        else st.lastSelection = new SavedSelection(type, expand, m, p);
-        st.selType = type;
-        st.selExpand = expand;
+        if (push) recordSelect(ctx, type, mark, caret, expand, sels.get(0).active());
+        else state.lastSelection = new SavedSelection(type, expand, mark, caret);
+        state.selType = type;
+        state.selExpand = expand;
         List<SelRange> next = new ArrayList<>(sels);
-        next.set(0, new SelRange(m, p));
+        next.set(0, new SelRange(mark, caret));
         ctx.port().setSelections(next);
         Grab.beacon(ctx);
         ctx.ui().showExpandHints(Hints.expandHintPositions(ctx));
     }
 
-    public static void resetSelectionMemory(MeowState st) {
-        st.selectionHistory.clear();
-        st.lastSelection = null;
+    public static void resetSelectionMemory(MeowState state) {
+        state.selectionHistory.clear();
+        state.lastSelection = null;
     }
 
     public static void collapse(Ctx ctx) {
         List<SelRange> sels = new ArrayList<>(ctx.port().getSelections());
         sels.set(0, new SelRange(sels.get(0).active(), sels.get(0).active()));
         ctx.port().setSelections(sels);
-        ctx.st().selType = SelType.NONE;
-        ctx.st().selExpand = false;
+        ctx.state().selType = SelType.NONE;
+        ctx.state().selExpand = false;
     }
 
     public static void cancel(Ctx ctx) {
         collapse(ctx);
-        resetSelectionMemory(ctx.st());
+        resetSelectionMemory(ctx.state());
     }
 
     public static void cancelAll(Ctx ctx) {
@@ -137,9 +137,9 @@ public final class Selections {
     }
 
     private static void pop(Ctx ctx) {
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         if (hasSelection(primary(ctx))) {
-            SavedSelection entry = st.selectionHistory.pollLast();
+            SavedSelection entry = state.selectionHistory.pollLast();
             if (entry == null) return;
             if (entry.type() == null) {
                 List<SelRange> sels = new ArrayList<>(ctx.port().getSelections());
@@ -155,48 +155,52 @@ public final class Selections {
         }
     }
 
-    private static void expandOrCount(Ctx ctx, int n) {
-        MeowState st = ctx.st();
-        if (hasSelection(primary(ctx)) && EXPANDABLE.contains(st.selType)) {
-            expand(ctx, n == 0 ? DIGIT_ZERO_EXPAND : n);
+    private static void expandOrCount(Ctx ctx, int digit) {
+        MeowState state = ctx.state();
+        if (hasSelection(primary(ctx)) && EXPANDABLE.contains(state.selType)) {
+            expand(ctx, digit == 0 ? DIGIT_ZERO_EXPAND : digit);
         } else {
-            st.pushCountDigit(n);
+            state.pushCountDigit(digit);
         }
     }
 
-    private static void expand(Ctx ctx, int n) {
-        MeowState st = ctx.st();
+    private static void expand(Ctx ctx, int count) {
+        MeowState state = ctx.state();
         String text = ctx.port().getText();
         boolean back = backwardP(ctx);
         int caret = primary(ctx).active();
         int target;
-        switch (st.selType) {
-            case CHAR -> target = caret + (back ? -n : n);
+        switch (state.selType) {
+            case CHAR -> target = caret + (back ? -count : count);
             case WORD, SYMBOL -> {
-                Text.CharPredicate p = Text.charPred(st.selType == SelType.SYMBOL);
+                Text.CharPredicate isWord = Text.charPred(state.selType == SelType.SYMBOL);
                 target =
                         back
-                                ? Text.Words.prevStart(text, caret, n, p)
-                                : Text.Words.nextEnd(text, caret, n, p);
+                                ? Text.Words.prevStart(text, caret, count, isWord)
+                                : Text.Words.nextEnd(text, caret, count, isWord);
             }
             case LINE -> {
-                int ln = Text.lineOfOffset(text, caret);
+                int caretLine = Text.lineOfOffset(text, caret);
                 target =
                         back
-                                ? Text.lineStart(text, Math.max(ln - n, 0))
-                                : Text.lineEnd(text, Math.min(ln + n, Text.lineCount(text) - 1));
+                                ? Text.lineStart(text, Math.max(caretLine - count, 0))
+                                : Text.lineEnd(
+                                        text,
+                                        Math.min(caretLine + count, Text.lineCount(text) - 1));
             }
             case FIND, TILL -> {
-                Character ch = st.lastFind;
+                Character ch = state.lastFind;
                 if (ch == null) return;
-                int t = Text.nthCharTarget(text, ch, caret, n, back, st.selType == SelType.TILL);
-                if (t < 0) return;
-                target = t;
+                int found =
+                        Text.nthCharTarget(
+                                text, ch, caret, count, back, state.selType == SelType.TILL);
+                if (found < 0) return;
+                target = found;
             }
             default -> {
                 return;
             }
         }
-        select(ctx, st.selType, mark(ctx), target, false);
+        select(ctx, state.selType, mark(ctx), target, false);
     }
 }

@@ -95,10 +95,10 @@ public class FakeUi implements UiPort {
     public void clearAvy() {}
 
     @Override
-    public void modeChanged(MeowState st) {
-        modes.add(st.mode);
+    public void modeChanged(MeowState state) {
+        modes.add(state.mode);
     }
 
     @Override
-    public void refresh(MeowState st) {}
+    public void refresh(MeowState state) {}
 }

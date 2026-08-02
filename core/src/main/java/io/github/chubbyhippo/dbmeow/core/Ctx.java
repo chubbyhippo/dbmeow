@@ -17,11 +17,11 @@
 
 package io.github.chubbyhippo.dbmeow.core;
 
-public record Ctx(EditorPort port, ClipboardPort clipboard, UiPort ui, MeowState st) {
+public record Ctx(EditorPort port, ClipboardPort clipboard, UiPort ui, MeowState state) {
 
     public void setMode(MeowMode mode) {
-        st.mode = mode;
-        if (mode != MeowMode.KEYPAD) st.keypad.setLength(0);
-        ui.modeChanged(st);
+        state.mode = mode;
+        if (mode != MeowMode.KEYPAD) state.keypad.setLength(0);
+        ui.modeChanged(state);
     }
 }

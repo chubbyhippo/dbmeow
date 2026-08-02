@@ -44,7 +44,7 @@ import java.util.List;
 final class EclipseUi implements UiPort {
 
     private final AbstractTextEditor editor;
-    private final MeowState st;
+    private final MeowState state;
     private final StyledText text;
     private final OverlayPainter painter;
     private final int insertCaretWidth;
@@ -55,9 +55,9 @@ final class EclipseUi implements UiPort {
     private String whichKeyKind;
     private String whichKeyBuffer;
 
-    EclipseUi(AbstractTextEditor editor, MeowState st, StyledText text, OverlayPainter painter) {
+    EclipseUi(AbstractTextEditor editor, MeowState state, StyledText text, OverlayPainter painter) {
         this.editor = editor;
-        this.st = st;
+        this.state = state;
         this.text = text;
         this.painter = painter;
         Caret caret = text.getCaret();

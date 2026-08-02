@@ -247,23 +247,25 @@ final class RcParser {
         } else {
             Rc.Binding binding = parseTarget(parts[2].trim(), true, "repeat " + rest, err);
             if (binding == null) return;
-            c.repeat.computeIfAbsent(group, k -> new LinkedHashMap<>()).put(key.charAt(0), binding);
+            c.repeat
+                    .computeIfAbsent(group, unused -> new LinkedHashMap<>())
+                    .put(key.charAt(0), binding);
         }
     }
 
-    private static String parseKeys(String s, Consumer<String> err) {
+    private static String parseKeys(String spec, Consumer<String> err) {
         StringBuilder out = new StringBuilder();
         int i = 0;
-        while (i < s.length()) {
-            char ch = s.charAt(i);
+        while (i < spec.length()) {
+            char ch = spec.charAt(i);
             if (ch == '<') {
-                int close = s.indexOf('>', i);
+                int close = spec.indexOf('>', i);
                 if (close < 0) {
                     out.append(ch);
                     i++;
                     continue;
                 }
-                String token = s.substring(i + 1, close).toLowerCase();
+                String token = spec.substring(i + 1, close).toLowerCase();
                 if (token.equals("space")) {
                     out.append(' ');
                 } else if (token.equals("lt")) {
@@ -271,7 +273,7 @@ final class RcParser {
                 } else {
                     err.accept(
                             "unsupported key token "
-                                    + s.substring(i, close + 1)
+                                    + spec.substring(i, close + 1)
                                     + " (only printable keys reach the meow engine)");
                     return null;
                 }

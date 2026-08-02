@@ -58,7 +58,7 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
         this.ctx = ctx;
         this.finishAvyInput =
                 () -> {
-                    if (Avy.awaitingTimeout(ctx.st())) Avy.finishInput(ctx);
+                    if (Avy.awaitingTimeout(ctx.state())) Avy.finishInput(ctx);
                 };
     }
 
@@ -80,7 +80,7 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
 
         if ((event.stateMask & MODIFIER_MASK) != 0) {
             Chord chord = chordOf(event);
-            if (!Chords.claims(ctx.st().mode, chord)) return;
+            if (!Chords.claims(ctx.state().mode, chord)) return;
             if (guarded(() -> Chords.dispatch(ctx, chord))) event.doit = false;
             return;
         }
@@ -92,7 +92,7 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
         event.doit = !handled;
         if (handled) {
             event.display.timerExec(-1, finishAvyInput);
-            if (Avy.awaitingTimeout(ctx.st())) {
+            if (Avy.awaitingTimeout(ctx.state())) {
                 event.display.timerExec(AVY_TIMEOUT_MS, finishAvyInput);
             }
         }

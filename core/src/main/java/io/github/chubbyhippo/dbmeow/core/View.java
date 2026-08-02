@@ -43,10 +43,10 @@ public final class View {
         commands.put(
                 RECENTER_COMMAND,
                 ctx -> {
-                    MeowState st = ctx.st();
-                    st.recenterPhase = nextRecenterPhase(st.lastCommand, st.recenterPhase);
-                    st.lastCommand = RECENTER_COMMAND;
-                    ctx.ui().revealCaret(recenterPosition(st.recenterPhase));
+                    MeowState state = ctx.state();
+                    state.recenterPhase = nextRecenterPhase(state.lastCommand, state.recenterPhase);
+                    state.lastCommand = RECENTER_COMMAND;
+                    ctx.ui().revealCaret(recenterPosition(state.recenterPhase));
                 });
     }
 }

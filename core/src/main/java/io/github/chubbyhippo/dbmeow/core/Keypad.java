@@ -25,10 +25,10 @@ public final class Keypad {
     private Keypad() {}
 
     public static void key(Ctx ctx, char c) {
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         ctx.ui().hideWhichKey();
         Map<String, Rc.Binding> keypad = Rc.keypad();
-        String buf = st.keypad.toString();
+        String buf = state.keypad.toString();
 
         if (buf.equals("/")) {
             describe(ctx, c);
@@ -37,7 +37,7 @@ public final class Keypad {
         }
         if (buf.isEmpty()) {
             if (c >= '0' && c <= '9') {
-                st.pushCountDigit(c - '0');
+                state.pushCountDigit(c - '0');
                 exit(ctx);
                 return;
             }
@@ -47,13 +47,13 @@ public final class Keypad {
                 return;
             }
             if (c == '/') {
-                st.keypad.append('/');
+                state.keypad.append('/');
                 return;
             }
         }
 
-        st.keypad.append(c);
-        String cur = st.keypad.toString();
+        state.keypad.append(c);
+        String cur = state.keypad.toString();
         Rc.Binding binding = keypad.get(cur);
         if (binding != null) {
             exit(ctx);
@@ -77,7 +77,7 @@ public final class Keypad {
 
     public static void exit(Ctx ctx) {
         ctx.ui().hideWhichKey();
-        ctx.setMode(ctx.st().keypadPreviousState);
+        ctx.setMode(ctx.state().keypadPreviousState);
     }
 
     private static String spaced(String seq) {

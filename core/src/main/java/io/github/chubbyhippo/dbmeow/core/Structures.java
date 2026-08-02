@@ -37,55 +37,61 @@ public final class Structures {
     }
 
     private static void pendThing(Ctx ctx, Pending p) {
-        ctx.st().pending = p;
+        ctx.state().pending = p;
         ctx.ui().scheduleWhichKey("things", "");
     }
 
     public static void thingSelect(Ctx ctx, Pending kind, char ch) {
-        int off = Selections.primary(ctx).active();
-        OffsetRange b =
-                kind == Pending.BOUNDS ? Things.bounds(ctx, ch, off) : Things.inner(ctx, ch, off);
-        if (b == null) {
+        int caret = Selections.primary(ctx).active();
+        OffsetRange bounds =
+                kind == Pending.BOUNDS
+                        ? Things.bounds(ctx, ch, caret)
+                        : Things.inner(ctx, ch, caret);
+        if (bounds == null) {
             ctx.ui().hint("No thing '" + ch + "' here");
             return;
         }
         switch (kind) {
-            case INNER -> Selections.select(ctx, SelType.TRANSIENT, b.start(), b.end(), false);
-            case BOUNDS -> Selections.select(ctx, SelType.TRANSIENT, b.end(), b.start(), false);
-            case BEGIN -> Selections.select(ctx, SelType.TRANSIENT, off, b.start(), false);
-            case END -> Selections.select(ctx, SelType.TRANSIENT, off, b.end(), false);
+            case INNER ->
+                    Selections.select(ctx, SelType.TRANSIENT, bounds.start(), bounds.end(), false);
+            case BOUNDS ->
+                    Selections.select(ctx, SelType.TRANSIENT, bounds.end(), bounds.start(), false);
+            case BEGIN -> Selections.select(ctx, SelType.TRANSIENT, caret, bounds.start(), false);
+            case END -> Selections.select(ctx, SelType.TRANSIENT, caret, bounds.end(), false);
             default -> {}
         }
     }
 
-    private static int[] enclosingPair(String text, int s, int e) {
+    private static int[] enclosingPair(String text, int selStart, int selEnd) {
         String opens = "([{";
         String closes = ")]}";
-        java.util.Deque<Integer> stack = new java.util.ArrayDeque<>();
+        java.util.Deque<Integer> openOffsets = new java.util.ArrayDeque<>();
         int[] best = null;
         int i = 0;
         while (i < text.length()) {
-            char c = text.charAt(i);
-            if (c == '"' || c == '\'' || c == '`') {
+            char ch = text.charAt(i);
+            if (ch == '"' || ch == '\'' || ch == '`') {
                 int j = i + 1;
-                while (j < text.length() && text.charAt(j) != c && text.charAt(j) != '\n') {
+                while (j < text.length() && text.charAt(j) != ch && text.charAt(j) != '\n') {
                     if (text.charAt(j) == '\\') j++;
                     j++;
                 }
-                if (j < text.length() && text.charAt(j) == c) {
+                if (j < text.length() && text.charAt(j) == ch) {
                     i = j + 1;
                     continue;
                 }
             }
-            if (opens.indexOf(c) >= 0) {
-                stack.push(i);
-            } else if (closes.indexOf(c) >= 0) {
-                int kind = closes.indexOf(c);
-                while (!stack.isEmpty()) {
-                    int o = stack.pop();
-                    if (opens.indexOf(text.charAt(o)) == kind) {
-                        if (o < s && i + 1 >= e && (best == null || i - o < best[1] - best[0])) {
-                            best = new int[] {o, i};
+            if (opens.indexOf(ch) >= 0) {
+                openOffsets.push(i);
+            } else if (closes.indexOf(ch) >= 0) {
+                int bracketKind = closes.indexOf(ch);
+                while (!openOffsets.isEmpty()) {
+                    int open = openOffsets.pop();
+                    if (opens.indexOf(text.charAt(open)) == bracketKind) {
+                        if (open < selStart
+                                && i + 1 >= selEnd
+                                && (best == null || i - open < best[1] - best[0])) {
+                            best = new int[] {open, i};
                         }
                         break;
                     }
@@ -99,49 +105,49 @@ public final class Structures {
     private static void block(Ctx ctx) {
         String text = ctx.port().getText();
         SelRange sel = Selections.primary(ctx);
-        boolean active = ctx.st().selType == SelType.BLOCK && Selections.hasSelection(sel);
-        boolean back = Selections.backwardP(ctx) != (ctx.st().takeCount(1) < 0);
-        int s = active ? sel.lo() : sel.active();
-        int e = active ? sel.hi() : sel.active();
-        int[] p = enclosingPair(text, s, e);
-        if (p == null) {
+        boolean active = ctx.state().selType == SelType.BLOCK && Selections.hasSelection(sel);
+        boolean back = Selections.backwardP(ctx) != (ctx.state().takeCount(1) < 0);
+        int selStart = active ? sel.lo() : sel.active();
+        int selEnd = active ? sel.hi() : sel.active();
+        int[] pair = enclosingPair(text, selStart, selEnd);
+        if (pair == null) {
             ctx.ui().hint("No enclosing block");
             return;
         }
-        if (back) Selections.select(ctx, SelType.BLOCK, p[1] + 1, p[0], true);
-        else Selections.select(ctx, SelType.BLOCK, p[0], p[1] + 1, true);
+        if (back) Selections.select(ctx, SelType.BLOCK, pair[1] + 1, pair[0], true);
+        else Selections.select(ctx, SelType.BLOCK, pair[0], pair[1] + 1, true);
     }
 
     private static void toBlock(Ctx ctx) {
         String text = ctx.port().getText();
         boolean back =
-                (ctx.st().selType == SelType.BLOCK && Selections.backwardP(ctx))
-                        || ctx.st().takeCount(1) < 0;
+                (ctx.state().selType == SelType.BLOCK && Selections.backwardP(ctx))
+                        || ctx.state().takeCount(1) < 0;
         int caret = Selections.primary(ctx).active();
-        int[] p = enclosingPair(text, caret, caret);
-        if (p == null) {
+        int[] pair = enclosingPair(text, caret, caret);
+        if (pair == null) {
             ctx.ui().hint("No enclosing block");
             return;
         }
-        Selections.select(ctx, SelType.BLOCK, caret, back ? p[0] : p[1] + 1, true);
+        Selections.select(ctx, SelType.BLOCK, caret, back ? pair[0] : pair[1] + 1, true);
     }
 
     private static void join(Ctx ctx) {
         String text = ctx.port().getText();
         if (text.isEmpty()) return;
-        int n = ctx.st().takeCount(1);
-        int ln = Text.lineOfOffset(text, Selections.primary(ctx).active());
-        if (n >= 0) {
-            int upper = ln - 1;
+        int count = ctx.state().takeCount(1);
+        int caretLine = Text.lineOfOffset(text, Selections.primary(ctx).active());
+        if (count >= 0) {
+            int upper = caretLine - 1;
             while (upper >= 0 && Things.blank(text, upper)) upper--;
             if (upper < 0) return;
-            selectJoin(ctx, text, upper, ln);
+            selectJoin(ctx, text, upper, caretLine);
         } else {
             int last = Text.lineCount(text) - 1;
-            int lower = ln + 1;
+            int lower = caretLine + 1;
             while (lower <= last && Things.blank(text, lower)) lower++;
             if (lower > last) return;
-            selectJoin(ctx, text, ln, lower);
+            selectJoin(ctx, text, caretLine, lower);
         }
     }
 

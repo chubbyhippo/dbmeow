@@ -46,19 +46,19 @@ public final class Avy {
 
     private static final double SUBDIV_LOG_EPSILON = 1e-6;
 
-    public static int[] subdiv(int n, int b) {
-        int p = (int) Math.floor(Math.log(n) / Math.log(b) + SUBDIV_LOG_EPSILON) - 1;
-        int x1 = 1;
-        for (int i = 0; i < p; i++) x1 *= b;
-        int x2 = b * x1;
-        int delta = n - x2;
-        int n2 = (int) Math.floor((double) delta / (x2 - x1));
-        int n1 = b - n2 - 1;
-        int[] out = new int[b];
+    public static int[] subdiv(int count, int base) {
+        int depth = (int) Math.floor(Math.log(count) / Math.log(base) + SUBDIV_LOG_EPSILON) - 1;
+        int shallowWidth = 1;
+        for (int level = 0; level < depth; level++) shallowWidth *= base;
+        int deepWidth = base * shallowWidth;
+        int overflow = count - deepWidth;
+        int deepBuckets = (int) Math.floor((double) overflow / (deepWidth - shallowWidth));
+        int shallowBuckets = base - deepBuckets - 1;
+        int[] out = new int[base];
         int idx = 0;
-        for (int i = 0; i < n1; i++) out[idx++] = x1;
-        out[idx++] = n - n1 * x1 - n2 * x2;
-        for (int i = 0; i < n2; i++) out[idx++] = x2;
+        for (int i = 0; i < shallowBuckets; i++) out[idx++] = shallowWidth;
+        out[idx++] = count - shallowBuckets * shallowWidth - deepBuckets * deepWidth;
+        for (int i = 0; i < deepBuckets; i++) out[idx++] = deepWidth;
         return out;
     }
 
@@ -116,22 +116,23 @@ public final class Avy {
 
     private static void startCharTimer(Ctx ctx) {
         cancel(ctx);
-        ctx.st().avy = new AvySession(false);
+        ctx.state().avy = new AvySession(false);
     }
 
     private static void startGotoLine(Ctx ctx) {
         cancel(ctx);
         AvySession session = new AvySession(true);
-        ctx.st().avy = session;
+        ctx.state().avy = session;
         String text = ctx.port().getText();
         int[] visible = visibleLines(ctx);
         List<Integer> candidates = new ArrayList<>();
-        for (int ln = visible[0]; ln <= visible[1]; ln++) candidates.add(Text.lineStart(text, ln));
+        for (int line = visible[0]; line <= visible[1]; line++)
+            candidates.add(Text.lineStart(text, line));
         toSelecting(ctx, session, candidates);
     }
 
     public static void key(Ctx ctx, char c) {
-        AvySession session = ctx.st().avy;
+        AvySession session = ctx.state().avy;
         if (session == null) return;
         if (session.phase == AvySession.Phase.COLLECTING) collect(ctx, session, c);
         else select(ctx, session, c);
@@ -147,14 +148,14 @@ public final class Avy {
         ctx.ui().showAvyMatches(ranges);
     }
 
-    public static boolean awaitingTimeout(MeowState st) {
-        return st.avy != null
-                && st.avy.phase == AvySession.Phase.COLLECTING
-                && st.avy.input.length() > 0;
+    public static boolean awaitingTimeout(MeowState state) {
+        return state.avy != null
+                && state.avy.phase == AvySession.Phase.COLLECTING
+                && state.avy.input.length() > 0;
     }
 
     public static void finishInput(Ctx ctx) {
-        AvySession session = ctx.st().avy;
+        AvySession session = ctx.state().avy;
         if (session == null || session.phase != AvySession.Phase.COLLECTING) return;
         List<Integer> candidates = matches(ctx, session.input.toString());
         if (candidates.isEmpty()) {
@@ -180,15 +181,15 @@ public final class Avy {
             cancel(ctx);
             String input = ctx.ui().input("Goto line:", String.valueOf(c));
             if (input == null) return;
-            int n;
+            int requested;
             try {
-                n = Integer.parseInt(input.trim());
-            } catch (NumberFormatException e) {
+                requested = Integer.parseInt(input.trim());
+            } catch (NumberFormatException notANumber) {
                 return;
             }
             String text = ctx.port().getText();
-            int ln = Math.min(Math.max(n - 1, 0), Text.lineCount(text) - 1);
-            jump(ctx, Text.lineStart(text, ln));
+            int line = Math.min(Math.max(requested - 1, 0), Text.lineCount(text) - 1);
+            jump(ctx, Text.lineStart(text, line));
             return;
         }
         Branch node = session.node;
@@ -221,8 +222,8 @@ public final class Avy {
     }
 
     public static void cancel(Ctx ctx) {
-        if (ctx.st().avy != null) ctx.ui().clearAvy();
-        ctx.st().avy = null;
+        if (ctx.state().avy != null) ctx.ui().clearAvy();
+        ctx.state().avy = null;
     }
 
     private static int[] visibleLines(Ctx ctx) {

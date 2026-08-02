@@ -66,9 +66,9 @@ class ModesKeypadSpec extends SpecDsl {
     void escapeDropsPendingFind() {
         given("word", "<caret>hello");
         whenKeys("f");
-        assertNotNull(st.pending);
+        assertNotNull(state.pending);
         pressEsc();
-        assertNull(st.pending);
+        assertNull(state.pending);
         whenKeys("l");
         thenCaretAt(1);
     }
@@ -155,7 +155,7 @@ class ModesKeypadSpec extends SpecDsl {
         given("word", "<caret>hello");
         whenKeys(" x");
         thenMode(MeowMode.KEYPAD);
-        assertEquals("x", st.keypad.toString());
+        assertEquals("x", state.keypad.toString());
     }
 
     @Test
@@ -228,13 +228,13 @@ class ModesKeypadSpec extends SpecDsl {
     void escapeResetsSelectionState() {
         given("two words", "<caret>hello world");
         whenKeys("w");
-        assertEquals(SelType.WORD, st.selType);
-        assertTrue(st.selExpand);
+        assertEquals(SelType.WORD, state.selType);
+        assertTrue(state.selExpand);
         pressEsc();
         assertNull(selectedText());
-        assertEquals(SelType.NONE, st.selType);
-        assertFalse(st.selExpand);
-        assertNull(st.lastSelection);
+        assertEquals(SelType.NONE, state.selType);
+        assertFalse(state.selExpand);
+        assertNull(state.lastSelection);
     }
 
     @Test

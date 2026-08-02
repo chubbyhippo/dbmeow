@@ -83,11 +83,11 @@ public class MeowState {
         return takeCount(1);
     }
 
-    public int takeCount(int def) {
-        int n = pendingCount == 0 ? def : pendingCount;
-        int r = negative ? -n : n;
+    public int takeCount(int fallback) {
+        int magnitude = pendingCount == 0 ? fallback : pendingCount;
+        int signed = negative ? -magnitude : magnitude;
         pendingCount = 0;
         negative = false;
-        return r;
+        return signed;
     }
 }

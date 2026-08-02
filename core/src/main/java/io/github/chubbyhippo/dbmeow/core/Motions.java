@@ -29,37 +29,37 @@ public final class Motions {
     static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
-        commands.put("meow-left", ctx -> moveChar(ctx, -ctx.st().takeCount(1)));
-        commands.put("meow-right", ctx -> moveChar(ctx, ctx.st().takeCount(1)));
-        commands.put("meow-next", ctx -> moveLine(ctx, ctx.st().takeCount(1)));
-        commands.put("meow-prev", ctx -> moveLine(ctx, -ctx.st().takeCount(1)));
-        commands.put("meow-left-expand", ctx -> moveExpand(ctx, -ctx.st().takeCount(1), 0));
-        commands.put("meow-right-expand", ctx -> moveExpand(ctx, ctx.st().takeCount(1), 0));
-        commands.put("meow-next-expand", ctx -> moveExpand(ctx, 0, ctx.st().takeCount(1)));
-        commands.put("meow-prev-expand", ctx -> moveExpand(ctx, 0, -ctx.st().takeCount(1)));
-        commands.put("meow-next-word", ctx -> wordMotion(ctx, false, ctx.st().takeCount(1)));
-        commands.put("meow-next-symbol", ctx -> wordMotion(ctx, true, ctx.st().takeCount(1)));
-        commands.put("meow-back-word", ctx -> wordMotion(ctx, false, -ctx.st().takeCount(1)));
-        commands.put("meow-back-symbol", ctx -> wordMotion(ctx, true, -ctx.st().takeCount(1)));
+        commands.put("meow-left", ctx -> moveChar(ctx, -ctx.state().takeCount(1)));
+        commands.put("meow-right", ctx -> moveChar(ctx, ctx.state().takeCount(1)));
+        commands.put("meow-next", ctx -> moveLine(ctx, ctx.state().takeCount(1)));
+        commands.put("meow-prev", ctx -> moveLine(ctx, -ctx.state().takeCount(1)));
+        commands.put("meow-left-expand", ctx -> moveExpand(ctx, -ctx.state().takeCount(1), 0));
+        commands.put("meow-right-expand", ctx -> moveExpand(ctx, ctx.state().takeCount(1), 0));
+        commands.put("meow-next-expand", ctx -> moveExpand(ctx, 0, ctx.state().takeCount(1)));
+        commands.put("meow-prev-expand", ctx -> moveExpand(ctx, 0, -ctx.state().takeCount(1)));
+        commands.put("meow-next-word", ctx -> wordMotion(ctx, false, ctx.state().takeCount(1)));
+        commands.put("meow-next-symbol", ctx -> wordMotion(ctx, true, ctx.state().takeCount(1)));
+        commands.put("meow-back-word", ctx -> wordMotion(ctx, false, -ctx.state().takeCount(1)));
+        commands.put("meow-back-symbol", ctx -> wordMotion(ctx, true, -ctx.state().takeCount(1)));
         commands.put("meow-mark-word", ctx -> markWord(ctx, false));
         commands.put("meow-mark-symbol", ctx -> markWord(ctx, true));
         commands.put("meow-line", Motions::line);
         commands.put("meow-goto-line", Motions::gotoLine);
-        commands.put("meow-find", ctx -> ctx.st().pending = Pending.FIND);
-        commands.put("meow-till", ctx -> ctx.st().pending = Pending.TILL);
-        commands.put("forward-char", ctx -> charOrExpand(ctx, ctx.st().takeCount(1)));
-        commands.put("backward-char", ctx -> charOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put("meow-find", ctx -> ctx.state().pending = Pending.FIND);
+        commands.put("meow-till", ctx -> ctx.state().pending = Pending.TILL);
+        commands.put("forward-char", ctx -> charOrExpand(ctx, ctx.state().takeCount(1)));
+        commands.put("backward-char", ctx -> charOrExpand(ctx, -ctx.state().takeCount(1)));
         commands.put(
                 "next-line",
                 ctx -> {
-                    lineOrExpand(ctx, ctx.st().takeCount(1));
-                    ctx.st().lastCommand = "next-line";
+                    lineOrExpand(ctx, ctx.state().takeCount(1));
+                    ctx.state().lastCommand = "next-line";
                 });
         commands.put(
                 "previous-line",
                 ctx -> {
-                    lineOrExpand(ctx, -ctx.st().takeCount(1));
-                    ctx.st().lastCommand = "previous-line";
+                    lineOrExpand(ctx, -ctx.state().takeCount(1));
+                    ctx.state().lastCommand = "previous-line";
                 });
         commands.put(
                 "move-beginning-of-line",
@@ -70,14 +70,15 @@ public final class Motions {
         commands.put(
                 "back-to-indentation",
                 ctx -> moveToOrExpand(ctx, SelType.CHAR, Motions::indentationTarget));
-        commands.put("forward-word", ctx -> wordOrExpand(ctx, ctx.st().takeCount(1)));
-        commands.put("backward-word", ctx -> wordOrExpand(ctx, -ctx.st().takeCount(1)));
-        commands.put("forward-sentence", ctx -> sentenceOrExpand(ctx, ctx.st().takeCount(1)));
-        commands.put("backward-sentence", ctx -> sentenceOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put("forward-word", ctx -> wordOrExpand(ctx, ctx.state().takeCount(1)));
+        commands.put("backward-word", ctx -> wordOrExpand(ctx, -ctx.state().takeCount(1)));
+        commands.put("forward-sentence", ctx -> sentenceOrExpand(ctx, ctx.state().takeCount(1)));
+        commands.put("backward-sentence", ctx -> sentenceOrExpand(ctx, -ctx.state().takeCount(1)));
         commands.put("beginning-of-buffer", ctx -> bufferBoundary(ctx, true));
         commands.put("end-of-buffer", ctx -> bufferBoundary(ctx, false));
-        commands.put("forward-paragraph", ctx -> paragraphOrExpand(ctx, ctx.st().takeCount(1)));
-        commands.put("backward-paragraph", ctx -> paragraphOrExpand(ctx, -ctx.st().takeCount(1)));
+        commands.put("forward-paragraph", ctx -> paragraphOrExpand(ctx, ctx.state().takeCount(1)));
+        commands.put(
+                "backward-paragraph", ctx -> paragraphOrExpand(ctx, -ctx.state().takeCount(1)));
     }
 
     private interface OffsetTarget {
@@ -127,52 +128,52 @@ public final class Motions {
         if (extend) {
             Selections.recordSelect(
                     ctx, type, moved.get(0).anchor(), moved.get(0).active(), true, before);
-            ctx.st().selType = type;
-            ctx.st().selExpand = true;
+            ctx.state().selType = type;
+            ctx.state().selExpand = true;
         }
     }
 
-    private static void wordOrExpand(Ctx ctx, int n) {
-        Text.CharPredicate pred = Text.charPred(false);
+    private static void wordOrExpand(Ctx ctx, int count) {
+        Text.CharPredicate isWord = Text.charPred(false);
         moveToOrExpand(
                 ctx,
                 SelType.WORD,
                 (text, off) ->
-                        n >= 0
-                                ? Text.Words.nextEnd(text, off, n, pred)
-                                : Text.Words.prevStart(text, off, -n, pred));
+                        count >= 0
+                                ? Text.Words.nextEnd(text, off, count, isWord)
+                                : Text.Words.prevStart(text, off, -count, isWord));
     }
 
-    private static void sentenceOrExpand(Ctx ctx, int n) {
+    private static void sentenceOrExpand(Ctx ctx, int count) {
         moveToOrExpand(
                 ctx,
                 SelType.CHAR,
                 (text, off) ->
-                        n >= 0
-                                ? Text.nextSentenceEnd(text, off, n)
-                                : Text.prevSentenceStart(text, off, -n));
+                        count >= 0
+                                ? Text.nextSentenceEnd(text, off, count)
+                                : Text.prevSentenceStart(text, off, -count));
     }
 
-    private static void paragraphOrExpand(Ctx ctx, int n) {
+    private static void paragraphOrExpand(Ctx ctx, int count) {
         moveToOrExpand(
                 ctx,
                 SelType.CHAR,
                 (text, off) ->
-                        n >= 0
-                                ? Text.nextParagraphEnd(text, off, n)
-                                : Text.prevParagraphStart(text, off, -n));
+                        count >= 0
+                                ? Text.nextParagraphEnd(text, off, count)
+                                : Text.prevParagraphStart(text, off, -count));
     }
 
     private static void bufferBoundary(Ctx ctx, boolean top) {
-        boolean counted = ctx.st().counted();
-        int n = ctx.st().takeCount(1);
+        boolean counted = ctx.state().counted();
+        int count = ctx.state().takeCount(1);
         moveToOrExpand(
                 ctx,
                 SelType.CHAR,
                 (text, off) -> {
                     int len = text.length();
                     if (!counted) return top ? 0 : len;
-                    int tenth = len * n / 10;
+                    int tenth = len * count / 10;
                     int raw = Text.clamp(top ? tenth : len - tenth, 0, len);
                     return nextLineStart(text, raw);
                 });
@@ -180,8 +181,10 @@ public final class Motions {
 
     private static int nextLineStart(String text, int offset) {
         if (text.isEmpty()) return 0;
-        int ln = Text.lineOfOffset(text, Text.clamp(offset, 0, text.length()));
-        return ln >= Text.lineCount(text) - 1 ? text.length() : Text.lineStart(text, ln + 1);
+        int caretLine = Text.lineOfOffset(text, Text.clamp(offset, 0, text.length()));
+        return caretLine >= Text.lineCount(text) - 1
+                ? text.length()
+                : Text.lineStart(text, caretLine + 1);
     }
 
     private static SelType wordType(boolean symbol) {
@@ -198,7 +201,8 @@ public final class Motions {
                     "previous-line");
 
     private static boolean charSelActive(Ctx ctx) {
-        return ctx.st().selType == SelType.CHAR && Selections.hasSelection(Selections.primary(ctx));
+        return ctx.state().selType == SelType.CHAR
+                && Selections.hasSelection(Selections.primary(ctx));
     }
 
     private static SelRange movedChar(int len, SelRange sel, int dx, boolean extend) {
@@ -208,29 +212,31 @@ public final class Motions {
 
     private static SelRange movedLine(
             String text, SelRange sel, int dy, boolean extend, Integer goal) {
-        int ln = Text.lineOfOffset(text, sel.active());
-        int target = ln + dy;
+        int caretLine = Text.lineOfOffset(text, sel.active());
+        int target = caretLine + dy;
         int active;
         if (target < 0) {
             active = 0;
         } else if (target > Text.lineCount(text) - 1) {
             active = text.length();
         } else {
-            int col = goal != null ? goal : sel.active() - Text.lineStart(text, ln);
+            int column = goal != null ? goal : sel.active() - Text.lineStart(text, caretLine);
             int bol = Text.lineStart(text, target);
-            active = bol + Math.min(col, Text.lineEnd(text, target) - bol);
+            active = bol + Math.min(column, Text.lineEnd(text, target) - bol);
         }
         return new SelRange(extend ? sel.anchor() : active, active);
     }
 
     private static int goalColumn(Ctx ctx) {
-        MeowState st = ctx.st();
-        if (st.goalColumn == null || st.lastCommand == null || !VERTICAL.contains(st.lastCommand)) {
+        MeowState state = ctx.state();
+        if (state.goalColumn == null
+                || state.lastCommand == null
+                || !VERTICAL.contains(state.lastCommand)) {
             String text = ctx.port().getText();
-            int p = Selections.primary(ctx).active();
-            st.goalColumn = p - Text.lineStart(text, Text.lineOfOffset(text, p));
+            int caret = Selections.primary(ctx).active();
+            state.goalColumn = caret - Text.lineStart(text, Text.lineOfOffset(text, caret));
         }
-        return st.goalColumn;
+        return state.goalColumn;
     }
 
     private static void moveChar(Ctx ctx, int dx) {
@@ -270,80 +276,94 @@ public final class Motions {
         ctx.port().setSelections(moved);
         Selections.recordSelect(
                 ctx, SelType.CHAR, moved.get(0).anchor(), moved.get(0).active(), true, before);
-        ctx.st().selType = SelType.CHAR;
-        ctx.st().selExpand = true;
+        ctx.state().selType = SelType.CHAR;
+        ctx.state().selExpand = true;
     }
 
-    private static void wordMotion(Ctx ctx, boolean symbol, int n) {
-        if (n == 0) return;
+    private static void wordMotion(Ctx ctx, boolean symbol, int count) {
+        if (count == 0) return;
         String text = ctx.port().getText();
         SelType type = wordType(symbol);
         SelRange sel = Selections.primary(ctx);
-        int lo = sel.lo();
-        int hi = sel.hi();
-        if (!(Selections.hasSelection(sel) && ctx.st().selType == type)) Selections.cancel(ctx);
+        int selStart = sel.lo();
+        int selEnd = sel.hi();
+        if (!(Selections.hasSelection(sel) && ctx.state().selType == type)) Selections.cancel(ctx);
         boolean extend =
-                ctx.st().selExpand && ctx.st().selType == type && Selections.hasSelection(sel);
-        int from = extend ? (n < 0 ? lo : hi) : sel.active();
+                ctx.state().selExpand
+                        && ctx.state().selType == type
+                        && Selections.hasSelection(sel);
+        int from = extend ? (count < 0 ? selStart : selEnd) : sel.active();
         int target =
-                n > 0
-                        ? Text.Words.nextEnd(text, from, n, Text.charPred(symbol))
-                        : Text.Words.prevStart(text, from, -n, Text.charPred(symbol));
+                count > 0
+                        ? Text.Words.nextEnd(text, from, count, Text.charPred(symbol))
+                        : Text.Words.prevStart(text, from, -count, Text.charPred(symbol));
         if (target == from) return;
         int anchor =
                 extend
-                        ? (n < 0 ? hi : lo)
+                        ? (count < 0 ? selEnd : selStart)
                         : Text.Words.fixSelectionMark(text, target, from, Text.charPred(symbol));
         Selections.select(ctx, type, anchor, target, extend);
     }
 
     private static void markWord(Ctx ctx, boolean symbol) {
-        boolean neg = ctx.st().takeCount(1) < 0;
+        boolean reversed = ctx.state().takeCount(1) < 0;
         String text = ctx.port().getText();
-        int[] b =
+        int[] bounds =
                 Text.Words.boundsAt(text, Selections.primary(ctx).active(), Text.charPred(symbol));
-        if (b == null) {
+        if (bounds == null) {
             ctx.ui().hint("No word here");
             return;
         }
-        int s = b[0];
-        int e = b[1];
-        if (neg) Selections.select(ctx, wordType(symbol), e, s, true);
-        else Selections.select(ctx, wordType(symbol), s, e, true);
-        String quoted = Text.escapeRegExp(text.substring(s, e));
+        int start = bounds[0];
+        int end = bounds[1];
+        if (reversed) Selections.select(ctx, wordType(symbol), end, start, true);
+        else Selections.select(ctx, wordType(symbol), start, end, true);
+        String quoted = Text.escapeRegExp(text.substring(start, end));
         String pattern = symbol ? "(?<![\\w$])" + quoted + "(?![\\w$])" : "\\b" + quoted + "\\b";
-        Search.push(ctx.st(), pattern);
+        Search.push(ctx.state(), pattern);
     }
 
     private static void line(Ctx ctx) {
         String text = ctx.port().getText();
         if (text.isEmpty()) return;
-        int n = ctx.st().takeCount(1);
+        int count = ctx.state().takeCount(1);
         int lastLine = Text.lineCount(text) - 1;
-        if (ctx.st().selType == SelType.LINE
-                && ctx.st().selExpand
+        if (ctx.state().selType == SelType.LINE
+                && ctx.state().selExpand
                 && Selections.hasSelection(Selections.primary(ctx))) {
-            int caretLn = Text.lineOfOffset(text, Selections.primary(ctx).active());
+            int caretLine = Text.lineOfOffset(text, Selections.primary(ctx).active());
             if (Selections.backwardP(ctx)) {
-                int ln = Math.max(caretLn - Math.abs(n), 0);
+                int target = Math.max(caretLine - Math.abs(count), 0);
                 Selections.select(
-                        ctx, SelType.LINE, Selections.mark(ctx), Text.lineStart(text, ln), true);
+                        ctx,
+                        SelType.LINE,
+                        Selections.mark(ctx),
+                        Text.lineStart(text, target),
+                        true);
             } else {
-                int ln = Math.min(caretLn + Math.abs(n), lastLine);
+                int target = Math.min(caretLine + Math.abs(count), lastLine);
                 Selections.select(
-                        ctx, SelType.LINE, Selections.mark(ctx), Text.lineEnd(text, ln), true);
+                        ctx, SelType.LINE, Selections.mark(ctx), Text.lineEnd(text, target), true);
             }
             return;
         }
-        int ln = Text.lineOfOffset(text, Selections.primary(ctx).active());
-        if (n < 0) {
-            int startLn = Math.max(ln + n + 1, 0);
+        int caretLine = Text.lineOfOffset(text, Selections.primary(ctx).active());
+        if (count < 0) {
+            int firstLine = Math.max(caretLine + count + 1, 0);
             Selections.select(
-                    ctx, SelType.LINE, Text.lineEnd(text, ln), Text.lineStart(text, startLn), true);
+                    ctx,
+                    SelType.LINE,
+                    Text.lineEnd(text, caretLine),
+                    Text.lineStart(text, firstLine),
+                    true);
         } else {
-            int endLn = Math.min(ln + n - 1, lastLine);
+            int finalLine = Math.min(caretLine + count - 1, lastLine);
             Selections.select(
-                    ctx, SelType.LINE, Text.lineStart(text, ln), Text.lineEnd(text, endLn), true);
+                    ctx,
+                    SelType.LINE,
+                    Text.lineStart(text, caretLine),
+                    Text.lineEnd(text, finalLine),
+                    true);
         }
     }
 
@@ -358,21 +378,21 @@ public final class Motions {
         } catch (NumberFormatException e) {
             return;
         }
-        int ln = Text.clamp(parsed - 1, 0, Text.lineCount(text) - 1);
+        int target = Text.clamp(parsed - 1, 0, Text.lineCount(text) - 1);
         Selections.select(
-                ctx, SelType.LINE, Text.lineStart(text, ln), Text.lineEnd(text, ln), true);
+                ctx, SelType.LINE, Text.lineStart(text, target), Text.lineEnd(text, target), true);
     }
 
     public static void findTill(Ctx ctx, char ch, boolean till) {
-        int n = ctx.st().takeCount(1);
+        int count = ctx.state().takeCount(1);
         String text = ctx.port().getText();
         int caret = Selections.primary(ctx).active();
-        int target = Text.nthCharTarget(text, ch, caret, Math.abs(n), n < 0, till);
+        int target = Text.nthCharTarget(text, ch, caret, Math.abs(count), count < 0, till);
         if (target < 0) {
             ctx.ui().hint("char not found: " + ch);
             return;
         }
-        ctx.st().lastFind = ch;
+        ctx.state().lastFind = ch;
         Selections.select(ctx, till ? SelType.TILL : SelType.FIND, caret, target, false);
     }
 }

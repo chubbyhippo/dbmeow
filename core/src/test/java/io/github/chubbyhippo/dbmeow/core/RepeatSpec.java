@@ -163,7 +163,7 @@ class RepeatSpec extends SpecDsl {
         whenKeys("x");
         thenSelection("two");
         whenKeys(".");
-        assertEquals(Pending.BOUNDS, st.pending);
+        assertEquals(Pending.BOUNDS, state.pending);
         thenCaretLine(1);
     }
 
@@ -177,7 +177,7 @@ class RepeatSpec extends SpecDsl {
         pressEsc();
         assertNull(Engine.repeatMap);
         whenKeys(".");
-        assertEquals(Pending.BOUNDS, st.pending);
+        assertEquals(Pending.BOUNDS, state.pending);
         thenCaretLine(1);
     }
 
@@ -210,7 +210,7 @@ class RepeatSpec extends SpecDsl {
         givenRc(NAV_RC);
         whenKeys(" tn");
         thenCaretLine(1);
-        st = new MeowState();
+        state = new MeowState();
         whenKeys(".");
         thenCaretLine(2);
     }

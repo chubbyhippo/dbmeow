@@ -356,7 +356,7 @@ class SelectionSpec extends SpecDsl {
     void popGrabFallback() {
         given("two words", "<caret>hello world");
         whenKeys("wG");
-        st.selectionHistory.clear();
+        state.selectionHistory.clear();
         whenKeys("z");
         thenSelection("hello");
     }

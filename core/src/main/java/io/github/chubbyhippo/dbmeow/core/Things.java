@@ -53,10 +53,10 @@ public final class Things {
         int depth = 0;
         int start = -1;
         for (int i = offset - 1; i >= 0; i--) {
-            char c = text.charAt(i);
-            if (c == close) {
+            char ch = text.charAt(i);
+            if (ch == close) {
                 depth++;
-            } else if (c == open) {
+            } else if (ch == open) {
                 if (depth == 0) {
                     start = i;
                     break;
@@ -84,41 +84,44 @@ public final class Things {
     }
 
     private static OffsetRange stringThing(String text, int offset, boolean inner) {
-        int n = text.length();
+        int length = text.length();
         int i = 0;
-        while (i < n) {
-            char c = text.charAt(i);
-            if (c == '"' || c == '\'' || c == '`') {
-                boolean triple = i + 2 < n && text.charAt(i + 1) == c && text.charAt(i + 2) == c;
-                int len = triple ? 3 : 1;
+        while (i < length) {
+            char quote = text.charAt(i);
+            if (quote == '"' || quote == '\'' || quote == '`') {
+                boolean triple =
+                        i + 2 < length
+                                && text.charAt(i + 1) == quote
+                                && text.charAt(i + 2) == quote;
+                int quoteLen = triple ? 3 : 1;
                 int open = i;
-                int j = i + len;
+                int j = i + quoteLen;
                 int closeEnd = -1;
-                while (j < n) {
-                    char d = text.charAt(j);
-                    if (!triple && d == '\n') break;
-                    if (d == '\\') {
+                while (j < length) {
+                    char ch = text.charAt(j);
+                    if (!triple && ch == '\n') break;
+                    if (ch == '\\') {
                         j += 2;
                         continue;
                     }
                     boolean closes =
                             !triple
-                                    || (j + 2 < n
-                                            && text.charAt(j + 1) == c
-                                            && text.charAt(j + 2) == c);
-                    if (d == c && closes) {
-                        closeEnd = j + len;
+                                    || (j + 2 < length
+                                            && text.charAt(j + 1) == quote
+                                            && text.charAt(j + 2) == quote);
+                    if (ch == quote && closes) {
+                        closeEnd = j + quoteLen;
                         break;
                     }
                     j++;
                 }
                 if (closeEnd < 0) {
-                    i = open + len;
+                    i = open + quoteLen;
                     continue;
                 }
                 if (offset >= open && offset < closeEnd) {
                     return inner
-                            ? new OffsetRange(open + len, closeEnd - len)
+                            ? new OffsetRange(open + quoteLen, closeEnd - quoteLen)
                             : new OffsetRange(open, closeEnd);
                 }
                 i = closeEnd;
@@ -130,16 +133,16 @@ public final class Things {
     }
 
     private static OffsetRange symbol(String text, int offset) {
-        int o = offset;
-        if (o >= text.length() || !Text.isSymbolChar(text.charAt(o))) {
-            if (o > 0 && Text.isSymbolChar(text.charAt(o - 1))) o--;
+        int inSymbol = offset;
+        if (inSymbol >= text.length() || !Text.isSymbolChar(text.charAt(inSymbol))) {
+            if (inSymbol > 0 && Text.isSymbolChar(text.charAt(inSymbol - 1))) inSymbol--;
             else return null;
         }
-        int s = o;
-        int e = o;
-        while (s > 0 && Text.isSymbolChar(text.charAt(s - 1))) s--;
-        while (e < text.length() && Text.isSymbolChar(text.charAt(e))) e++;
-        return new OffsetRange(s, e);
+        int start = inSymbol;
+        int end = inSymbol;
+        while (start > 0 && Text.isSymbolChar(text.charAt(start - 1))) start--;
+        while (end < text.length() && Text.isSymbolChar(text.charAt(end))) end++;
+        return new OffsetRange(start, end);
     }
 
     private static OffsetRange window(Ctx ctx, String text) {
@@ -153,10 +156,10 @@ public final class Things {
     private static OffsetRange paragraph(String text, int offset, boolean inner) {
         if (text.isEmpty()) return null;
         int count = Text.lineCount(text);
-        int ln = Text.lineOfOffset(text, Text.clamp(offset, 0, text.length()));
-        if (blank(text, ln)) return null;
-        int first = ln;
-        int last = ln;
+        int caretLine = Text.lineOfOffset(text, Text.clamp(offset, 0, text.length()));
+        if (blank(text, caretLine)) return null;
+        int first = caretLine;
+        int last = caretLine;
         while (first > 0 && !blank(text, first - 1)) first--;
         while (last < count - 1 && !blank(text, last + 1)) last++;
         int start = Text.lineStart(text, first);
@@ -168,50 +171,53 @@ public final class Things {
     }
 
     private static OffsetRange line(String text, int offset, boolean inner) {
-        int ln = Text.lineOfOffset(text, Text.clamp(offset, 0, text.length()));
-        int end = Text.lineEnd(text, ln);
+        int caretLine = Text.lineOfOffset(text, Text.clamp(offset, 0, text.length()));
+        int end = Text.lineEnd(text, caretLine);
         return inner
-                ? new OffsetRange(Text.lineStart(text, ln), end)
-                : new OffsetRange(Text.lineStart(text, ln), Text.lineStart(text, ln + 1));
+                ? new OffsetRange(Text.lineStart(text, caretLine), end)
+                : new OffsetRange(
+                        Text.lineStart(text, caretLine), Text.lineStart(text, caretLine + 1));
     }
 
     private static OffsetRange defun(Ctx ctx, String text, int offset) {
         OffsetRange fromHost = ctx.port().symbolRangeAt(offset);
         if (fromHost != null) return fromHost;
-        OffsetRange b = pair(text, offset, '{', '}', false);
-        if (b == null) return null;
+        OffsetRange braces = pair(text, offset, '{', '}', false);
+        if (braces == null) return null;
         while (true) {
-            OffsetRange outer = pair(text, b.start(), '{', '}', false);
+            OffsetRange outer = pair(text, braces.start(), '{', '}', false);
             if (outer == null) break;
-            b = outer;
+            braces = outer;
         }
-        return b;
+        return braces;
     }
 
     private static OffsetRange sentence(String text, int offset, boolean inner) {
         if (text.isEmpty()) return null;
         String enders = Text.SENTENCE_ENDERS;
-        int s = Text.clamp(offset, 0, text.length() - 1);
-        while (s > 0) {
-            char c = text.charAt(s - 1);
-            if (enders.indexOf(c) >= 0 || (c == '\n' && s > 1 && text.charAt(s - 2) == '\n')) break;
-            s--;
+        int start = Text.clamp(offset, 0, text.length() - 1);
+        while (start > 0) {
+            char ch = text.charAt(start - 1);
+            if (enders.indexOf(ch) >= 0
+                    || (ch == '\n' && start > 1 && text.charAt(start - 2) == '\n')) break;
+            start--;
         }
-        while (s < text.length() && Character.isWhitespace(text.charAt(s))) s++;
-        int e = Text.clamp(offset, 0, text.length());
-        while (e < text.length()
-                && enders.indexOf(text.charAt(e)) < 0
-                && !(text.charAt(e) == '\n'
-                        && e + 1 < text.length()
-                        && text.charAt(e + 1) == '\n')) {
-            e++;
+        while (start < text.length() && Character.isWhitespace(text.charAt(start))) start++;
+        int end = Text.clamp(offset, 0, text.length());
+        while (end < text.length()
+                && enders.indexOf(text.charAt(end)) < 0
+                && !(text.charAt(end) == '\n'
+                        && end + 1 < text.length()
+                        && text.charAt(end + 1) == '\n')) {
+            end++;
         }
-        if (e < text.length() && enders.indexOf(text.charAt(e)) >= 0) e++;
-        if (e <= s) return null;
-        if (inner) return new OffsetRange(s, e);
-        int be = e;
-        while (be < text.length() && text.charAt(be) == ' ') be++;
-        return new OffsetRange(s, be);
+        if (end < text.length() && enders.indexOf(text.charAt(end)) >= 0) end++;
+        if (end <= start) return null;
+        if (inner) return new OffsetRange(start, end);
+        int withTrailingSpace = end;
+        while (withTrailingSpace < text.length() && text.charAt(withTrailingSpace) == ' ')
+            withTrailingSpace++;
+        return new OffsetRange(start, withTrailingSpace);
     }
 
     static boolean blank(String text, int line) {

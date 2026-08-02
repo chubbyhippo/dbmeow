@@ -31,42 +31,42 @@ public final class Hints {
     }
 
     public static List<Integer> expandHintPositions(Ctx ctx, int count) {
-        MeowState st = ctx.st();
+        MeowState state = ctx.state();
         String text = ctx.port().getText();
         SelRange sel = ctx.port().getSelections().get(0);
         if (sel.anchor() == sel.active()) return List.of();
         int caret = sel.active();
         boolean backward = caret < sel.anchor();
         List<Integer> out = new ArrayList<>();
-        switch (st.selType) {
+        switch (state.selType) {
             case WORD, SYMBOL -> {
-                Text.CharPredicate pred = Text.charPred(st.selType == SelType.SYMBOL);
-                int i = caret;
-                for (int k = 0; k < count; k++) {
-                    i =
+                Text.CharPredicate isWord = Text.charPred(state.selType == SelType.SYMBOL);
+                int offset = caret;
+                for (int step = 0; step < count; step++) {
+                    offset =
                             backward
-                                    ? Text.Words.prevStart(text, i, 1, pred)
-                                    : Text.Words.nextEnd(text, i, 1, pred);
-                    if (backward ? i <= 0 : i >= text.length()) break;
-                    out.add(i);
+                                    ? Text.Words.prevStart(text, offset, 1, isWord)
+                                    : Text.Words.nextEnd(text, offset, 1, isWord);
+                    if (backward ? offset <= 0 : offset >= text.length()) break;
+                    out.add(offset);
                 }
             }
             case LINE -> {
-                int ln = Text.lineOfOffset(text, caret);
-                for (int k = 0; k < count; k++) {
-                    ln += backward ? -1 : 1;
-                    if (ln < 0 || ln > Text.lineCount(text) - 1) break;
-                    out.add(backward ? Text.lineStart(text, ln) : Text.lineEnd(text, ln));
+                int line = Text.lineOfOffset(text, caret);
+                for (int step = 0; step < count; step++) {
+                    line += backward ? -1 : 1;
+                    if (line < 0 || line > Text.lineCount(text) - 1) break;
+                    out.add(backward ? Text.lineStart(text, line) : Text.lineEnd(text, line));
                 }
             }
             case FIND, TILL -> {
-                Character c = st.lastFind;
-                if (c == null) return out;
-                boolean till = st.selType == SelType.TILL;
-                for (int k = 1; k <= count; k++) {
-                    int t = Text.nthCharTarget(text, c, caret, k, backward, till);
-                    if (t < 0) break;
-                    out.add(t);
+                Character findChar = state.lastFind;
+                if (findChar == null) return out;
+                boolean till = state.selType == SelType.TILL;
+                for (int nth = 1; nth <= count; nth++) {
+                    int target = Text.nthCharTarget(text, findChar, caret, nth, backward, till);
+                    if (target < 0) break;
+                    out.add(target);
                 }
             }
             default -> {}
