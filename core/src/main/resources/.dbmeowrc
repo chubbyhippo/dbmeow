@@ -140,8 +140,11 @@ map <leader>xrb <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.show
 
 desc <leader>w window / splits / zoom
 map <leader>ww <action>(dbmeow.aceWindow)
+desc <leader>ww ace-window
 map <leader>wW <action>(dbmeow.aceSwapWindow)
+desc <leader>wW ace-swap-window
 map <leader>wr <action>(dbmeow.aceResize)
+desc <leader>wr ace-resize
 map <leader>wn <action>(org.eclipse.ui.window.nextEditor)
 map <leader>wp <action>(org.eclipse.ui.window.previousEditor)
 map <leader>w. <action>(org.eclipse.ui.window.nextEditor)
