@@ -52,6 +52,7 @@ final class EclipseUi implements UiPort {
     private final IContextService contexts;
     private final IContextActivation activeContext;
     private IContextActivation normalContext;
+    private IContextActivation insertContext;
     private String whichKeyKind;
     private String whichKeyBuffer;
 
@@ -75,6 +76,10 @@ final class EclipseUi implements UiPort {
         if (normalContext != null) {
             contexts.deactivateContext(normalContext);
             normalContext = null;
+        }
+        if (insertContext != null) {
+            contexts.deactivateContext(insertContext);
+            insertContext = null;
         }
         if (activeContext != null) contexts.deactivateContext(activeContext);
     }
@@ -236,8 +241,17 @@ final class EclipseUi implements UiPort {
                 contexts.deactivateContext(normalContext);
                 normalContext = null;
             }
-        } else if (normalContext == null) {
-            normalContext = contexts.activateContext("io.github.chubbyhippo.dbmeow.normal");
+            if (insertContext == null) {
+                insertContext = contexts.activateContext("io.github.chubbyhippo.dbmeow.insert");
+            }
+        } else {
+            if (insertContext != null) {
+                contexts.deactivateContext(insertContext);
+                insertContext = null;
+            }
+            if (normalContext == null) {
+                normalContext = contexts.activateContext("io.github.chubbyhippo.dbmeow.normal");
+            }
         }
     }
 

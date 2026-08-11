@@ -173,13 +173,24 @@ final class OverlayPainter implements PaintListener {
     private void paintWhichKey(GC gc) {
         List<WhichKey.Row> rows = whichKeyRows;
         if (rows == null || rows.isEmpty()) return;
-        int rowsPerColumn = 12;
         gc.setFont(text.getFont());
         int lineHeight = gc.getFontMetrics().getHeight() + 2;
         Rectangle area = text.getClientArea();
+
+        int keyWidth = 0;
+        int labelWidth = 0;
+        for (WhichKey.Row row : rows) {
+            keyWidth = Math.max(keyWidth, gc.stringExtent(row.key()).x);
+            labelWidth = Math.max(labelWidth, gc.stringExtent(row.label()).x);
+        }
+        int columnWidth = keyWidth + 12 + labelWidth + 28;
+        int maxColumns = Math.max(1, area.width / columnWidth);
+        int columns = Math.min(maxColumns, rows.size());
+        int rowsPerColumn = (rows.size() + columns - 1) / columns;
+
         int visibleRows = Math.min(rowsPerColumn, rows.size());
         int panelHeight = (visibleRows + 1) * lineHeight + 10;
-        int top = area.height - panelHeight;
+        int top = Math.max(0, area.height - panelHeight);
         gc.setBackground(text.getDisplay().getSystemColor(SWT.COLOR_INFO_BACKGROUND));
         gc.fillRectangle(0, top, area.width, panelHeight);
         Color fg = text.getDisplay().getSystemColor(SWT.COLOR_INFO_FOREGROUND);
@@ -193,14 +204,6 @@ final class OverlayPainter implements PaintListener {
                     rows.subList(
                             column * rowsPerColumn,
                             Math.min((column + 1) * rowsPerColumn, rows.size()));
-            int keyWidth = 0;
-            int labelWidth = 0;
-            for (WhichKey.Row row : slice) {
-                keyWidth = Math.max(keyWidth, gc.stringExtent(row.key()).x);
-                labelWidth = Math.max(labelWidth, gc.stringExtent(row.label()).x);
-            }
-            int columnWidth = keyWidth + 12 + labelWidth + 28;
-            if (column > 0 && x + columnWidth > area.width) break;
             for (int i = 0; i < slice.size(); i++) {
                 WhichKey.Row row = slice.get(i);
                 int y = top + 5 + (i + 1) * lineHeight;

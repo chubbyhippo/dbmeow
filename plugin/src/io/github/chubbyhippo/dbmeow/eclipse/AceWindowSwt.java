@@ -41,7 +41,10 @@ final class AceWindowSwt {
         cancel();
         List<Candidate> visible = InterceptorManager.INSTANCE.visibleCandidates();
         AceWindow.Plan plan = AceWindow.plan(visible.size());
-        if (plan == AceWindow.Plan.NONE) return;
+        if (plan == AceWindow.Plan.NONE) {
+            ui.hint("dbmeow: no other window");
+            return;
+        }
         if (plan == AceWindow.Plan.OTHER) {
             for (Candidate cand : visible) {
                 if (cand.editor() != from) {

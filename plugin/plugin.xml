@@ -7,6 +7,7 @@
    <extension point="org.eclipse.ui.contexts">
       <context id="io.github.chubbyhippo.dbmeow.active" name="dbmeow" parentId="org.eclipse.ui.textEditorScope"/>
       <context id="io.github.chubbyhippo.dbmeow.normal" name="dbmeow NORMAL" parentId="io.github.chubbyhippo.dbmeow.active"/>
+      <context id="io.github.chubbyhippo.dbmeow.insert" name="dbmeow INSERT" parentId="io.github.chubbyhippo.dbmeow.active"/>
    </extension>
    <extension point="org.eclipse.ui.commands">
       <command id="io.github.chubbyhippo.dbmeow.keypad" name="Meow Keypad"/>
@@ -15,6 +16,6 @@
       <handler commandId="io.github.chubbyhippo.dbmeow.keypad" class="io.github.chubbyhippo.dbmeow.eclipse.DbmeowKeypadHandler"/>
    </extension>
    <extension point="org.eclipse.ui.bindings">
-      <key sequence="ALT+;" commandId="io.github.chubbyhippo.dbmeow.keypad" contextId="io.github.chubbyhippo.dbmeow.active" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key sequence="ALT+;" commandId="io.github.chubbyhippo.dbmeow.keypad" contextId="io.github.chubbyhippo.dbmeow.insert" schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
 </plugin>
