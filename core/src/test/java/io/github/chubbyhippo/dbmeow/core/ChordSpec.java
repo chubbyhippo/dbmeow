@@ -129,7 +129,17 @@ class ChordSpec extends SpecDsl {
         assertEquals("downcase-word", Chords.bindingFor(Chord.parse("M-l")).target());
         assertEquals("capitalize-word", Chords.bindingFor(Chord.parse("M-c")).target());
         assertEquals("kill-word", Chords.bindingFor(Chord.parse("M-d")).target());
-        assertEquals(32, Rc.chords().size());
+        assertEquals(36, Rc.chords().size());
+    }
+
+    @Test
+    @DisplayName("given the bundled defaults then the ported tranche-2 chords resolve to their verified action ids")
+    void bundledTranche2ChordsResolve() {
+        givenRc("");
+        assertEquals("org.eclipse.ui.edit.findReplace", Chords.bindingFor(Chord.parse("C-s")).action());
+        assertEquals("org.eclipse.ui.edit.findPrevious", Chords.bindingFor(Chord.parse("C-r")).action());
+        assertEquals("dbmeow.aceClick", Chords.bindingFor(Chord.parse("C-;")).action());
+        assertEquals("dbmeow.aceWindow", Chords.bindingFor(Chord.parse("M-;")).action());
     }
 
     @Test
@@ -159,7 +169,7 @@ class ChordSpec extends SpecDsl {
     void homeIgnoreHandsChordBack() {
         givenRc("cmap C-f ignore");
         assertNull(Chords.bindingFor(Chord.parse("C-f")));
-        assertEquals(31, Rc.chords().size());
+        assertEquals(35, Rc.chords().size());
     }
 
     @Test

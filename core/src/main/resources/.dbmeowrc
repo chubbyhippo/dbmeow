@@ -415,3 +415,16 @@ cmap C-o open-line
 cmap M-\ delete-horizontal-space
 cmap M-SPC just-one-space
 cmap M-^ ms
+
+" Tranche 2, ported from ideameow: no core isearch command exists, so C-s/
+" C-r are host action chords, like C-l before it went core.
+" org.eclipse.ui.edit.findPrevious is IWorkbenchActionDefinitionIds.FIND_PREVIOUS
+" (verified against the Eclipse Platform UI javadoc); findReplace is the same
+" Eclipse command already bound at SPC f i / SPC m s l / SPC s s. C-;
+" ace-click / M-; ace-window reuse the module commands the keypad's SPC SPC /
+" SPC w w already dispatch. M-y (PasteMultiple / clipboard-history) has no
+" Eclipse/DBeaver equivalent — declined, unlike netmeow's clipboard-history.
+cmap C-s <action>(org.eclipse.ui.edit.findReplace)
+cmap C-r <action>(org.eclipse.ui.edit.findPrevious)
+cmap C-; <action>(dbmeow.aceClick)
+cmap M-; <action>(dbmeow.aceWindow)
