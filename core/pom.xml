@@ -28,6 +28,8 @@
             <include>**/*Spec.java</include>
             <include>**/*Test.java</include>
           </includes>
+          <forkCount>1C</forkCount>
+          <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
     </plugins>
