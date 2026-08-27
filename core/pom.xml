@@ -30,6 +30,13 @@
           </includes>
           <forkCount>1C</forkCount>
           <reuseForks>true</reuseForks>
+          <!-- Same fixed min/max heap avoids the resize+GC-pause overhead a
+               growing default heap pays; ParallelGC and AlwaysPreTouch are
+               ideameow's own tasks.test tuning, ported here 1:1. -->
+          <argLine>
+            -Xms128m -Xmx128m -XX:+UseParallelGC -XX:+AlwaysPreTouch
+            -Djava.awt.headless=true
+          </argLine>
         </configuration>
       </plugin>
     </plugins>
