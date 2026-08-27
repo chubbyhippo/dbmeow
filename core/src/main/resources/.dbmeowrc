@@ -168,6 +168,10 @@ map <leader>er <action>(org.eclipse.ui.edit.redo)
 map <leader>ef <action>(org.eclipse.ui.edit.findReplace)
 map <leader>ea <action>(org.eclipse.ui.edit.text.folding.expand_all)
 map <leader>et <action>(org.eclipse.ui.edit.text.folding.toggle)
+" ee (ideameow's second EditorSelectWord expand-selection slot) is declined,
+" not guessed: dbmeow has no expand-selection binding at all yet, and the
+" plausible Eclipse id (org.eclipse.jdt.ui.edit.text.java.select.enclosing)
+" is JDT/Java-editor only, unverified against DBeaver's SQL editor.
 
 desc <leader>f find / format / new
 map <leader>fe <action>(org.eclipse.ui.navigate.showInQuickMenu)
@@ -306,6 +310,9 @@ map <leader>ag <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showV
 map <leader>ah <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.team.ui.GenericHistoryView))
 map <leader>ao <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.databaseOutput))
 map <leader>ap <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.projectExplorer))
+" aP only opens the Problems VIEW. aI (ideameow's InspectCode, run a
+" project-wide batch inspection) is declined, not guessed: no Eclipse action
+" id for triggering the run itself is verified anywhere in this catalogue.
 map <leader>aP <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.ui.views.ProblemView))
 map <leader>aq <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.jkiss.dbeaver.core.queryManager))
 map <leader>as <action>(org.eclipse.ui.views.showView(org.eclipse.ui.views.showView.viewId=org.eclipse.search.ui.views.SearchView))
