@@ -50,6 +50,42 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given caret inside parens when comma or dot with parens then performs same as r")
+    void parenAliasKeys() {
+        given("round pair", "foo (b<caret>ar baz) qux");
+        whenKeys(",(");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("round pair", "foo (b<caret>ar baz) qux");
+        whenKeys(",)");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("round pair", "foo (b<caret>ar baz) qux");
+        whenKeys(".(");
+        thenSelection("(bar baz)");
+        thenCaretAtSelectionStart();
+
+        given("round pair", "foo (b<caret>ar baz) qux");
+        whenKeys(".)");
+        thenSelection("(bar baz)");
+        thenCaretAtSelectionStart();
+
+        given("round pair", "foo (b<caret>ar baz) qux");
+        whenKeys("[(");
+        thenSelection("b");
+        thenCaretAtSelectionStart();
+
+        given("round pair", "foo (b<caret>ar baz) qux");
+        whenKeys("])");
+        thenSelection("ar baz");
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
     @DisplayName("given square and curly things then s and c select them")
     void squareAndCurly() {
         given("square", "a [b<caret> c] d");
@@ -59,6 +95,213 @@ class ThingsSpec extends SpecDsl {
         given("curly", "a {b<caret> c} d");
         whenKeys(".c");
         thenSelection("{b c}");
+    }
+
+    @Test
+    @DisplayName(
+            "given caret inside square brackets when comma or dot with square brackets then"
+                    + " performs same as s")
+    void squareAliasKeys() {
+        given("square pair", "foo [b<caret>ar baz] qux");
+        whenKeys(",[");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("square pair", "foo [b<caret>ar baz] qux");
+        whenKeys(",]");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("square pair", "foo [b<caret>ar baz] qux");
+        whenKeys(".[");
+        thenSelection("[bar baz]");
+        thenCaretAtSelectionStart();
+
+        given("square pair", "foo [b<caret>ar baz] qux");
+        whenKeys(".]");
+        thenSelection("[bar baz]");
+        thenCaretAtSelectionStart();
+
+        given("square pair", "foo [b<caret>ar baz] qux");
+        whenKeys("[[");
+        thenSelection("b");
+        thenCaretAtSelectionStart();
+
+        given("square pair", "foo [b<caret>ar baz] qux");
+        whenKeys("]]");
+        thenSelection("ar baz");
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
+    @DisplayName(
+            "given caret inside curly brackets when comma or dot with curly brackets then performs"
+                    + " same as c")
+    void curlyAliasKeys() {
+        given("curly pair", "foo {b<caret>ar baz} qux");
+        whenKeys(",{");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("curly pair", "foo {b<caret>ar baz} qux");
+        whenKeys(",}");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("curly pair", "foo {b<caret>ar baz} qux");
+        whenKeys(".{");
+        thenSelection("{bar baz}");
+        thenCaretAtSelectionStart();
+
+        given("curly pair", "foo {b<caret>ar baz} qux");
+        whenKeys(".}");
+        thenSelection("{bar baz}");
+        thenCaretAtSelectionStart();
+
+        given("curly pair", "foo {b<caret>ar baz} qux");
+        whenKeys("[{");
+        thenSelection("b");
+        thenCaretAtSelectionStart();
+
+        given("curly pair", "foo {b<caret>ar baz} qux");
+        whenKeys("]}");
+        thenSelection("ar baz");
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
+    @DisplayName(
+            "given angle pair when comma dot or a brackets then selects inner bounds start end")
+    void anglePair() {
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys(",a");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys(".a");
+        thenSelection("<bar baz>");
+        thenCaretAtSelectionStart();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys(",<");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys(",>");
+        thenSelection("bar baz");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys(".<");
+        thenSelection("<bar baz>");
+        thenCaretAtSelectionStart();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys(".>");
+        thenSelection("<bar baz>");
+        thenCaretAtSelectionStart();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys("[a");
+        thenSelection("b");
+        thenCaretAtSelectionStart();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys("]a");
+        thenSelection("ar baz");
+        thenCaretAtSelectionEnd();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys("[<");
+        thenSelection("b");
+        thenCaretAtSelectionStart();
+
+        given("angle pair", "foo <b<caret>ar baz> qux");
+        whenKeys("]>");
+        thenSelection("ar baz");
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
+    @DisplayName(
+            "given tag thing when comma t then selects between angle brackets and dot t selects the"
+                    + " whole tag")
+    void tagInnerAndBounds() {
+        given("tag", "foo <tag>con<caret>tent</tag> bar");
+        whenKeys(",t");
+        thenSelection("content");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        whenKeys(".t");
+        thenSelection("<tag>content</tag>");
+        thenCaretAtSelectionStart();
+    }
+
+    @Test
+    @DisplayName("given nested tags when comma t then innermost tag is selected")
+    void nestedTagsInnermost() {
+        given("nested tags", "<div><span>he<caret>llo</span></div>");
+        whenKeys(",t");
+        thenSelection("hello");
+        whenKeys(".t");
+        thenSelection("<span>hello</span>");
+    }
+
+    @Test
+    @DisplayName("given tag with attributes when comma t and dot t then tag is properly selected")
+    void tagWithAttributes() {
+        given("tag with attributes", "<tag class=\"foo\" attr='bar'>val<caret>ue</tag>");
+        whenKeys(",t");
+        thenSelection("value");
+        whenKeys(".t");
+        thenSelection("<tag class=\"foo\" attr='bar'>value</tag>");
+    }
+
+    @Test
+    @DisplayName(
+            "given tag with attribute containing angle bracket when comma t then inner is selected")
+    void tagWithAttributeContainingAngleBracket() {
+        given("tag with angle in attribute", "<tag attr=\"a > b\">inn<caret>er</tag>");
+        whenKeys(",t");
+        thenSelection("inner");
+        whenKeys(".t");
+        thenSelection("<tag attr=\"a > b\">inner</tag>");
+    }
+
+    @Test
+    @DisplayName("given caret on opening or closing tag when comma t then inner is selected")
+    void caretOnOpeningOrClosingTag() {
+        given("caret on open tag", "<<caret>div>hello</div>");
+        whenKeys(",t");
+        thenSelection("hello");
+
+        given("caret on close tag", "<div>hello</di<caret>v>");
+        whenKeys(",t");
+        thenSelection("hello");
+    }
+
+    @Test
+    @DisplayName("given open and close bracket t then selects to start and end of tag")
+    void tagBeginAndEnd() {
+        given("tag", "foo <tag>con<caret>tent</tag> bar");
+        whenKeys("[t");
+        thenSelection("con");
+        thenCaretAtSelectionStart();
+
+        given("tag", "foo <tag>con<caret>tent</tag> bar");
+        whenKeys("]t");
+        thenSelection("tent");
+        thenCaretAtSelectionEnd();
     }
 
     @Test
@@ -80,6 +323,54 @@ class ThingsSpec extends SpecDsl {
         thenSelection("hi there");
         whenKeys(".g");
         thenSelection("'hi there'");
+    }
+
+    @Test
+    @DisplayName(
+            "given single or double quotes when comma or dot with quote chars then performs same as"
+                    + " g")
+    void quoteAliasKeys() {
+        given("single quotes", "say 'hi th<caret>ere' now");
+        whenKeys(",'");
+        thenSelection("hi there");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("single quotes", "say 'hi th<caret>ere' now");
+        whenKeys(".'");
+        thenSelection("'hi there'");
+        thenCaretAtSelectionStart();
+
+        given("single quotes", "say 'hi th<caret>ere' now");
+        whenKeys("['");
+        thenSelection("hi th");
+        thenCaretAtSelectionStart();
+
+        given("single quotes", "say 'hi th<caret>ere' now");
+        whenKeys("]'");
+        thenSelection("ere");
+        thenCaretAtSelectionEnd();
+
+        given("double quotes", "say \"hi th<caret>ere\" now");
+        whenKeys(",\"");
+        thenSelection("hi there");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("double quotes", "say \"hi th<caret>ere\" now");
+        whenKeys(".\"");
+        thenSelection("\"hi there\"");
+        thenCaretAtSelectionStart();
+
+        given("double quotes", "say \"hi th<caret>ere\" now");
+        whenKeys("[\"");
+        thenSelection("hi th");
+        thenCaretAtSelectionStart();
+
+        given("double quotes", "say \"hi th<caret>ere\" now");
+        whenKeys("]\"");
+        thenSelection("ere");
+        thenCaretAtSelectionEnd();
     }
 
     @Test
@@ -154,6 +445,53 @@ class ThingsSpec extends SpecDsl {
         given("unterminated", "it'<caret>s fine");
         whenKeys(",g");
         thenNoSelection();
+    }
+
+    @Test
+    @DisplayName(
+            "given slash or question delimiters when comma or dot then selects inner and bounds")
+    void slashAndQuestionDelimiters() {
+        given("slash pair", "val regex = /foo\\/b<caret>ar/g");
+        whenKeys(",/");
+        thenSelection("foo\\/bar");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("slash pair", "val regex = /foo\\/b<caret>ar/g");
+        whenKeys("./");
+        thenSelection("/foo\\/bar/");
+        thenCaretAtSelectionStart();
+
+        given("slash pair", "val regex = /foo\\/b<caret>ar/g");
+        whenKeys("[/");
+        thenSelection("foo\\/b");
+        thenCaretAtSelectionStart();
+
+        given("slash pair", "val regex = /foo\\/b<caret>ar/g");
+        whenKeys("]/");
+        thenSelection("ar");
+        thenCaretAtSelectionEnd();
+
+        given("question pair", "pattern ?foo\\?b<caret>ar? flag");
+        whenKeys(",?");
+        thenSelection("foo\\?bar");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("question pair", "pattern ?foo\\?b<caret>ar? flag");
+        whenKeys(".?");
+        thenSelection("?foo\\?bar?");
+        thenCaretAtSelectionStart();
+
+        given("question pair", "pattern ?foo\\?b<caret>ar? flag");
+        whenKeys("[?");
+        thenSelection("foo\\?b");
+        thenCaretAtSelectionStart();
+
+        given("question pair", "pattern ?foo\\?b<caret>ar? flag");
+        whenKeys("]?");
+        thenSelection("ar");
+        thenCaretAtSelectionEnd();
     }
 
     @Test

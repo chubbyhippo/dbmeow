@@ -29,10 +29,14 @@ public final class WhichKey {
 
     public static final List<Row> THINGS =
             List.of(
-                    new Row("r", "round ( )"),
-                    new Row("s", "square [ ]"),
-                    new Row("c", "curly { }"),
-                    new Row("g", "string"),
+                    new Row("r, ()", "round ( )"),
+                    new Row("s, []", "square [ ]"),
+                    new Row("c, {}", "curly { }"),
+                    new Row("a, <>", "angle < >"),
+                    new Row("t", "tag"),
+                    new Row("g, '\"", "string"),
+                    new Row("/", "slash / /"),
+                    new Row("?", "question ? ?"),
                     new Row("e", "symbol"),
                     new Row("w", "window"),
                     new Row("b", "buffer"),
