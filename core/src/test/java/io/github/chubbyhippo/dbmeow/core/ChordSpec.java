@@ -142,7 +142,9 @@ class ChordSpec extends SpecDsl {
         assertEquals(
                 "org.eclipse.ui.edit.findPrevious", Chords.bindingFor(Chord.parse("C-r")).action());
         assertEquals("dbmeow.aceClick", Chords.bindingFor(Chord.parse("C-;")).action());
-        assertEquals("dbmeow.aceWindow", Chords.bindingFor(Chord.parse("M-;")).action());
+        assertEquals(
+                "org.jkiss.dbeaver.ui.editors.sql.comment.single",
+                Chords.bindingFor(Chord.parse("M-;")).action());
     }
 
     @Test

@@ -60,6 +60,7 @@ nmap D meow-backward-delete
 nmap e meow-next-word
 nmap E meow-next-symbol
 nmap f meow-find
+nmap F meow-find-expand
 nmap g meow-cancel-selection
 nmap G meow-grab
 nmap h meow-left
@@ -84,6 +85,7 @@ nmap R meow-swap-grab
 nmap s meow-kill
 nmap S avy-goto-char-timer
 nmap t meow-till
+nmap T meow-till-expand
 nmap u meow-undo
 nmap U meow-undo-in-selection
 nmap v meow-visit
@@ -431,10 +433,14 @@ cmap M-^ ms
 " org.eclipse.ui.edit.findPrevious is IWorkbenchActionDefinitionIds.FIND_PREVIOUS
 " (verified against the Eclipse Platform UI javadoc); findReplace is the same
 " Eclipse command already bound at SPC f i / SPC m s l / SPC s s. C-;
-" ace-click / M-; ace-window reuse the module commands the keypad's SPC SPC /
-" SPC w w already dispatch. M-y (PasteMultiple / clipboard-history) has no
-" Eclipse/DBeaver equivalent — declined, unlike netmeow's clipboard-history.
+" ace-click reuses the module command the keypad's SPC SPC already
+" dispatches. M-; used to be ace-window here too; comment.single is the
+" verified org.jkiss.dbeaver.ui.editors.sql.comment.single command id
+" (DBeaver's SQL-editor toggle-line-comment, plugin.xml-registered, Ctrl+/
+" by default) — ace-window is still reachable via SPC x o and SPC w w. M-y
+" (PasteMultiple / clipboard-history) has no Eclipse/DBeaver equivalent —
+" declined, unlike netmeow's clipboard-history.
 cmap C-s <action>(org.eclipse.ui.edit.findReplace)
 cmap C-r <action>(org.eclipse.ui.edit.findPrevious)
 cmap C-; <action>(dbmeow.aceClick)
-cmap M-; <action>(dbmeow.aceWindow)
+cmap M-; <action>(org.jkiss.dbeaver.ui.editors.sql.comment.single)

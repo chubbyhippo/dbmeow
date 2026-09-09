@@ -47,6 +47,8 @@ public final class Motions {
         commands.put("meow-goto-line", Motions::gotoLine);
         commands.put("meow-find", ctx -> ctx.state().pending = Pending.FIND);
         commands.put("meow-till", ctx -> ctx.state().pending = Pending.TILL);
+        commands.put("meow-find-expand", ctx -> ctx.state().pending = Pending.FIND_EXPAND);
+        commands.put("meow-till-expand", ctx -> ctx.state().pending = Pending.TILL_EXPAND);
         commands.put("forward-char", ctx -> charOrExpand(ctx, ctx.state().takeCount(1)));
         commands.put("backward-char", ctx -> charOrExpand(ctx, -ctx.state().takeCount(1)));
         commands.put(
@@ -384,6 +386,10 @@ public final class Motions {
     }
 
     public static void findTill(Ctx ctx, char ch, boolean till) {
+        findTill(ctx, ch, till, false);
+    }
+
+    public static void findTill(Ctx ctx, char ch, boolean till, boolean expand) {
         int count = ctx.state().takeCount(1);
         String text = ctx.port().getText();
         int caret = Selections.primary(ctx).active();
@@ -393,6 +399,13 @@ public final class Motions {
             return;
         }
         ctx.state().lastFind = ch;
-        Selections.select(ctx, till ? SelType.TILL : SelType.FIND, caret, target, false);
+        int mark = findExpandMark(ctx, caret, target, expand);
+        Selections.select(ctx, till ? SelType.TILL : SelType.FIND, mark, target, expand);
+    }
+
+    private static int findExpandMark(Ctx ctx, int mark, int pos, boolean expand) {
+        SelRange sel = Selections.primary(ctx);
+        if (!expand || !Selections.hasSelection(sel)) return mark;
+        return mark < pos ? sel.selStart() : sel.selEnd();
     }
 }

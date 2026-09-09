@@ -412,6 +412,7 @@ class RcSpec extends SpecDsl {
         m.put('e', "meow-next-word");
         m.put('E', "meow-next-symbol");
         m.put('f', "meow-find");
+        m.put('F', "meow-find-expand");
         m.put('g', "meow-cancel-selection");
         m.put('G', "meow-grab");
         m.put('h', "meow-left");
@@ -435,6 +436,7 @@ class RcSpec extends SpecDsl {
         m.put('R', "meow-swap-grab");
         m.put('s', "meow-kill");
         m.put('t', "meow-till");
+        m.put('T', "meow-till-expand");
         m.put('u', "meow-undo");
         m.put('U', "meow-undo-in-selection");
         m.put('v', "meow-visit");

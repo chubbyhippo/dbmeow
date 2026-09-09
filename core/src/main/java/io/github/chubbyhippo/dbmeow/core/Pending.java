@@ -20,6 +20,8 @@ package io.github.chubbyhippo.dbmeow.core;
 public enum Pending {
     FIND,
     TILL,
+    FIND_EXPAND,
+    TILL_EXPAND,
     INNER,
     BOUNDS,
     BEGIN,

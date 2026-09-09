@@ -106,6 +106,69 @@ class FindSearchSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName("given F with no active selection then it behaves like a fresh find")
+    void fUpperNoSelectionFreshFind() {
+        given("marker text", "<caret>abcXdef");
+        whenKeys("FX");
+        thenSelection("abcX");
+        thenSelType(SelType.FIND);
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
+    @DisplayName("given T with no active selection then it behaves like a fresh till")
+    void tUpperNoSelectionFreshTill() {
+        given("marker text", "<caret>abcXdef");
+        whenKeys("TX");
+        thenSelection("abc");
+        thenSelType(SelType.TILL);
+    }
+
+    @Test
+    @DisplayName("given w then F then the selection extends from the word start through the char")
+    void wThenFUpperExtends() {
+        given("comma separated", "w<caret>ord1, word2 word3");
+        whenKeys("w");
+        thenSelection("word1");
+        whenKeys("F3");
+        thenSelection("word1, word2 word3");
+        thenSelType(SelType.FIND);
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
+    @DisplayName("given w then T then the selection extends from the word start up to the char")
+    void wThenTUpperExtends() {
+        given("comma separated", "w<caret>ord1, word2 word3");
+        whenKeys("w");
+        thenSelection("word1");
+        whenKeys("T3");
+        thenSelection("word1, word2 word");
+        thenSelType(SelType.TILL);
+    }
+
+    @Test
+    @DisplayName(
+            "given w then a backward F inside the selection then the anchor snaps to the far (max) end")
+    void wThenBackwardFUpperSnapsToFarEnd() {
+        given("comma separated", "w<caret>ord1, word2 word3");
+        whenKeys("w");
+        thenSelection("word1");
+        whenKeys("-F1");
+        thenSelection("1");
+        thenSelType(SelType.FIND);
+    }
+
+    @Test
+    @DisplayName("given F when the char is absent then nothing changes")
+    void fUpperAbsentCharNoChange() {
+        given("plain", "<caret>hello");
+        whenKeys("FZ");
+        thenNoSelection();
+        thenCaretAt(0);
+    }
+
+    @Test
     @DisplayName("given w then n repeats the pushed word search forward (meow-search)")
     void wThenNSearchForward() {
         given("repeats", "<caret>foo bar foo baz foo");

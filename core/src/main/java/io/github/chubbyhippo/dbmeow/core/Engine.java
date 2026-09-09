@@ -122,6 +122,8 @@ public final class Engine {
         switch (p) {
             case FIND -> Motions.findTill(ctx, c, false);
             case TILL -> Motions.findTill(ctx, c, true);
+            case FIND_EXPAND -> Motions.findTill(ctx, c, false, true);
+            case TILL_EXPAND -> Motions.findTill(ctx, c, true, true);
             case INNER, BOUNDS, BEGIN, END -> Structures.thingSelect(ctx, p, c);
         }
     }
