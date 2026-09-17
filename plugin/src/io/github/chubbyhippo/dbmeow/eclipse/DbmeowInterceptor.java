@@ -22,6 +22,7 @@ import io.github.chubbyhippo.dbmeow.core.Chord;
 import io.github.chubbyhippo.dbmeow.core.Chords;
 import io.github.chubbyhippo.dbmeow.core.Ctx;
 import io.github.chubbyhippo.dbmeow.core.Engine;
+import io.github.chubbyhippo.dbmeow.core.MeowMode;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.VerifyKeyListener;
@@ -34,6 +35,12 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
 
     private static final int AVY_TIMEOUT_MS = 250;
     private static final int MODIFIER_MASK = SWT.CTRL | SWT.ALT | SWT.COMMAND;
+
+    // ALT+; is also the Eclipse keybinding (scoped to the INSERT context) that reopens the
+    // keypad from INSERT — see plugin.xml and EclipseUi.applyChordContext. It must never be
+    // claimed as a chord while INSERT or KEYPAD, regardless of what it's bound to in
+    // .dbmeowrc, or that keybinding (and the SPC round-trip back to INSERT) would never fire.
+    private static final Chord KEYPAD_ENTRY_CHORD = Chord.parse("M-;");
 
     private static final Map<Character, String> KEY_NAMES =
             Map.ofEntries(
@@ -80,6 +87,7 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
 
         if ((event.stateMask & MODIFIER_MASK) != 0) {
             Chord chord = chordOf(event);
+            if (isKeypadEntryChord(chord)) return;
             if (!Chords.claims(ctx.state().mode, chord)) return;
             if (guarded(() -> Chords.dispatch(ctx, chord))) event.doit = false;
             return;
@@ -96,6 +104,13 @@ public final class DbmeowInterceptor implements VerifyKeyListener {
                 event.display.timerExec(AVY_TIMEOUT_MS, finishAvyInput);
             }
         }
+    }
+
+    private boolean isKeypadEntryChord(Chord chord) {
+        MeowMode mode = ctx.state().mode;
+        return (mode == MeowMode.INSERT || mode == MeowMode.KEYPAD)
+                && KEYPAD_ENTRY_CHORD != null
+                && KEYPAD_ENTRY_CHORD.equals(chord);
     }
 
     static Chord chordOf(VerifyEvent event) {

@@ -87,15 +87,28 @@ class ChordSpec extends SpecDsl {
     }
 
     @Test
-    @DisplayName(
-            "given NORMAL or MOTION then a mapped chord is claimed but INSERT and KEYPAD are not")
-    void claimsInNormalAndMotionOnly() {
+    @DisplayName("given every mode then a mapped chord is claimed")
+    void claimsInEveryMode() {
         givenRc("cmap C-f forward-char");
         assertTrue(Chords.claims(MeowMode.NORMAL, Chord.parse("C-f")));
         assertTrue(Chords.claims(MeowMode.MOTION, Chord.parse("C-f")));
-        assertFalse(Chords.claims(MeowMode.INSERT, Chord.parse("C-f")));
-        assertFalse(Chords.claims(MeowMode.KEYPAD, Chord.parse("C-f")));
+        assertTrue(Chords.claims(MeowMode.INSERT, Chord.parse("C-f")));
+        assertTrue(Chords.claims(MeowMode.KEYPAD, Chord.parse("C-f")));
         assertFalse(Chords.claims(MeowMode.NORMAL, Chord.parse("C-q")));
+    }
+
+    @Test
+    @DisplayName(
+            "given a chord fired mid-keypad-sequence then it cancels the pending prefix and runs")
+    void chordMidKeypadCancelsPrefixAndRuns() {
+        given("plain text", "<caret>hello");
+        givenRc("");
+        whenKeys(" ");
+        assertEquals(MeowMode.KEYPAD, state.mode);
+        assertTrue(Chords.dispatch(ctx(), Chord.parse("C-f")));
+        assertEquals(MeowMode.NORMAL, state.mode);
+        thenCaretAt(1);
+        assertEquals(0, state.keypad.length());
     }
 
     @Test

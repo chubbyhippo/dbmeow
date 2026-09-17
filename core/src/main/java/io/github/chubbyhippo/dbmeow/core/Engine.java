@@ -141,6 +141,7 @@ public final class Engine {
     }
 
     public static void runBinding(Ctx ctx, Rc.Binding b) {
+        if (ctx.state().mode == MeowMode.KEYPAD) Keypad.exit(ctx);
         dispatch(ctx, b);
         Map<Character, Rc.Binding> map = Rc.repeatMapFor(b);
         if (map == null) return;

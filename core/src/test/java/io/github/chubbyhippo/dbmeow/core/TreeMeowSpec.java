@@ -231,4 +231,78 @@ class TreeMeowSpec extends SpecDsl {
         assertFalse(TreeMeow.boundChars().contains('q'), "an ignored key leaves the shortcut set");
         assertTrue(TreeMeow.boundChars().contains('j'), "the other defaults stay");
     }
+
+    @Test
+    @DisplayName(
+            "given the bundled chord defaults then boundChords keeps the ones with a tree meaning")
+    void boundChordsKeepsTreeMeaningfulChords() {
+        givenRc("");
+        assertTrue(TreeMeow.boundChords().contains(Chord.parse("C-n")), "C-n has a tree analog");
+        assertTrue(TreeMeow.boundChords().contains(Chord.parse("C-p")), "C-p has a tree analog");
+        assertTrue(TreeMeow.boundChords().contains(Chord.parse("C-f")), "C-f has a tree analog");
+        assertTrue(TreeMeow.boundChords().contains(Chord.parse("C-b")), "C-b has a tree analog");
+        assertTrue(
+                TreeMeow.boundChords().contains(Chord.parse("C-s")), "action chords forward too");
+        assertFalse(
+                TreeMeow.boundChords().contains(Chord.parse("M-d")),
+                "kill-word has no tree meaning");
+    }
+
+    @Test
+    @DisplayName("given C-n and C-p chords on a tree then the selection moves like j and k")
+    void chordCnCpMoveLikeJAndK() {
+        givenRc("");
+        FakeTree tree = givenTree();
+        TreeMeow.dispatchChord(tree::run, Chord.parse("C-n"));
+        assertEquals("a", tree.selectedText());
+        TreeMeow.dispatchChord(tree::run, Chord.parse("C-n"));
+        assertEquals("b", tree.selectedText());
+        TreeMeow.dispatchChord(tree::run, Chord.parse("C-p"));
+        assertEquals("a", tree.selectedText());
+    }
+
+    @Test
+    @DisplayName(
+            "given C-f and C-b chords on a collapsed node then they expand and collapse like l and h")
+    void chordCfCbExpandAndCollapseLikeLAndH() {
+        givenRc("");
+        FakeTree tree = givenTree();
+        tree.select("a");
+        TreeMeow.dispatchChord(tree::run, Chord.parse("C-f"));
+        assertTrue(tree.isExpanded("a"), "C-f on a collapsed node expands it");
+        assertEquals("a", tree.selectedText());
+        TreeMeow.dispatchChord(tree::run, Chord.parse("C-f"));
+        assertEquals("a1", tree.selectedText());
+        TreeMeow.dispatchChord(tree::run, Chord.parse("C-b"));
+        assertEquals("a", tree.selectedText());
+    }
+
+    @Test
+    @DisplayName("given a chord with no tree meaning then dispatchChord is inert")
+    void chordWithNoTreeMeaningIsInert() {
+        givenRc("");
+        FakeTree tree = givenTree();
+        TreeMeow.dispatchChord(tree::run, Chord.parse("M-d"));
+        assertEquals("root", tree.selectedText(), "kill-word has no tree meaning");
+        assertTrue(tree.ran.isEmpty());
+    }
+
+    @Test
+    @DisplayName("given an unmapped chord then dispatchChord is a no-op")
+    void unmappedChordIsNoOp() {
+        givenRc("");
+        FakeTree tree = givenTree();
+        TreeMeow.dispatchChord(tree::run, Chord.parse("C-q"));
+        assertEquals("root", tree.selectedText());
+    }
+
+    @Test
+    @DisplayName("given a chord ignored via cmap then it drops out of boundChords")
+    void ignoredChordDropsOutOfBoundChords() {
+        givenRc("cmap C-n ignore");
+        assertFalse(
+                TreeMeow.boundChords().contains(Chord.parse("C-n")),
+                "ignored chords leave the set");
+        assertTrue(TreeMeow.boundChords().contains(Chord.parse("C-p")), "the other defaults stay");
+    }
 }

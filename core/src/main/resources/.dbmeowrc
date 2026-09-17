@@ -364,16 +364,21 @@ repeat tab , <action>(org.eclipse.ui.window.previousEditor)
 repeat replay z repeat
 
 " ============================================================================
-" The stock-Emacs chord layer — outside INSERT only
+" The stock-Emacs chord layer — every mode, mid-keypad included
 " ----------------------------------------------------------------------------
 " Every chord here is a real Emacs key, bound to the meow command that IS the
-" Emacs one. They fire in NORMAL and MOTION, never in INSERT, so Eclipse keeps
-" C-d / C-k / C-w / C-y while you type. Motions extend a live selection.
-" Either spelling works: the Emacs one (C-f, M-<) or the host one
-" (control F, alt shift COMMA).
+" Emacs one. They fire in NORMAL, MOTION, INSERT and even mid-keypad, just
+" like real Emacs; firing one while SPC is pending cancels that prefix
+" cleanly first (as if ESC had been pressed), then runs. Motions extend a
+" live selection. Either spelling works: the Emacs one (C-f, M-<) or the host
+" one (control F, alt shift COMMA).
 " These lines are the only source of truth: the key interceptor reads them at
 " every keystroke, so an unbound chord stays Eclipse's, and mapping one to
 " `ignore` hands it straight back — e.g. `cmap C-f ignore` restores Find.
+" ALT+; is the one exception: it never claims as a chord while INSERT or
+" KEYPAD, no matter what it's bound to below — that keystroke stays reserved
+" there for the Eclipse keybinding that reopens the keypad from INSERT (see
+" plugin.xml and EclipseUi.applyChordContext).
 " ============================================================================
 
 " point motions (C-f C-b C-n C-p C-a C-e, M-f M-b M-a M-e)

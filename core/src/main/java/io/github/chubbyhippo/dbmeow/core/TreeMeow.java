@@ -32,6 +32,13 @@ public final class TreeMeow {
                     "meow-left", "dbmeow.tree.collapse",
                     "meow-right", "dbmeow.tree.expand");
 
+    private static final Map<String, String> LIST_CHORD_MOTIONS =
+            Map.of(
+                    "next-line", "dbmeow.tree.focusDown",
+                    "previous-line", "dbmeow.tree.focusUp",
+                    "backward-char", "dbmeow.tree.collapse",
+                    "forward-char", "dbmeow.tree.expand");
+
     public static Set<Character> boundChars() {
         Set<Character> all = new HashSet<>(Rc.defaults().motion.keySet());
         all.addAll(Rc.cfg().motion.keySet());
@@ -40,6 +47,18 @@ public final class TreeMeow {
             Rc.Binding b = Rc.cfg().motion.get(c);
             if (b == null) b = Rc.defaults().motion.get(c);
             if (b != null && !"ignore".equals(b.command())) out.add(c);
+        }
+        return out;
+    }
+
+    public static Set<Chord> boundChords() {
+        Set<Chord> out = new HashSet<>();
+        for (Map.Entry<Chord, Rc.Binding> entry : Rc.chords().entrySet()) {
+            Rc.Binding b = entry.getValue();
+            if (b.action() != null
+                    || (b.command() != null && LIST_CHORD_MOTIONS.containsKey(b.command()))) {
+                out.add(entry.getKey());
+            }
         }
         return out;
     }
@@ -64,6 +83,19 @@ public final class TreeMeow {
         if (b.keys() == null || depth >= Engine.MAX_REPLAY_DEPTH) return;
         for (char k : b.keys().toCharArray()) {
             dispatch(run, k, noremap || !b.recursive(), depth + 1);
+        }
+    }
+
+    public static void dispatchChord(Consumer<String> run, Chord chord) {
+        Rc.Binding b = Chords.bindingFor(chord);
+        if (b == null) return;
+        if (b.action() != null) {
+            run.accept(b.action());
+            return;
+        }
+        if (b.command() != null) {
+            String listCommand = LIST_CHORD_MOTIONS.get(b.command());
+            if (listCommand != null) run.accept(listCommand);
         }
     }
 }
