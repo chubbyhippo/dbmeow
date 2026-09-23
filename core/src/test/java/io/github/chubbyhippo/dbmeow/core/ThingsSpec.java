@@ -495,6 +495,23 @@ class ThingsSpec extends SpecDsl {
     }
 
     @Test
+    @DisplayName(
+            "given a url with a double slash when comma slash then selects between the surrounding slashes")
+    void urlWithDoubleSlash() {
+        given("url with double slash", "http://mav<caret>en.apache.org/POM/4.0.0");
+        whenKeys(",/");
+        thenSelection("maven.apache.org");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+
+        given("url with double slash", "http://maven.apache.org/PO<caret>M/4.0.0");
+        whenKeys(",/");
+        thenSelection("POM");
+        thenSelType(SelType.TRANSIENT);
+        thenCaretAtSelectionEnd();
+    }
+
+    @Test
     @DisplayName("given a symbol thing when comma e then the symbol is selected")
     void symbolThing() {
         given("symbol", "f<caret>oo_bar baz");

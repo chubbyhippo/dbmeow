@@ -112,7 +112,7 @@ public final class Motions {
         else moveChar(ctx, dx);
     }
 
-    private static void lineOrExpand(Ctx ctx, int dy) {
+    static void lineOrExpand(Ctx ctx, int dy) {
         if (Selections.hasSelection(Selections.primary(ctx))) moveExpand(ctx, 0, dy);
         else moveLine(ctx, dy);
     }
@@ -200,7 +200,9 @@ public final class Motions {
                     "meow-next-expand",
                     "meow-prev-expand",
                     "next-line",
-                    "previous-line");
+                    "previous-line",
+                    View.SCROLL_UP_COMMAND,
+                    View.SCROLL_DOWN_COMMAND);
 
     private static boolean charSelActive(Ctx ctx) {
         return ctx.state().selType == SelType.CHAR

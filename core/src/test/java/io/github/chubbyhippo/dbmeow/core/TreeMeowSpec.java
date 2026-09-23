@@ -246,6 +246,12 @@ class TreeMeowSpec extends SpecDsl {
         assertFalse(
                 TreeMeow.boundChords().contains(Chord.parse("M-d")),
                 "kill-word has no tree meaning");
+        assertFalse(
+                TreeMeow.boundChords().contains(Chord.parse("C-v")),
+                "scroll-up-command has no tree meaning");
+        assertFalse(
+                TreeMeow.boundChords().contains(Chord.parse("M-v")),
+                "scroll-down-command has no tree meaning");
     }
 
     @Test

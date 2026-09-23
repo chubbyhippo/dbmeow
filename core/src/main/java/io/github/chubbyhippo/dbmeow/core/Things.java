@@ -90,38 +90,58 @@ public final class Things {
     }
 
     private static OffsetRange delimited(String text, int offset, char delim, boolean inner) {
-        int length = text.length();
-        int i = 0;
-        while (i < length) {
-            if (text.charAt(i) != delim) {
-                i++;
-                continue;
-            }
-            int open = i;
-            int closeEnd = delimitedEnd(text, i + 1, delim);
-            if (closeEnd >= 0 && offset >= open && offset < closeEnd) {
-                return inner
-                        ? new OffsetRange(open + 1, closeEnd - 1)
-                        : new OffsetRange(open, closeEnd);
-            }
-            i = closeEnd < 0 ? open + 1 : closeEnd;
-        }
-        return null;
+        int lineStart = lineStartBefore(text, offset);
+        int lineEnd = lineEndAfter(text, offset);
+        int open = scanBackwardToDelim(text, offset - 1, lineStart, delim);
+        if (open < 0) return null;
+        int close = scanForwardToDelim(text, Math.max(offset, open + 1), lineEnd, delim);
+        if (close < 0) return null;
+        return inner ? new OffsetRange(open + 1, close) : new OffsetRange(open, close + 1);
     }
 
-    private static int delimitedEnd(String text, int contentStart, char delim) {
-        int length = text.length();
-        int j = contentStart;
-        while (j < length && text.charAt(j) != '\n') {
+    private static int lineStartBefore(String text, int offset) {
+        int i = offset - 1;
+        while (i >= 0 && text.charAt(i) != '\n') i--;
+        return i + 1;
+    }
+
+    private static int lineEndAfter(String text, int offset) {
+        int i = offset;
+        while (i < text.length() && text.charAt(i) != '\n') i++;
+        return i;
+    }
+
+    private static int scanForwardToDelim(String text, int start, int end, char delim) {
+        int j = start;
+        while (j < end) {
             char ch = text.charAt(j);
             if (ch == '\\') {
                 j += 2;
                 continue;
             }
-            if (ch == delim) return j + 1;
+            if (ch == delim) return j;
             j++;
         }
         return -1;
+    }
+
+    private static int scanBackwardToDelim(String text, int start, int lineStart, char delim) {
+        int i = start;
+        while (i >= lineStart) {
+            if (text.charAt(i) == delim && !isEscapedAt(text, i, lineStart)) return i;
+            i--;
+        }
+        return -1;
+    }
+
+    private static boolean isEscapedAt(String text, int index, int lineStart) {
+        int count = 0;
+        int j = index - 1;
+        while (j >= lineStart && text.charAt(j) == '\\') {
+            count++;
+            j--;
+        }
+        return (count & 1) == 1;
     }
 
     private record OpenTag(String name, int openStart, int contentStart) {}

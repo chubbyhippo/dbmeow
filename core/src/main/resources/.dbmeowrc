@@ -427,6 +427,13 @@ cmap C-g meow-cancel-selection
 " restarting whenever the previous command differs).
 cmap C-l recenter-top-bottom
 
+" C-v scroll-up-command / M-v scroll-down-command: real Emacs page motions —
+" they move the caret forward/backward by one screenful (minus a 2-line
+" overlap) rather than only scrolling the viewport, and extend an active
+" selection instead of replacing it, like every other point motion here.
+cmap C-v scroll-up-command
+cmap M-v scroll-down-command
+
 cmap M-m back-to-indentation
 cmap C-o open-line
 cmap M-\ delete-horizontal-space

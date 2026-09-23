@@ -142,7 +142,9 @@ class ChordSpec extends SpecDsl {
         assertEquals("downcase-word", Chords.bindingFor(Chord.parse("M-l")).target());
         assertEquals("capitalize-word", Chords.bindingFor(Chord.parse("M-c")).target());
         assertEquals("kill-word", Chords.bindingFor(Chord.parse("M-d")).target());
-        assertEquals(36, Rc.chords().size());
+        assertEquals("scroll-up-command", Chords.bindingFor(Chord.parse("C-v")).target());
+        assertEquals("scroll-down-command", Chords.bindingFor(Chord.parse("M-v")).target());
+        assertEquals(38, Rc.chords().size());
     }
 
     @Test
@@ -187,7 +189,7 @@ class ChordSpec extends SpecDsl {
     void homeIgnoreHandsChordBack() {
         givenRc("cmap C-f ignore");
         assertNull(Chords.bindingFor(Chord.parse("C-f")));
-        assertEquals(35, Rc.chords().size());
+        assertEquals(37, Rc.chords().size());
     }
 
     @Test

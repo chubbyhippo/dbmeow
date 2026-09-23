@@ -25,6 +25,10 @@ public final class View {
     private View() {}
 
     public static final String RECENTER_COMMAND = "recenter-top-bottom";
+    public static final String SCROLL_UP_COMMAND = "scroll-up-command";
+    public static final String SCROLL_DOWN_COMMAND = "scroll-down-command";
+
+    private static final int SCREEN_CONTEXT_LINES = 2;
 
     public static final List<RevealAt> RECENTER_POSITIONS =
             List.of(RevealAt.CENTER, RevealAt.TOP, RevealAt.BOTTOM);
@@ -37,6 +41,15 @@ public final class View {
         return RECENTER_COMMAND.equals(previousCommand) ? phase + 1 : 0;
     }
 
+    public static int pageLineCount(Ctx ctx) {
+        EditorPort.LineRange visible = ctx.port().visibleLineRange();
+        int count =
+                visible != null
+                        ? visible.last() - visible.first() + 1
+                        : Text.lineCount(ctx.port().getText());
+        return Math.max(1, count - SCREEN_CONTEXT_LINES);
+    }
+
     static final Map<String, MeowCommand> commands = new LinkedHashMap<>();
 
     static {
@@ -47,6 +60,18 @@ public final class View {
                     state.recenterPhase = nextRecenterPhase(state.lastCommand, state.recenterPhase);
                     state.lastCommand = RECENTER_COMMAND;
                     ctx.ui().revealCaret(recenterPosition(state.recenterPhase));
+                });
+        commands.put(
+                SCROLL_UP_COMMAND,
+                ctx -> {
+                    Motions.lineOrExpand(ctx, pageLineCount(ctx) * ctx.state().takeCount(1));
+                    ctx.state().lastCommand = SCROLL_UP_COMMAND;
+                });
+        commands.put(
+                SCROLL_DOWN_COMMAND,
+                ctx -> {
+                    Motions.lineOrExpand(ctx, -pageLineCount(ctx) * ctx.state().takeCount(1));
+                    ctx.state().lastCommand = SCROLL_DOWN_COMMAND;
                 });
     }
 }
